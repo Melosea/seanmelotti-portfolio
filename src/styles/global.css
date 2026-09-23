@@ -1,0 +1,377 @@
+@import 'tailwindcss';
+
+/* ============================================================================
+   DESIGN TOKENS — single source of truth for the whole site.
+   Light, technical-clean. Precise type, generous whitespace, hairline borders,
+   one restrained accent. Components consume these tokens, either as Tailwind
+   utilities generated from @theme or as var(--token) directly.
+   ========================================================================= */
+
+@theme {
+  /* --- Color: neutral ink scale (very slightly cool) --------------------- */
+  --color-canvas: #ffffff;
+  --color-surface: #fafafb;
+  --color-surface-sunken: #f5f6f7;
+
+  --color-ink-950: #0a0b0d; /* display headings */
+  --color-ink-900: #16181c; /* headings */
+  --color-ink-700: #33373e; /* strong body */
+  --color-ink-500: #5c626c; /* body */
+  --color-ink-400: #7c838e; /* muted / meta */
+  --color-ink-300: #a3a9b3; /* placeholder */
+
+  /* --- Color: hairlines and borders -------------------------------------- */
+  --color-line: #e8eaed; /* default hairline */
+  --color-line-strong: #d8dbe0; /* hover / emphasis hairline */
+  --color-line-subtle: #f0f1f3; /* inner dividers */
+
+  /* --- Color: accent (restrained technical indigo-blue) ------------------- */
+  --color-accent: #2f56d9;
+  --color-accent-hover: #2545b4;
+  --color-accent-soft: #eef1fd; /* tinted surface */
+  --color-accent-line: #d6ddfa;
+
+  /* --- Color: semantic status (build status pills) ------------------------ */
+  --color-status-done: #147a53;
+  --color-status-done-soft: #e8f5ef;
+  --color-status-wip: #9a5b06;
+  --color-status-wip-soft: #fdf3e4;
+
+  /* --- Typography -------------------------------------------------------- */
+  --font-sans:
+    "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono:
+    "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, SFMono-Regular,
+    Menlo, Consolas, monospace;
+
+  /* Modular scale; display steps get tighter tracking and leading. */
+  --text-2xs: 0.6875rem; /* 11px — mono eyebrows */
+  --text-2xs--line-height: 1rem;
+  --text-2xs--letter-spacing: 0.08em;
+
+  --text-xs: 0.75rem; /* 12px */
+  --text-xs--line-height: 1.125rem;
+
+  --text-sm: 0.875rem; /* 14px */
+  --text-sm--line-height: 1.4286;
+
+  --text-base: 1rem; /* 16px */
+  --text-base--line-height: 1.65;
+
+  --text-lg: 1.125rem; /* 18px */
+  --text-lg--line-height: 1.6;
+
+  --text-xl: 1.3125rem; /* 21px */
+  --text-xl--line-height: 1.5;
+  --text-xl--letter-spacing: -0.008em;
+
+  --text-2xl: 1.625rem; /* 26px */
+  --text-2xl--line-height: 1.32;
+  --text-2xl--letter-spacing: -0.014em;
+
+  --text-3xl: 2rem; /* 32px */
+  --text-3xl--line-height: 1.22;
+  --text-3xl--letter-spacing: -0.02em;
+
+  --text-4xl: 2.5rem; /* 40px */
+  --text-4xl--line-height: 1.14;
+  --text-4xl--letter-spacing: -0.024em;
+
+  --text-5xl: 3.25rem; /* 52px */
+  --text-5xl--line-height: 1.06;
+  --text-5xl--letter-spacing: -0.028em;
+
+  --text-6xl: 4rem; /* 64px */
+  --text-6xl--line-height: 1.02;
+  --text-6xl--letter-spacing: -0.032em;
+
+  /* --- Radii ------------------------------------------------------------- */
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+
+  /* --- Elevation (barely-there; hairlines do the structural work) --------- */
+  --shadow-xs: 0 1px 2px 0 rgb(16 18 22 / 0.04);
+  --shadow-sm: 0 1px 3px 0 rgb(16 18 22 / 0.05), 0 1px 2px -1px rgb(16 18 22 / 0.04);
+  --shadow-md: 0 6px 16px -6px rgb(16 18 22 / 0.09), 0 2px 5px -2px rgb(16 18 22 / 0.05);
+  --shadow-lg: 0 18px 40px -16px rgb(16 18 22 / 0.14);
+
+  /* --- Motion ------------------------------------------------------------ */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Layout tokens that don't map to a Tailwind theme namespace but are still
+   part of the same system. Consumed via var() in component styles. */
+:root {
+  --container-max: 72rem; /* 1152px content ceiling */
+  --container-narrow: 46rem; /* 736px prose ceiling */
+  --container-gutter: 1.25rem; /* 375px-safe side gutter */
+  --header-height: 3.75rem;
+  --section-gap: 4.5rem;
+  --section-gap-lg: 7rem;
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --container-gutter: 2rem;
+    --header-height: 4rem;
+    --section-gap: 6rem;
+  }
+}
+
+@media (min-width: 80rem) {
+  :root {
+    --container-gutter: 2.5rem;
+  }
+}
+
+/* ============================================================================
+   BASE
+   ========================================================================= */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--color-line);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--header-height) + 1rem);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink-500);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: 1.65;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--color-ink-900);
+    font-weight: 560;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+
+  ::selection {
+    background-color: var(--color-accent-soft);
+    color: var(--color-ink-900);
+  }
+
+  img,
+  svg,
+  video {
+    display: block;
+    max-width: 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ============================================================================
+   COMPONENT PRIMITIVES — token-driven, reused across pages.
+   ========================================================================= */
+
+@layer components {
+  /* --- Layout ------------------------------------------------------------ */
+  .container-page {
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--container-gutter);
+  }
+
+  .container-narrow {
+    width: 100%;
+    max-width: var(--container-narrow);
+    margin-inline: auto;
+    padding-inline: var(--container-gutter);
+  }
+
+  .section {
+    padding-block: var(--section-gap);
+  }
+
+  /* --- Eyebrow / mono label ---------------------------------------------- */
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    line-height: var(--text-2xs--line-height);
+    letter-spacing: var(--text-2xs--letter-spacing);
+    text-transform: uppercase;
+    color: var(--color-ink-400);
+  }
+
+  /* --- Buttons ----------------------------------------------------------- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 2.625rem;
+    padding-inline: 1.125rem;
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    font-size: var(--text-sm);
+    font-weight: 540;
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 0.18s var(--ease-out-quint),
+      border-color 0.18s var(--ease-out-quint),
+      color 0.18s var(--ease-out-quint),
+      box-shadow 0.18s var(--ease-out-quint);
+  }
+
+  .btn-primary {
+    background-color: var(--color-accent);
+    color: #ffffff;
+    box-shadow: var(--shadow-xs);
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-accent-hover);
+  }
+
+  .btn-secondary {
+    background-color: var(--color-canvas);
+    color: var(--color-ink-900);
+    border-color: var(--color-line-strong);
+    box-shadow: var(--shadow-xs);
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-surface);
+    border-color: var(--color-ink-300);
+  }
+
+  /* --- Text link --------------------------------------------------------- */
+  .link-accent {
+    color: var(--color-accent);
+    font-weight: 500;
+    transition: color 0.18s var(--ease-out-quint);
+  }
+
+  .link-accent:hover {
+    color: var(--color-accent-hover);
+  }
+
+  /* --- Tag / pill -------------------------------------------------------- */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    height: 1.5rem;
+    padding-inline: 0.5rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-surface);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: 0.02em;
+    color: var(--color-ink-400);
+  }
+
+  /* --- Card -------------------------------------------------------------- */
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-canvas);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition:
+      border-color 0.2s var(--ease-out-quint),
+      box-shadow 0.2s var(--ease-out-quint),
+      transform 0.2s var(--ease-out-quint);
+  }
+
+  .card:hover {
+    border-color: var(--color-line-strong);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  /* --- Hairline rule ----------------------------------------------------- */
+  .hairline {
+    border: 0;
+    border-top: 1px solid var(--color-line);
+  }
+
+  /* --- Skip link --------------------------------------------------------- */
+  .skip-link {
+    position: absolute;
+    left: 0.75rem;
+    top: 0.75rem;
+    z-index: 100;
+    padding: 0.5rem 0.875rem;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-md);
+    background-color: var(--color-canvas);
+    color: var(--color-ink-900);
+    font-size: var(--text-sm);
+    font-weight: 540;
+    box-shadow: var(--shadow-md);
+    transform: translateY(calc(-100% - 1.5rem));
+    transition: transform 0.18s var(--ease-out-quint);
+  }
+
+  .skip-link:focus-visible {
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================================
+   UTILITIES
+   ========================================================================= */
+
+/* Faint technical grid, used behind the hero. */
+@utility grid-hairline {
+  background-image:
+    linear-gradient(to right, var(--color-line-subtle) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-line-subtle) 1px, transparent 1px);
+  background-size: 4rem 4rem;
+}
