@@ -9,9 +9,15 @@ interface Props {
   tags?: string[];
   /** Vehicle line shown as the mono eyebrow above the title. */
   vehicle?: string;
+  /** Pre-formatted date (e.g. "Aug 2026"), appended to the eyebrow line. */
+  dateLabel?: string;
   status?: 'complete' | 'in-progress' | 'planned';
-  /** Destination for the card link. Omitted while project pages don't exist yet. */
+  /** Destination for the card link. A card without one renders as a plain article. */
   href?: string;
+  /** Larger cover + title, used for the lead card in the featured grid. */
+  prominent?: boolean;
+  /** Skip lazy-loading for cards that sit in the first viewport. */
+  eager?: boolean;
 }
 
 const {
@@ -21,8 +27,11 @@ const {
   imageAlt,
   tags = [],
   vehicle,
+  dateLabel,
   status,
   href,
+  prominent = false,
+  eager = false,
 } = Astro.props;
 
 const STATUS_LABEL = {
@@ -32,25 +41,35 @@ const STATUS_LABEL = {
 } as const;
 
 const STATUS_CLASS = {
-  complete: 'text-[var(--color-status-done)] bg-[var(--color-status-done-soft)]',
-  'in-progress': 'text-[var(--color-status-wip)] bg-[var(--color-status-wip-soft)]',
-  planned: 'text-ink-400 bg-surface-sunken',
+  complete: 'status-pill-complete',
+  'in-progress': 'status-pill-progress',
+  planned: 'status-pill-planned',
 } as const;
 
 const Wrapper = href ? 'a' : 'div';
 ---
 
-<article class="card h-full w-full">
+<article class:list={['card', 'h-full', 'w-full', href && 'card-interactive']}>
   <Wrapper
     href={href}
     class="flex h-full flex-col focus-visible:outline-none"
-    aria-label={href ? `${title} — view project` : undefined}
+    aria-label={href ? `${title} — read the write-up` : undefined}
   >
-    <div class="relative aspect-[16/10] overflow-hidden border-b border-line bg-surface-sunken">
+    <div
+      class:list={[
+        'card-media relative overflow-hidden border-b border-line bg-surface-sunken',
+        // The lead card is stretched to match the stacked pair beside it, so on
+        // large screens its cover fills the slack instead of leaving a dead gap
+        // above the CTA.
+        prominent
+          ? 'aspect-[16/9] lg:aspect-auto lg:min-h-[22rem] lg:flex-1'
+          : 'aspect-[16/10]',
+      ]}
+    >
       <img
         src={image}
         alt={imageAlt}
-        loading="lazy"
+        loading={eager ? 'eager' : 'lazy'}
         decoding="async"
         width="800"
         height="500"
@@ -58,19 +77,35 @@ const Wrapper = href ? 'a' : 'div';
       />
       {
         status && (
-          <span
-            class={`absolute top-3 left-3 inline-flex h-6 items-center rounded-sm px-2 font-mono text-2xs tracking-[0.02em] ${STATUS_CLASS[status]}`}
-          >
+          <span class:list={['status-pill', 'absolute', 'top-3', 'left-3', STATUS_CLASS[status]]}>
             {STATUS_LABEL[status]}
           </span>
         )
       }
     </div>
 
-    <div class="flex flex-1 flex-col p-5">
-      {vehicle && <p class="eyebrow">{vehicle}</p>}
-      <h3 class="mt-2 text-lg font-[560] tracking-[-0.011em] text-ink-900">{title}</h3>
-      <p class="mt-2 text-sm text-ink-500">{summary}</p>
+    <div
+      class:list={[
+        'flex flex-1 flex-col',
+        prominent ? 'p-6 md:p-7 lg:flex-none' : 'p-5',
+      ]}
+    >
+      {
+        (vehicle || dateLabel) && (
+          <p class="eyebrow">
+            {[vehicle, dateLabel].filter(Boolean).join(' · ')}
+          </p>
+        )
+      }
+      <h3
+        class:list={[
+          'mt-2 font-[560] tracking-[-0.014em] text-ink-900',
+          prominent ? 'text-2xl' : 'text-lg',
+        ]}
+      >
+        {title}
+      </h3>
+      <p class:list={['mt-2 text-ink-500', prominent ? 'text-base' : 'text-sm']}>{summary}</p>
 
       {
         tags.length > 0 && (
@@ -79,6 +114,25 @@ const Wrapper = href ? 'a' : 'div';
               <li class="tag">{tag}</li>
             ))}
           </ul>
+        )
+      }
+
+      {
+        href && (
+          <p class="card-cta mt-auto pt-5" aria-hidden="true">
+            View project
+            <svg
+              class="h-3.5 w-3.5"
+              viewBox="0 0 14 14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M2.5 7h9M8 3.5 11.5 7 8 10.5"></path>
+            </svg>
+          </p>
         )
       }
     </div>
