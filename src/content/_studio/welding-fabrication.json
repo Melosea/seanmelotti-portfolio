@@ -1,9 +1,9 @@
 {
   "slug": "welding-fabrication",
+  "type": "skill",
   "title": "Welding & Fabrication Projects",
   "summary": "MIG, TIG and stick welding across structural repairs, custom fabrications and chassis work — demonstrating range across material types and joint configurations.",
   "date": "2024-09-01",
-  "vehicle": "Various",
   "tags": [
     "Welding",
     "Fabrication",
@@ -11,91 +11,12 @@
     "TIG",
     "Sheet Metal"
   ],
+  "vehicle": "Various",
   "status": "complete",
   "featured": false,
   "draft": false,
-  "type": "skill",
   "heroFilename": null,
-  "specStrip": [],
   "seqOrder": [],
-  "photos": [
-    {
-      "filename": "welding-fabrication-001.jpg",
-      "caption": "",
-      "alt": "",
-      "destination": "unassigned"
-    },
-    {
-      "filename": "welding-fabrication-002.jpg",
-      "caption": "",
-      "alt": "",
-      "destination": "unassigned"
-    },
-    {
-      "filename": "welding-fabrication-003.jpg",
-      "caption": "",
-      "alt": "",
-      "destination": "unassigned"
-    },
-    {
-      "filename": "welding-fabrication-004.jpg",
-      "caption": "",
-      "alt": "",
-      "destination": "unassigned"
-    },
-    {
-      "filename": "welding-fabrication-005.jpg",
-      "caption": "",
-      "alt": "",
-      "destination": "unassigned"
-    },
-    {
-      "filename": "welding-fabrication-006.jpg",
-      "caption": "",
-      "alt": "",
-      "destination": "unassigned"
-    },
-    {
-      "filename": "welding-fabrication-007.jpg",
-      "caption": "",
-      "alt": "",
-      "destination": "unassigned"
-    },
-    {
-      "filename": "welding-fabrication-008.jpg",
-      "caption": "",
-      "alt": "",
-      "destination": "unassigned"
-    },
-    {
-      "filename": "welding-fabrication-009.jpg",
-      "caption": "",
-      "alt": "",
-      "destination": "unassigned"
-    },
-    {
-      "filename": "welding-fabrication-010.jpg",
-      "caption": "",
-      "alt": "",
-      "destination": "unassigned"
-    },
-    {
-      "filename": "welding-fabrication-011.jpg",
-      "caption": "",
-      "alt": "",
-      "destination": "unassigned"
-    },
-    {
-      "filename": "welding-fabrication-012.jpg",
-      "caption": "",
-      "alt": "",
-      "destination": "unassigned"
-    },
-    {
-      "filename": "welding-fabrication-013.jpg",
-      "caption": "",
-      "alt": "",
-      "destination": "unassigned"
-    }
-  ]
+  "specStrip": [],
+  "photos": []
 }

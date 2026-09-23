@@ -384,6 +384,8 @@
         // Add any saved photos that aren't on disk anymore (just skip them)
 
         state = {
+          // Spread saved first so metadata fields (tags, vehicle, date, type, etc.) are preserved
+          ...(saved ?? {}),
           slug,
           title: saved?.title ?? slugToTitle(slug),
           summary: saved?.summary ?? '',
@@ -424,6 +426,8 @@
         const missingAlt = state.photos.filter(p =>
           (p.destination === 'main' || p.destination === 'gallery') && !p.alt.trim()
         ).length;
+        const captionedCount = state.photos.filter(p => p.caption.trim()).length;
+        const totalCount = state.photos.length;
         const wordCount = countWords(state.summary);
         const warnClass = wordCount > 35 ? 'warn' : '';
         const seqOnTarget = seqCount >= 12 && seqCount <= 24;
@@ -436,6 +440,9 @@
             <div class="toolbar-sep"></div>
             <span class="seq-counter${seqOnTarget ? ' on-target' : ''}" id="seq-counter">
               Seq: ${seqCount} <span style="opacity:0.5">/ target 12–24</span>
+            </span>
+            <span class="seq-counter" id="captioned-counter" style="min-width:96px">
+              ${captionedCount} <span style="opacity:0.5">/ ${totalCount} captioned</span>
             </span>
             <span class="missing-alt-badge${missingAlt > 0 ? ' visible' : ''}" id="missing-alt-badge">
               ${missingAlt} missing alt
@@ -650,6 +657,7 @@
             if (field === 'caption') {
               const el = document.getElementById(`cap-count-${masterIdx}`);
               if (el) { const l = input.value.length; el.textContent = `${l}/90`; el.className = `char-count${l > 90 ? ' warn' : ''}`; }
+              updateCaptionedCounter();
             } else if (field === 'alt') {
               const el = document.getElementById(`alt-count-${masterIdx}`);
               if (el) { el.textContent = `${input.value.length}/125`; }
@@ -702,6 +710,14 @@
         if (badge) {
           badge.textContent = `${count} missing alt`;
           badge.classList.toggle('visible', count > 0);
+        }
+      }
+
+      function updateCaptionedCounter() {
+        const captioned = state.photos.filter(p => p.caption.trim()).length;
+        const el = document.getElementById('captioned-counter');
+        if (el) {
+          el.innerHTML = `${captioned} <span style="opacity:0.5">/ ${state.photos.length} captioned</span>`;
         }
       }
 
