@@ -24,6 +24,8 @@
         --green-soft: #e8f5ef;
         --warn: #7a4705;
         --warn-soft: #fdf3e4;
+        --red-soft: #3d1a1a;
+        --red: #f87171;
         --sans: "Inter Variable","Inter",system-ui,sans-serif;
         --mono: "JetBrains Mono Variable","JetBrains Mono",monospace;
         --header-h: 3.5rem;
@@ -31,7 +33,6 @@
 
       html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; }
 
-      /* ── Layout ── */
       .studio-layout {
         display: grid;
         grid-template-rows: var(--header-h) 1fr;
@@ -72,40 +73,23 @@
       .project-list { flex: 1; overflow-y: auto; padding: 0.5rem; }
 
       .project-btn {
-        display: block;
-        width: 100%;
-        text-align: left;
-        padding: 0.625rem 0.875rem;
-        border-radius: 6px;
-        border: 1px solid transparent;
-        background: transparent;
-        color: var(--text);
-        cursor: pointer;
-        font-size: 13px;
-        font-family: var(--sans);
-        transition: background 0.15s;
-        margin-bottom: 2px;
+        display: block; width: 100%; text-align: left;
+        padding: 0.625rem 0.875rem; border-radius: 6px;
+        border: 1px solid transparent; background: transparent;
+        color: var(--text); cursor: pointer; font-size: 13px;
+        font-family: var(--sans); transition: background 0.15s; margin-bottom: 2px;
       }
       .project-btn:hover { background: var(--surface2); }
       .project-btn.active { background: var(--accent-soft); border-color: var(--accent); color: #c7d3fa; }
       .project-btn .count { float: right; font-family: var(--mono); font-size: 11px; color: var(--muted); }
 
-      .studio-main {
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-      }
+      .studio-main { overflow-y: auto; display: flex; flex-direction: column; }
 
-      /* ── Toolbar ── */
       .toolbar {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
+        display: flex; align-items: center; gap: 0.75rem;
         padding: 0.75rem 1.25rem;
-        background: var(--surface);
-        border-bottom: 1px solid var(--border);
-        flex-shrink: 0;
-        flex-wrap: wrap;
+        background: var(--surface); border-bottom: 1px solid var(--border);
+        flex-shrink: 0; flex-wrap: wrap; position: sticky; top: 0; z-index: 10;
       }
 
       .toolbar-group { display: flex; align-items: center; gap: 0.5rem; }
@@ -122,7 +106,6 @@
       .btn:hover { background: #2a2d34; border-color: #444; }
       .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
       .btn-primary:hover { background: #2545b4; border-color: #2545b4; }
-      .btn-danger { background: #3d1a1a; border-color: #6b2828; color: #f87171; }
 
       .save-status {
         font-size: 11px; font-family: var(--mono); padding: 3px 8px;
@@ -132,25 +115,38 @@
       .save-status.unsaved { background: var(--warn-soft); color: var(--warn); }
       .save-status.saving { background: #1e2a3a; color: #60a5fa; }
 
-      /* ── Preview area ── */
+      .seq-counter {
+        font-size: 11px; font-family: var(--mono); padding: 3px 8px;
+        border-radius: 4px; background: var(--surface2); color: var(--muted);
+        white-space: nowrap;
+      }
+      .seq-counter.on-target { color: #4ade80; }
+
+      .missing-alt-badge {
+        font-size: 11px; font-family: var(--mono); padding: 3px 8px;
+        border-radius: 4px; background: var(--red-soft); color: var(--red);
+        white-space: nowrap; display: none;
+      }
+      .missing-alt-badge.visible { display: inline-block; }
+
       .preview-area {
-        flex: 1;
-        padding: 2rem 1.5rem;
-        max-width: 820px;
-        margin: 0 auto;
-        width: 100%;
+        flex: 1; padding: 2rem 1.5rem;
+        max-width: 860px; margin: 0 auto; width: 100%;
       }
 
-      /* Header field */
-      .header-field { margin-bottom: 2.5rem; }
+      .header-field { margin-bottom: 2rem; }
       .field-label {
         font-size: 10px; font-family: var(--mono); text-transform: uppercase;
         letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.375rem;
         display: flex; align-items: center; gap: 0.5rem;
       }
+      .char-count {
+        font-size: 10px; font-family: var(--mono); padding: 1px 6px; border-radius: 3px;
+        background: var(--surface2); color: var(--muted);
+      }
+      .char-count.warn { background: var(--warn-soft); color: var(--warn); }
       .word-count {
-        font-size: 10px; font-family: var(--mono);
-        padding: 1px 6px; border-radius: 3px;
+        font-size: 10px; font-family: var(--mono); padding: 1px 6px; border-radius: 3px;
         background: var(--surface2); color: var(--muted);
       }
       .word-count.warn { background: var(--warn-soft); color: var(--warn); }
@@ -160,8 +156,7 @@
         background: var(--surface2); border: 1px solid var(--border);
         border-radius: 6px; color: var(--text); font-size: 16px;
         font-family: var(--sans); font-weight: 560; line-height: 1.5;
-        resize: none; min-height: 3rem;
-        transition: border-color 0.15s;
+        resize: none; min-height: 3rem; transition: border-color 0.15s;
       }
       .header-input:focus { outline: none; border-color: var(--accent); }
 
@@ -169,120 +164,130 @@
       .photo-list { display: flex; flex-direction: column; gap: 0; }
 
       .photo-entry {
-        position: relative;
-        padding: 1.25rem 0;
+        position: relative; padding: 1.5rem 0;
         border-bottom: 1px solid var(--border);
       }
       .photo-entry:first-child { border-top: 1px solid var(--border); }
-      .photo-entry.dragging { opacity: 0.4; }
-      .photo-entry.drag-over { background: var(--accent-soft); border-radius: 6px; }
 
-      .photo-entry-inner {
-        display: flex;
-        flex-direction: column;
-        gap: 0.625rem;
-      }
+      .photo-entry-inner { display: flex; flex-direction: column; gap: 0.75rem; }
 
+      /* Top controls row */
       .photo-controls {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 0.375rem;
+        display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
       }
 
-      .drag-handle {
-        cursor: grab;
-        color: var(--muted);
-        padding: 4px;
-        border-radius: 4px;
-        border: none;
-        background: transparent;
-        font-size: 14px;
-        line-height: 1;
-        flex-shrink: 0;
-      }
-      .drag-handle:active { cursor: grabbing; }
-      .drag-handle:hover { background: var(--surface2); }
-
-      .order-badge {
+      .master-idx {
         font-family: var(--mono); font-size: 10px; color: var(--muted);
-        width: 28px; text-align: center;
+        min-width: 28px; text-align: center; flex-shrink: 0;
       }
 
-      .cover-btn {
+      /* Destination selector */
+      .dest-select {
+        font-size: 11px; font-family: var(--mono); text-transform: uppercase;
+        letter-spacing: 0.05em; padding: 2px 6px; border-radius: 4px;
+        border: 1px solid var(--border); background: var(--surface2);
+        color: var(--muted); cursor: pointer; appearance: none;
+        -webkit-appearance: none; min-width: 110px;
+      }
+      .dest-select:focus { outline: none; border-color: var(--accent); }
+      .dest-select.dest-main { border-color: var(--accent); color: #c7d3fa; background: var(--accent-soft); }
+      .dest-select.dest-gallery { border-color: #2d6b4a; color: #4ade80; background: #0d2a1d; }
+      .dest-select.dest-cut { border-color: #555; color: #555; }
+
+      /* Sequence position + up/down (only visible when dest=main) */
+      .seq-controls {
+        display: none; align-items: center; gap: 0.25rem;
+      }
+      .seq-controls.visible { display: flex; }
+      .seq-pos-badge {
+        font-family: var(--mono); font-size: 10px; color: #c7d3fa;
+        background: var(--accent-soft); border: 1px solid var(--accent);
+        padding: 1px 6px; border-radius: 3px; min-width: 36px; text-align: center;
+      }
+      .seq-btn {
+        width: 22px; height: 22px; border-radius: 3px;
+        border: 1px solid var(--border); background: var(--surface2);
+        color: var(--muted); cursor: pointer; font-size: 11px;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.1s;
+      }
+      .seq-btn:hover { background: #2a2d34; color: var(--text); }
+      .seq-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+      /* Hero radio */
+      .hero-label {
+        display: flex; align-items: center; gap: 0.25rem;
         font-size: 10px; font-family: var(--mono); text-transform: uppercase;
         letter-spacing: 0.06em; padding: 2px 7px; border-radius: 4px;
         border: 1px solid var(--border); background: transparent;
         color: var(--muted); cursor: pointer; transition: all 0.15s;
+        white-space: nowrap;
       }
-      .cover-btn.is-cover { background: #1a3a1a; border-color: #1f5c30; color: #4ade80; }
-      .cover-btn:not(.is-cover):hover { border-color: var(--muted); }
+      .hero-label input { display: none; }
+      .hero-label:has(input:checked) {
+        background: #1a3a1a; border-color: #1f5c30; color: #4ade80;
+      }
 
       .photo-filename { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-left: auto; }
 
+      /* Image wrapper */
       .photo-img-wrapper {
-        width: 100%;
-        background: var(--surface2);
-        border-radius: 6px;
-        overflow: hidden;
-        border: 1px solid var(--border);
+        width: 100%; background: var(--surface2); border-radius: 6px;
+        overflow: hidden; border: 1px solid var(--border);
       }
       .photo-img-wrapper img {
-        width: 100%;
-        height: auto;
-        display: block;
-        max-height: 600px;
-        object-fit: contain;
+        width: 100%; height: auto; display: block;
+        max-height: 520px; object-fit: contain;
       }
       .photo-img-wrapper .img-placeholder {
-        height: 200px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--muted);
-        font-size: 12px;
-        font-family: var(--mono);
+        height: 180px; display: flex; align-items: center;
+        justify-content: center; color: var(--muted);
+        font-size: 12px; font-family: var(--mono);
       }
 
-      .caption-input {
-        width: 100%;
-        padding: 0.5rem 0.75rem;
-        background: var(--surface2);
-        border: 1px solid var(--border);
-        border-radius: 5px;
-        color: var(--text);
-        font-size: 13px;
-        font-family: var(--sans);
-        line-height: 1.5;
+      /* Caption + alt inputs */
+      .caption-row { display: flex; flex-direction: column; gap: 0.375rem; }
+
+      .caption-field-label {
+        font-size: 10px; font-family: var(--mono); text-transform: uppercase;
+        letter-spacing: 0.06em; color: var(--muted);
+        display: flex; align-items: center; gap: 0.375rem;
+      }
+
+      .caption-input, .alt-input {
+        width: 100%; padding: 0.45rem 0.65rem;
+        background: var(--surface2); border: 1px solid var(--border);
+        border-radius: 5px; color: var(--text); font-size: 13px;
+        font-family: var(--sans); line-height: 1.5;
         transition: border-color 0.15s;
       }
-      .caption-input:focus { outline: none; border-color: var(--accent); }
-      .caption-input::placeholder { color: var(--muted); }
+      .caption-input:focus, .alt-input:focus { outline: none; border-color: var(--accent); }
+      .caption-input::placeholder, .alt-input::placeholder { color: var(--muted); }
+
+      .alt-missing-warn {
+        display: none; font-size: 10px; font-family: var(--mono);
+        color: var(--red); margin-top: 0.25rem;
+      }
+      .alt-missing-warn.visible { display: block; }
+
+      /* Greyed out when cut */
+      .photo-entry.dest-cut .photo-img-wrapper { opacity: 0.3; }
+      .photo-entry.dest-cut .caption-row { opacity: 0.4; pointer-events: none; }
 
       /* Empty state */
       .empty-state {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 0.75rem;
-        color: var(--muted);
-        font-size: 13px;
-        padding: 3rem;
-        text-align: center;
+        flex: 1; display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: 0.75rem; color: var(--muted); font-size: 13px;
+        padding: 3rem; text-align: center;
       }
       .empty-state h2 { font-size: 18px; color: var(--text); font-weight: 500; }
 
-      .loading {
-        text-align: center; padding: 3rem; color: var(--muted);
-        font-family: var(--mono); font-size: 12px;
-      }
+      .loading { text-align: center; padding: 3rem; color: var(--muted); font-family: var(--mono); font-size: 12px; }
     </style>
   </head>
   <body>
     <div class="studio-layout">
-      <!-- Header -->
       <header class="studio-header">
         <h1>Caption Studio</h1>
         <div id="toolbar" style="display:none" class="toolbar-group">
@@ -291,39 +296,37 @@
         </div>
       </header>
 
-      <!-- Sidebar: project list -->
       <aside class="studio-sidebar">
         <div class="studio-sidebar-header">Projects</div>
         <div class="project-list" id="project-list">
-          <div class="loading">Loading...</div>
+          <div class="loading">Loading…</div>
         </div>
       </aside>
 
-      <!-- Main: toolbar + preview -->
       <main class="studio-main" id="studio-main">
         <div class="empty-state" id="empty-state">
           <h2>Select a project</h2>
-          <p>Choose a project from the sidebar to start adding captions.</p>
+          <p>Choose a project from the sidebar to start editing captions.</p>
         </div>
       </main>
     </div>
 
     <script type="module">
-      // ─── State ─────────────────────────────────────────────────────────────
+      // ─── State ──────────────────────────────────────────────────────────────
+      // state.photos = master list, EXIF order (immutable sort)
+      // state.seqOrder = ordered array of filenames currently in main sequence
+      // state.heroFilename = filename of hero, or null
       let currentSlug = null;
-      let state = null; // { slug, title, summary, photos: [{filename, caption, isCover}] }
+      let state = null;
       let saveTimer = null;
       let isDirty = false;
 
-      // ─── DOM refs ──────────────────────────────────────────────────────────
       const projectList = document.getElementById('project-list');
       const studioMain = document.getElementById('studio-main');
       const emptyState = document.getElementById('empty-state');
       const toolbar = document.getElementById('toolbar');
-      const saveStatus = document.getElementById('save-status');
-      const btnExport = document.getElementById('btn-export');
 
-      // ─── API helpers ───────────────────────────────────────────────────────
+      // ─── API ────────────────────────────────────────────────────────────────
       async function apiGet(path) {
         const r = await fetch(`/api/studio${path}`);
         if (!r.ok) throw new Error(await r.text());
@@ -331,20 +334,19 @@
       }
       async function apiPost(path, body) {
         const r = await fetch(`/api/studio${path}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         });
         if (!r.ok) throw new Error(await r.text());
         return r.json();
       }
 
-      // ─── Load projects ─────────────────────────────────────────────────────
+      // ─── Load projects list ─────────────────────────────────────────────────
       async function loadProjects() {
         const { projects } = await apiGet('/projects');
         projectList.innerHTML = '';
-        if (projects.length === 0) {
-          projectList.innerHTML = '<div class="loading">No photo folders found.<br>Run scripts/prepare-photos.py first.</div>';
+        if (!projects.length) {
+          projectList.innerHTML = '<div class="loading">No photo folders found.</div>';
           return;
         }
         for (const p of projects) {
@@ -357,43 +359,51 @@
         }
       }
 
-      // ─── Load project ──────────────────────────────────────────────────────
+      // ─── Load project ───────────────────────────────────────────────────────
       async function loadProject(slug) {
         currentSlug = slug;
         document.querySelectorAll('.project-btn').forEach(b => b.classList.toggle('active', b.dataset.slug === slug));
-        studioMain.innerHTML = '<div class="loading">Loading...</div>';
+        studioMain.innerHTML = '<div class="loading">Loading…</div>';
         toolbar.style.display = '';
 
-        // Fetch photo list
-        const { photos: photoFiles, manifest } = await apiGet(`/photos/${slug}`);
+        const { photos: photoFiles } = await apiGet(`/photos/${slug}`);
 
-        // Try to load saved sidecar
         let saved = null;
         try { saved = await apiGet(`/sidecar/${slug}`); } catch {}
 
-        // Build state
+        // Build master list from disk order (EXIF-sorted filenames from API)
+        const masterPhotos = photoFiles.map(filename => {
+          const existing = saved?.photos?.find(p => p.filename === filename);
+          return {
+            filename,
+            caption: existing?.caption ?? '',
+            alt: existing?.alt ?? '',
+            destination: existing?.destination ?? 'unassigned',
+          };
+        });
+        // Add any saved photos that aren't on disk anymore (just skip them)
+
         state = {
           slug,
           title: saved?.title ?? slugToTitle(slug),
           summary: saved?.summary ?? '',
-          photos: photoFiles.map((filename, i) => {
-            const existing = saved?.photos?.find(p => p.filename === filename);
-            return existing ?? { filename, caption: '', isCover: i === 0 };
-          }),
+          heroFilename: saved?.heroFilename ?? null,
+          specStrip: saved?.specStrip ?? [],
+          photos: masterPhotos,
+          seqOrder: (saved?.seqOrder ?? []).filter(fn => masterPhotos.some(p => p.filename === fn)),
         };
 
-        // Respect saved photo order if it exists
-        if (saved?.photos) {
-          const ordered = [];
-          for (const sp of saved.photos) {
-            const found = state.photos.find(p => p.filename === sp.filename);
-            if (found) ordered.push(found);
+        // Ensure seqOrder only contains filenames currently marked as main
+        // (dest may have changed since last save)
+        state.seqOrder = state.seqOrder.filter(fn => {
+          const p = state.photos.find(p => p.filename === fn);
+          return p && p.destination === 'main';
+        });
+        // Append any main photos not in seqOrder
+        for (const p of state.photos) {
+          if (p.destination === 'main' && !state.seqOrder.includes(p.filename)) {
+            state.seqOrder.push(p.filename);
           }
-          // Append any new photos not in saved order
-          for (const p of state.photos) {
-            if (!ordered.find(o => o.filename === p.filename)) ordered.push(p);
-          }
-          state.photos = ordered;
         }
 
         isDirty = false;
@@ -405,19 +415,31 @@
         return slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
       }
 
-      // ─── Render studio ─────────────────────────────────────────────────────
+      // ─── Render studio ──────────────────────────────────────────────────────
       function renderStudio() {
         if (!state) return;
         emptyState.style.display = 'none';
 
+        const seqCount = state.seqOrder.length;
+        const missingAlt = state.photos.filter(p =>
+          (p.destination === 'main' || p.destination === 'gallery') && !p.alt.trim()
+        ).length;
         const wordCount = countWords(state.summary);
         const warnClass = wordCount > 35 ? 'warn' : '';
+        const seqOnTarget = seqCount >= 12 && seqCount <= 24;
 
         studioMain.innerHTML = `
           <div class="toolbar">
             <div class="toolbar-group">
               <span style="font-size:11px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">${state.slug}</span>
             </div>
+            <div class="toolbar-sep"></div>
+            <span class="seq-counter${seqOnTarget ? ' on-target' : ''}" id="seq-counter">
+              Seq: ${seqCount} <span style="opacity:0.5">/ target 12–24</span>
+            </span>
+            <span class="missing-alt-badge${missingAlt > 0 ? ' visible' : ''}" id="missing-alt-badge">
+              ${missingAlt} missing alt
+            </span>
             <div class="toolbar-sep"></div>
             <div class="toolbar-group">
               <button class="btn btn-primary" id="btn-export">Export MDX</button>
@@ -427,13 +449,11 @@
           <div class="preview-area">
             <div class="header-field">
               <div class="field-label">
-                Project Summary / Header
+                Summary / Header
                 <span class="word-count ${warnClass}" id="word-count">${wordCount}/35 words</span>
               </div>
               <textarea
-                class="header-input"
-                id="summary-input"
-                rows="3"
+                class="header-input" id="summary-input" rows="2"
                 placeholder="~30-word project summary for employers scanning fast…"
               >${escHtml(state.summary)}</textarea>
             </div>
@@ -444,125 +464,252 @@
           </div>
         `;
 
-        // Re-bind toolbar buttons
-        document.getElementById('btn-export')?.addEventListener('click', handleExport);
-
-        // Summary input
-        const summaryInput = document.getElementById('summary-input');
-        summaryInput.addEventListener('input', () => {
-          state.summary = summaryInput.value;
-          const wc = countWords(state.summary);
-          const wcEl = document.getElementById('word-count');
-          wcEl.textContent = `${wc}/35 words`;
-          wcEl.className = `word-count${wc > 35 ? ' warn' : ''}`;
-          markDirty();
-        });
-        summaryInput.addEventListener('keydown', e => { if (e.key === 'Tab') { e.preventDefault(); } });
-
-        // Caption inputs
-        document.querySelectorAll('.caption-input').forEach(input => {
-          input.addEventListener('input', () => {
-            const idx = parseInt(input.dataset.idx);
-            state.photos[idx].caption = input.value;
-            markDirty();
-          });
-        });
-
-        // Cover buttons
-        document.querySelectorAll('.cover-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const idx = parseInt(btn.dataset.idx);
-            state.photos.forEach((p, i) => { p.isCover = (i === idx); });
-            refreshCoverButtons();
-            markDirty();
-          });
-        });
-
-        // Drag reorder
-        setupDragReorder();
+        bindEvents();
       }
 
-      function renderPhotoEntry(photo, i) {
+      function renderPhotoEntry(photo, masterIdx) {
         const imgSrc = `/photos/${currentSlug}/${photo.filename}`;
-        const isCover = photo.isCover;
+        const seqPos = state.seqOrder.indexOf(photo.filename);
+        const isInSeq = seqPos >= 0;
+        const isHero = state.heroFilename === photo.filename;
+        const destClass = `dest-${photo.destination}`;
+        const captionLen = photo.caption.length;
+        const altLen = photo.alt.length;
+        const captionWarn = captionLen > 90 ? 'warn' : '';
+        const altMissing = (photo.destination === 'main' || photo.destination === 'gallery') && !photo.alt.trim();
+        const seqFirst = isInSeq && seqPos === 0;
+        const seqLast = isInSeq && seqPos === state.seqOrder.length - 1;
+
         return `
-          <div class="photo-entry" data-idx="${i}" draggable="true">
+          <div class="photo-entry ${destClass}" data-filename="${escHtml(photo.filename)}">
             <div class="photo-entry-inner">
               <div class="photo-controls">
-                <button class="drag-handle" title="Drag to reorder" aria-label="Drag to reorder">⠿</button>
-                <span class="order-badge">#${i+1}</span>
-                <button class="cover-btn${isCover ? ' is-cover' : ''}" data-idx="${i}">
-                  ${isCover ? '★ Cover' : '☆ Cover'}
-                </button>
+                <span class="master-idx">#${masterIdx + 1}</span>
+
+                <select class="dest-select ${destClass}" data-filename="${escHtml(photo.filename)}" aria-label="Destination">
+                  <option value="unassigned"${photo.destination === 'unassigned' ? ' selected' : ''}>Unassigned</option>
+                  <option value="main"${photo.destination === 'main' ? ' selected' : ''}>Main sequence</option>
+                  <option value="gallery"${photo.destination === 'gallery' ? ' selected' : ''}>Gallery</option>
+                  <option value="cut"${photo.destination === 'cut' ? ' selected' : ''}>Cut</option>
+                </select>
+
+                <div class="seq-controls${isInSeq ? ' visible' : ''}">
+                  <span class="seq-pos-badge">#${isInSeq ? seqPos + 1 : '—'}</span>
+                  <button class="seq-btn" data-action="seq-up" data-filename="${escHtml(photo.filename)}"
+                    ${seqFirst ? 'disabled' : ''} title="Move earlier in sequence">↑</button>
+                  <button class="seq-btn" data-action="seq-down" data-filename="${escHtml(photo.filename)}"
+                    ${seqLast ? 'disabled' : ''} title="Move later in sequence">↓</button>
+                </div>
+
+                <label class="hero-label" title="Set as hero image">
+                  <input type="radio" name="hero-radio" value="${escHtml(photo.filename)}"${isHero ? ' checked' : ''} />
+                  ${isHero ? '★ Hero' : '☆ Hero'}
+                </label>
+
                 <span class="photo-filename">${escHtml(photo.filename)}</span>
               </div>
+
               <div class="photo-img-wrapper">
-                <img src="${imgSrc}" alt="${escHtml(photo.caption || photo.filename)}"
-                     loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'img-placeholder\\'>Image not found</div>'" />
+                <img src="${imgSrc}" alt="${escHtml(photo.alt || photo.filename)}"
+                     loading="lazy"
+                     onerror="this.parentElement.innerHTML='<div class=\\'img-placeholder\\'>Image not found</div>'" />
               </div>
-              <input
-                class="caption-input"
-                type="text"
-                data-idx="${i}"
-                value="${escHtml(photo.caption)}"
-                placeholder="One-line caption…"
-                maxlength="200"
-              />
+
+              <div class="caption-row">
+                <div>
+                  <div class="caption-field-label">
+                    Caption
+                    <span class="char-count ${captionWarn}" id="cap-count-${masterIdx}">${captionLen}/90</span>
+                  </div>
+                  <input
+                    class="caption-input"
+                    type="text"
+                    data-filename="${escHtml(photo.filename)}"
+                    data-field="caption"
+                    value="${escHtml(photo.caption)}"
+                    placeholder="What's happening in this photo"
+                    maxlength="120"
+                    aria-label="Caption for ${escHtml(photo.filename)}"
+                  />
+                </div>
+                <div>
+                  <div class="caption-field-label">
+                    Alt text
+                    <span class="char-count" id="alt-count-${masterIdx}">${altLen}/125</span>
+                  </div>
+                  <input
+                    class="alt-input"
+                    type="text"
+                    data-filename="${escHtml(photo.filename)}"
+                    data-field="alt"
+                    value="${escHtml(photo.alt)}"
+                    placeholder="Literal description of what is visible"
+                    maxlength="150"
+                    aria-label="Alt text for ${escHtml(photo.filename)}"
+                  />
+                  <div class="alt-missing-warn${altMissing ? ' visible' : ''}">
+                    ⚠ Alt text required for export
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         `;
       }
 
-      function refreshCoverButtons() {
-        document.querySelectorAll('.cover-btn').forEach(btn => {
-          const idx = parseInt(btn.dataset.idx);
-          const isCover = state.photos[idx]?.isCover;
-          btn.className = `cover-btn${isCover ? ' is-cover' : ''}`;
-          btn.textContent = isCover ? '★ Cover' : '☆ Cover';
+      // ─── Bind all events (called after innerHTML write) ─────────────────────
+      function bindEvents() {
+        // Export button
+        document.getElementById('btn-export')?.addEventListener('click', handleExport);
+
+        // Summary
+        const summaryInput = document.getElementById('summary-input');
+        if (summaryInput) {
+          summaryInput.addEventListener('input', () => {
+            state.summary = summaryInput.value;
+            const wc = countWords(state.summary);
+            const wcEl = document.getElementById('word-count');
+            if (wcEl) { wcEl.textContent = `${wc}/35 words`; wcEl.className = `word-count${wc > 35 ? ' warn' : ''}`; }
+            markDirty();
+          });
+        }
+
+        // Destination dropdowns
+        document.querySelectorAll('.dest-select').forEach(sel => {
+          sel.addEventListener('change', () => {
+            const fn = sel.dataset.filename;
+            const newDest = sel.value;
+            const photo = state.photos.find(p => p.filename === fn);
+            if (!photo) return;
+            const oldDest = photo.destination;
+            photo.destination = newDest;
+
+            if (oldDest === 'main' && newDest !== 'main') {
+              state.seqOrder = state.seqOrder.filter(f => f !== fn);
+            }
+            if (newDest === 'main' && !state.seqOrder.includes(fn)) {
+              state.seqOrder.push(fn);
+            }
+
+            markDirty();
+            renderStudio(); // re-render for seq counter + styling
+          });
         });
-      }
 
-      // ─── Drag reorder ──────────────────────────────────────────────────────
-      function setupDragReorder() {
-        const list = document.getElementById('photo-list');
-        if (!list) return;
-        let dragSrc = null;
-
-        list.querySelectorAll('.photo-entry').forEach(entry => {
-          entry.addEventListener('dragstart', e => {
-            dragSrc = entry;
-            entry.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', entry.dataset.idx);
-          });
-          entry.addEventListener('dragend', () => {
-            entry.classList.remove('dragging');
-            list.querySelectorAll('.photo-entry').forEach(e => e.classList.remove('drag-over'));
-          });
-          entry.addEventListener('dragover', e => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            list.querySelectorAll('.photo-entry').forEach(e => e.classList.remove('drag-over'));
-            if (entry !== dragSrc) entry.classList.add('drag-over');
-          });
-          entry.addEventListener('drop', e => {
-            e.preventDefault();
-            if (!dragSrc || dragSrc === entry) return;
-            const fromIdx = parseInt(dragSrc.dataset.idx);
-            const toIdx = parseInt(entry.dataset.idx);
-            const moved = state.photos.splice(fromIdx, 1)[0];
-            state.photos.splice(toIdx, 0, moved);
+        // Up/down sequence buttons
+        document.querySelectorAll('[data-action="seq-up"]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const fn = btn.dataset.filename;
+            const idx = state.seqOrder.indexOf(fn);
+            if (idx <= 0) return;
+            [state.seqOrder[idx - 1], state.seqOrder[idx]] = [state.seqOrder[idx], state.seqOrder[idx - 1]];
             markDirty();
             renderStudio();
           });
         });
+        document.querySelectorAll('[data-action="seq-down"]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const fn = btn.dataset.filename;
+            const idx = state.seqOrder.indexOf(fn);
+            if (idx < 0 || idx >= state.seqOrder.length - 1) return;
+            [state.seqOrder[idx], state.seqOrder[idx + 1]] = [state.seqOrder[idx + 1], state.seqOrder[idx]];
+            markDirty();
+            renderStudio();
+          });
+        });
+
+        // Hero radio
+        document.querySelectorAll('input[name="hero-radio"]').forEach(radio => {
+          radio.addEventListener('change', () => {
+            if (radio.checked) {
+              state.heroFilename = radio.value;
+              markDirty();
+              // Update labels without full re-render
+              document.querySelectorAll('.hero-label').forEach(lbl => {
+                const r = lbl.querySelector('input');
+                lbl.lastChild.textContent = r?.checked ? '★ Hero' : '☆ Hero';
+              });
+            }
+          });
+        });
+
+        // Caption / alt inputs — delegate by field
+        const photoList = document.getElementById('photo-list');
+        if (photoList) {
+          photoList.addEventListener('input', e => {
+            const input = e.target;
+            if (!input.dataset.filename || !input.dataset.field) return;
+            const fn = input.dataset.filename;
+            const field = input.dataset.field;
+            const photo = state.photos.find(p => p.filename === fn);
+            if (!photo) return;
+            photo[field] = input.value;
+
+            // Update char counter inline
+            const masterIdx = state.photos.indexOf(photo);
+            if (field === 'caption') {
+              const el = document.getElementById(`cap-count-${masterIdx}`);
+              if (el) { const l = input.value.length; el.textContent = `${l}/90`; el.className = `char-count${l > 90 ? ' warn' : ''}`; }
+            } else if (field === 'alt') {
+              const el = document.getElementById(`alt-count-${masterIdx}`);
+              if (el) { el.textContent = `${input.value.length}/125`; }
+              // Toggle missing alt warning
+              const row = input.closest('.photo-entry');
+              const warn = row?.querySelector('.alt-missing-warn');
+              if (warn) {
+                const p = state.photos.find(p => p.filename === fn);
+                const needs = p && (p.destination === 'main' || p.destination === 'gallery');
+                warn.classList.toggle('visible', needs && !input.value.trim());
+              }
+              // Update global missing count
+              updateMissingAltBadge();
+            }
+
+            markDirty();
+          });
+
+          // Keyboard: tab from caption → alt → next photo's caption
+          photoList.addEventListener('keydown', e => {
+            if (e.key !== 'Tab' || e.shiftKey) return;
+            const input = e.target;
+            if (!input.dataset.filename || !input.dataset.field) return;
+            if (input.dataset.field === 'caption') {
+              e.preventDefault();
+              const fn = input.dataset.filename;
+              const row = input.closest('.photo-entry');
+              const altInput = row?.querySelector('.alt-input');
+              if (altInput) altInput.focus();
+            } else if (input.dataset.field === 'alt') {
+              e.preventDefault();
+              const fn = input.dataset.filename;
+              const masterIdx = state.photos.findIndex(p => p.filename === fn);
+              const nextIdx = masterIdx + 1;
+              if (nextIdx < state.photos.length) {
+                const nextFn = state.photos[nextIdx].filename;
+                const nextCaption = photoList.querySelector(`[data-filename="${nextFn}"][data-field="caption"]`);
+                if (nextCaption) nextCaption.focus();
+              }
+            }
+          });
+        }
       }
 
-      // ─── Save / autosave ───────────────────────────────────────────────────
+      function updateMissingAltBadge() {
+        const count = state.photos.filter(p =>
+          (p.destination === 'main' || p.destination === 'gallery') && !p.alt.trim()
+        ).length;
+        const badge = document.getElementById('missing-alt-badge');
+        if (badge) {
+          badge.textContent = `${count} missing alt`;
+          badge.classList.toggle('visible', count > 0);
+        }
+      }
+
+      // ─── Save / autosave ────────────────────────────────────────────────────
       function markDirty() {
         isDirty = true;
         setSaveStatus('unsaved');
-        if (saveTimer) clearTimeout(saveTimer);
+        clearTimeout(saveTimer);
         saveTimer = setTimeout(autoSave, 1500);
       }
 
@@ -586,48 +733,35 @@
         }
       }
 
-      // Save on window unload
       window.addEventListener('beforeunload', e => {
-        if (isDirty) {
-          autoSave();
-          e.preventDefault();
-          e.returnValue = '';
-        }
+        if (isDirty) { autoSave(); e.preventDefault(); e.returnValue = ''; }
       });
 
-      // ─── Export ────────────────────────────────────────────────────────────
+      // ─── Export ─────────────────────────────────────────────────────────────
       async function handleExport() {
         if (!state) return;
-        // Save first
         await autoSave();
         try {
           const r = await fetch('/api/studio/export', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ slug: state.slug }),
           });
           const data = await r.json();
-          if (data.ok) {
-            alert(`Exported to ${data.path}`);
-          } else {
-            alert(`Export failed: ${data.error}`);
-          }
-        } catch (e) {
-          // Fallback: instruct user to run CLI
+          if (data.ok) { alert(`Exported to ${data.path}`); }
+          else { alert(`Export failed: ${data.error}`); }
+        } catch {
           alert(`Save complete. Run:\n  node scripts/export-mdx.mjs ${state.slug}`);
         }
       }
 
-      // ─── Helpers ───────────────────────────────────────────────────────────
-      function countWords(s) {
-        return s.trim() ? s.trim().split(/\s+/).length : 0;
-      }
+      // ─── Helpers ────────────────────────────────────────────────────────────
+      function countWords(s) { return s.trim() ? s.trim().split(/\s+/).length : 0; }
 
       function escHtml(s) {
         return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
       }
 
-      // ─── Boot ──────────────────────────────────────────────────────────────
+      // ─── Boot ───────────────────────────────────────────────────────────────
       loadProjects();
     </script>
   </body>
