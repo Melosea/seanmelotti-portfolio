@@ -1,0 +1,45 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+---
+
+<BaseLayout
+  title="About"
+  description="Who Sean Melotti is, how he works, and what he builds."
+>
+  <PageHeader
+    eyebrow="About"
+    title="About Sean"
+    lede="Placeholder lede — a short paragraph on background, approach and the kind of work worth taking on."
+  />
+
+  <section class="section">
+    <div class="container-narrow">
+      <p class="text-lg text-ink-500">
+        Placeholder copy. This page gets the long-form version: how Sean got into
+        building, the shop setup, the tooling, and the standard every project is held to.
+      </p>
+
+      <hr class="hairline my-10" />
+
+      <dl class="grid grid-cols-1 gap-8 sm:grid-cols-2">
+        <div>
+          <dt class="eyebrow">Based in</dt>
+          <dd class="mt-2 text-ink-700">Placeholder location</dd>
+        </div>
+        <div>
+          <dt class="eyebrow">Focus</dt>
+          <dd class="mt-2 text-ink-700">Fabrication, restoration, custom builds</dd>
+        </div>
+        <div>
+          <dt class="eyebrow">Working since</dt>
+          <dd class="mt-2 text-ink-700">Placeholder year</dd>
+        </div>
+        <div>
+          <dt class="eyebrow">Available for</dt>
+          <dd class="mt-2 text-ink-700">Placeholder — commissions, consults, collaborations</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+</BaseLayout>
