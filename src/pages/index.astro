@@ -1,40 +1,40 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import BuildCard from '../components/BuildCard.astro';
+import ProjectCard from '../components/ProjectCard.astro';
 import { SITE } from '../consts';
 
 /**
- * Placeholder featured builds. Phase 2 replaces this array with a query against
- * the `builds` content collection and real cover photos from Sean's Drive folder.
+ * Placeholder featured projects. Phase 2 replaces this array with a query against
+ * the `projects` content collection and real cover photos from Sean's Drive folder.
  */
 const featured = [
   {
-    title: 'Placeholder Build One',
+    title: 'Placeholder Project One',
     vehicle: 'Vehicle / Year',
     summary:
-      'One or two lines on the scope of the build — what came in, what was changed, what came out.',
-    image: '/placeholders/build-01.svg',
-    imageAlt: 'Placeholder image for the first featured build',
+      'One or two lines on the scope of the project — what came in, what was changed, what came out.',
+    image: '/placeholders/project-01.svg',
+    imageAlt: 'Placeholder image for the first featured project',
     tags: ['Fabrication', 'Suspension'],
     status: 'complete' as const,
   },
   {
-    title: 'Placeholder Build Two',
+    title: 'Placeholder Project Two',
     vehicle: 'Vehicle / Year',
     summary:
-      'One or two lines on the scope of the build — what came in, what was changed, what came out.',
-    image: '/placeholders/build-02.svg',
-    imageAlt: 'Placeholder image for the second featured build',
+      'One or two lines on the scope of the project — what came in, what was changed, what came out.',
+    image: '/placeholders/project-02.svg',
+    imageAlt: 'Placeholder image for the second featured project',
     tags: ['Engine', 'Wiring'],
     status: 'in-progress' as const,
   },
   {
-    title: 'Placeholder Build Three',
+    title: 'Placeholder Project Three',
     vehicle: 'Vehicle / Year',
     summary:
-      'One or two lines on the scope of the build — what came in, what was changed, what came out.',
-    image: '/placeholders/build-03.svg',
-    imageAlt: 'Placeholder image for the third featured build',
+      'One or two lines on the scope of the project — what came in, what was changed, what came out.',
+    image: '/placeholders/project-03.svg',
+    imageAlt: 'Placeholder image for the third featured project',
     tags: ['Restoration', 'Paint'],
     status: 'complete' as const,
   },
@@ -52,39 +52,39 @@ const featured = [
     </div>
 
     <div class="container-page relative py-20 md:py-28 lg:py-32">
-      <p class="eyebrow">Builds &middot; Fabrication &middot; Restoration</p>
+      <p class="eyebrow">Projects &middot; Fabrication &middot; Restoration</p>
 
       <h1 class="mt-5 max-w-3xl text-5xl text-ink-950 md:text-6xl">Sean Melotti</h1>
 
       <!-- Placeholder positioning statement — Sean replaces this copy. -->
       <p class="mt-6 max-w-xl text-lg text-ink-500 md:text-xl">
-        Custom vehicle builds, fabrication and restoration — documented end to end, from
+        Custom vehicle projects, fabrication and restoration — documented end to end, from
         teardown to the last torque check.
       </p>
 
       <div class="mt-9 flex flex-wrap items-center gap-3">
-        <a href="/builds" class="btn btn-primary">View the builds</a>
+        <a href="/projects" class="btn btn-primary">View the projects</a>
         <a href="/contact" class="btn btn-secondary">Get in touch</a>
       </div>
     </div>
   </section>
 
-  <!-- Featured builds -->
-  <section class="section" aria-labelledby="featured-builds">
+  <!-- Featured projects -->
+  <section class="section" aria-labelledby="featured-projects">
     <div class="container-page">
       <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
           <p class="eyebrow">Selected work</p>
-          <h2 id="featured-builds" class="mt-3 text-3xl text-ink-950">Featured builds</h2>
+          <h2 id="featured-projects" class="mt-3 text-3xl text-ink-950">Featured projects</h2>
         </div>
-        <a href="/builds" class="link-accent text-sm">All builds &rarr;</a>
+        <a href="/projects" class="link-accent text-sm">All projects &rarr;</a>
       </div>
 
       <ul class="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {
-          featured.map((build) => (
+          featured.map((project) => (
             <li class="flex">
-              <BuildCard {...build} />
+              <ProjectCard {...project} />
             </li>
           ))
         }
@@ -99,7 +99,7 @@ const featured = [
         <div>
           <h2 class="text-2xl text-ink-950">Got a project in mind?</h2>
           <p class="mt-2 max-w-md text-ink-500">
-            Tell me what you're building and where it's stuck.
+            Tell me what you're working on and where it's stuck.
           </p>
         </div>
         <a href="/contact" class="btn btn-primary">Start a conversation</a>

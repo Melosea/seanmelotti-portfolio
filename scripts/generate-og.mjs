@@ -17,9 +17,9 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" 
   </g>
   <rect x="0" y="0" width="${W}" height="6" fill="#2f56d9"/>
   <g font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif">
-    <text x="96" y="268" font-size="30" letter-spacing="4" fill="#7c838e" font-family="Consolas, monospace">BUILDS &#183; FABRICATION &#183; RESTORATION</text>
+    <text x="96" y="268" font-size="30" letter-spacing="4" fill="#7c838e" font-family="Consolas, monospace">PROJECTS &#183; FABRICATION &#183; RESTORATION</text>
     <text x="92" y="374" font-size="92" font-weight="600" letter-spacing="-3" fill="#16181c">Sean Melotti</text>
-    <text x="96" y="432" font-size="32" fill="#5c626c">Custom vehicle builds, documented end to end.</text>
+    <text x="96" y="432" font-size="32" fill="#5c626c">Custom vehicle projects, documented end to end.</text>
   </g>
   <rect x="96" y="496" width="72" height="3" fill="#2f56d9"/>
   <text x="96" y="556" font-size="26" letter-spacing="2" fill="#a3a9b3" font-family="Consolas, monospace">seanmelotti.com</text>

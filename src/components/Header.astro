@@ -1,7 +1,7 @@
 ---
 import { NAV_ITEMS, SITE } from '../consts';
 
-/** Normalised current path so "/builds/" and "/builds" both mark Builds active. */
+/** Normalised current path so "/projects/" and "/projects" both mark Projects active. */
 const path = Astro.url.pathname.replace(/(.)\/$/, '$1');
 
 const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));

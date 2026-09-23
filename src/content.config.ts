@@ -2,7 +2,7 @@ import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
 
 /**
- * `builds` — one entry per vehicle build write-up.
+ * `projects` — one entry per vehicle project write-up.
  *
  * Phase 1 defines the schema only; there is a single placeholder entry to prove
  * the collection compiles. Phase 2 fills it with real write-ups and photos.
@@ -11,8 +11,8 @@ import { glob } from 'astro/loaders';
  * moving them into src/ and switching this field to Astro's `image()` helper so
  * covers get optimised and dimension-checked at build time.
  */
-const builds = defineCollection({
-  loader: glob({ base: './src/content/builds', pattern: '**/*.{md,mdx}' }),
+const projects = defineCollection({
+  loader: glob({ base: './src/content/projects', pattern: '**/*.{md,mdx}' }),
   schema: z.object({
     title: z.string(),
     summary: z.string(),
@@ -28,4 +28,4 @@ const builds = defineCollection({
   }),
 });
 
-export const collections = { builds };
+export const collections = { projects };

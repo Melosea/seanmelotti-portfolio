@@ -4,13 +4,13 @@ interface Props {
   summary: string;
   /** Cover image src. Placeholder SVGs today, real photos from Phase 2 on. */
   image: string;
-  /** Describe the build, not the file. Required so cards stay accessible. */
+  /** Describe the project, not the file. Required so cards stay accessible. */
   imageAlt: string;
   tags?: string[];
   /** Vehicle line shown as the mono eyebrow above the title. */
   vehicle?: string;
   status?: 'complete' | 'in-progress' | 'planned';
-  /** Destination for the card link. Omitted while build pages don't exist yet. */
+  /** Destination for the card link. Omitted while project pages don't exist yet. */
   href?: string;
 }
 
@@ -44,7 +44,7 @@ const Wrapper = href ? 'a' : 'div';
   <Wrapper
     href={href}
     class="flex h-full flex-col focus-visible:outline-none"
-    aria-label={href ? `${title} — view build` : undefined}
+    aria-label={href ? `${title} — view project` : undefined}
   >
     <div class="relative aspect-[16/10] overflow-hidden border-b border-line bg-surface-sunken">
       <img

@@ -1,43 +1,43 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import BuildCard from '../components/BuildCard.astro';
+import ProjectCard from '../components/ProjectCard.astro';
 import PageHeader from '../components/PageHeader.astro';
 
-// Phase 2 adds per-build detail pages; until then cards render without a link.
-const builds = (await getCollection('builds', ({ data }) => !data.draft)).sort(
+// Phase 2 adds per-project detail pages; until then cards render without a link.
+const projects = (await getCollection('projects', ({ data }) => !data.draft)).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
 );
 ---
 
 <BaseLayout
-  title="Builds"
-  description="Every build, documented — fabrication, engine work, restoration and the decisions behind each one."
+  title="Projects"
+  description="Every project, documented — fabrication, engine work, restoration and the decisions behind each one."
 >
   <PageHeader
     eyebrow="Portfolio"
-    title="Builds"
+    title="Projects"
     lede="Every project, documented from teardown to final fitment. Write-ups and photography are being added as the archive is digitised."
   />
 
   <section class="section">
     <div class="container-page">
       {
-        builds.length > 0 ? (
+        projects.length > 0 ? (
           <ul class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {builds.map((build) => (
+            {projects.map((project) => (
               <li class="flex">
-                <BuildCard
-                  title={build.data.title}
-                  summary={build.data.summary}
-                  image={build.data.coverImage}
+                <ProjectCard
+                  title={project.data.title}
+                  summary={project.data.summary}
+                  image={project.data.coverImage}
                   imageAlt={
-                    build.data.coverImageAlt ??
-                    `Cover photo for ${build.data.title} (${build.data.vehicle})`
+                    project.data.coverImageAlt ??
+                    `Cover photo for ${project.data.title} (${project.data.vehicle})`
                   }
-                  tags={build.data.tags}
-                  vehicle={build.data.vehicle}
-                  status={build.data.status}
+                  tags={project.data.tags}
+                  vehicle={project.data.vehicle}
+                  status={project.data.status}
                 />
               </li>
             ))}
@@ -46,7 +46,7 @@ const builds = (await getCollection('builds', ({ data }) => !data.draft)).sort(
           <div class="rounded-lg border border-dashed border-line-strong bg-surface px-6 py-16 text-center">
             <p class="eyebrow">Nothing here yet</p>
             <p class="mx-auto mt-3 max-w-sm text-ink-500">
-              Build write-ups are on the way. Check back shortly, or get in touch in the
+              Project write-ups are on the way. Check back shortly, or get in touch in the
               meantime.
             </p>
             <a href="/contact" class="btn btn-secondary mt-6">
