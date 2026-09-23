@@ -26,7 +26,8 @@ src/
 ├── content/projects/  Project write-ups (MDX)
 ├── layouts/
 │   └── BaseLayout.astro  <head> + SEO, skip link, header/main/footer
-├── pages/             index, projects, about, contact, 404
+├── pages/             index, about, contact, 404
+│   └── projects/      index (full archive) + [...slug] (write-up page)
 ├── styles/
 │   └── global.css     ALL design tokens + component primitives
 ├── content.config.ts  `projects` collection schema
@@ -50,8 +51,15 @@ introduce a one-off colour, font size or radius — add it there first.
 - **Layout** — `--container-max` (72rem), `--container-narrow` (46rem) and a
   responsive `--container-gutter`, consumed by the `.container-page` /
   `.container-narrow` classes.
-- **Primitives** — `.btn` (`.btn-primary` / `.btn-secondary`), `.tag`, `.card`,
-  `.eyebrow`, `.link-accent`, `.hairline`, `.skip-link`, `.section`.
+- **Primitives** — `.btn` (`.btn-primary` / `.btn-secondary`), `.tag`, `.card`
+  (+ `.card-interactive`, `.card-media`, `.card-cta`), `.status-pill`,
+  `.hero-eyebrow`, `.contact-card`, `.cta-bubble`, `.prose-page`, `.eyebrow`,
+  `.link-accent`, `.hairline`, `.skip-link`, `.section`.
+- **Accessibility floors** — the contact email and phone are the site's most
+  important characters: Inter, 2rem on desktop and never below 1.25rem, ink-950
+  at 19.7:1, underlined at rest, in a target ~100px tall. Status pills clear
+  6.4:1 on their own background, and the contact CTA bubble uses
+  `--color-accent-hover` (8.1:1 on white) rather than `--color-accent` (6.1:1).
 
 Tokens declared inside `@theme` also generate Tailwind utilities, so
 `text-ink-500`, `border-line` and `bg-accent-soft` all resolve to the same values.
@@ -70,9 +78,12 @@ Tokens declared inside `@theme` also generate Tailwind utilities, so
 | `tags`          | string[]                                   |
 | `vehicle`       | string                                     |
 | `status`        | `complete` \| `in-progress` \| `planned`   |
+| `featured`      | boolean, default `false` — surfaced on the homepage |
 | `draft`         | boolean, default `false` — hidden from listings |
 
-Add a project by dropping an `.mdx` file into `src/content/projects/`.
+Add a project by dropping an `.mdx` file into `src/content/projects/`. `/projects`
+lists every non-draft entry newest-first on `date` and is the full archive; the
+homepage shows the three most recent `featured` entries.
 
 ## Assets
 
