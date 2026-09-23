@@ -31,7 +31,7 @@
   --color-accent-soft: #eef1fd; /* tinted surface */
   --color-accent-line: #d6ddfa;
 
-  /* --- Color: semantic status (build status pills) ------------------------ */
+  /* --- Color: semantic status (project status pills) ------------------------ */
   --color-status-done: #147a53;
   --color-status-done-soft: #e8f5ef;
   --color-status-wip: #9a5b06;
@@ -333,6 +333,15 @@
     border-color: var(--color-line-strong);
     box-shadow: var(--shadow-md);
     transform: translateY(-2px);
+  }
+
+  /* The global reduced-motion rule only zeroes the duration, which leaves the
+     lift as an instant jump. Drop the movement outright — the border and shadow
+     still signal the hover. Lives here because @layer components outranks base. */
+  @media (prefers-reduced-motion: reduce) {
+    .card:hover {
+      transform: none;
+    }
   }
 
   /* --- Hairline rule ----------------------------------------------------- */
