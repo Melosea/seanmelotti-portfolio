@@ -1,50 +1,53 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHeader from '../components/PageHeader.astro';
-import { CONTACT_METHODS, SOCIAL_LINKS } from '../consts';
+import { CONTACT_METHODS } from '../consts';
+
+/**
+ * Legibility is the whole point of this page. The email and phone are rendered
+ * at headline size in the body typeface, in ink-950 (about 20:1 on canvas),
+ * underlined at rest, inside an 88px-tall bordered target — no hover required
+ * to discover the link, nothing truncated or hidden behind an icon.
+ * The phone gets wide tracking so digits are easy to read one at a time.
+ */
+const isPhone = (href: string) => href.startsWith('tel:');
 ---
 
 <BaseLayout
   title="Contact"
-  description="Get in touch with Sean Melotti about a project, a commission or a collaboration."
+  description="Get in touch with Sean Melotti about a project, a commission or a collaboration. Email seancmelotti@gmail.com or call 443-480-8889."
 >
   <PageHeader
     eyebrow="Contact"
-    title="Get in touch"
-    lede="Placeholder lede — tell people what to send and what to expect back."
+    title="Let's have a conversation"
+    lede="Email or phone — both reach me directly. A few lines on the project, the scope and your timeline is plenty to start."
   />
 
   <section class="section">
-    <div class="container-narrow">
-      <p class="text-lg text-ink-500">
-        Placeholder copy. The quickest route is email — a few lines on the vehicle, the
-        scope and your timeline is plenty to start. Phone works too if it's easier.
-      </p>
-
-      <ul class="mt-10 divide-y divide-line border-y border-line">
+    <div class="container-page">
+      <ul class="flex max-w-2xl flex-col gap-4">
         {
-          [...CONTACT_METHODS, ...SOCIAL_LINKS.map((s) => ({ ...s, value: s.handle }))].map(
-            (method) => (
-              <li>
-                <a
-                  href={method.href}
-                  class="group flex flex-col gap-1 py-4 transition-colors hover:text-ink-900 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
-                  rel={method.href.startsWith('http') ? 'me noopener' : undefined}
+          CONTACT_METHODS.map((method) => (
+            <li>
+              <a href={method.href} class="contact-card">
+                <span class="contact-card-label">{method.label}</span>
+                <span
+                  class:list={[
+                    'contact-card-value',
+                    isPhone(method.href) && 'contact-card-value-phone',
+                  ]}
                 >
-                  <span class="text-sm font-[540] text-ink-900">{method.label}</span>
-                  <span class="font-mono text-xs break-all text-ink-400 transition-colors group-hover:text-accent">
-                    {method.value}
-                  </span>
-                </a>
-              </li>
-            ),
-          )
+                  {method.value}
+                </span>
+              </a>
+            </li>
+          ))
         }
       </ul>
 
-      <p class="mt-8 text-sm text-ink-400">
-        A contact form may land in a later phase — for now email and phone are the
-        fastest way through.
+      <p class="mt-10 max-w-2xl text-base text-ink-500">
+        Email is usually quickest. If you would rather talk it through, call or text the
+        number above — daytime is best.
       </p>
     </div>
   </section>
