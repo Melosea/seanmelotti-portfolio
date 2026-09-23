@@ -1,48 +1,45 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import { SITE } from '../consts';
 
 /**
- * Placeholder featured projects. Phase 2 replaces this array with a query against
- * the `projects` content collection and real cover photos from Sean's Drive folder.
+ * Sean's positioning statement, verbatim. Non-breaking spaces glue each
+ * separator to the word before it so a stray hyphen never starts a line when
+ * the statement wraps on a narrow screen.
  */
-const featured = [
-  {
-    title: 'Placeholder Project One',
-    vehicle: 'Vehicle / Year',
-    summary:
-      'One or two lines on the scope of the project — what came in, what was changed, what came out.',
-    image: '/placeholders/project-01.svg',
-    imageAlt: 'Placeholder image for the first featured project',
-    tags: ['Fabrication', 'Suspension'],
-    status: 'complete' as const,
-  },
-  {
-    title: 'Placeholder Project Two',
-    vehicle: 'Vehicle / Year',
-    summary:
-      'One or two lines on the scope of the project — what came in, what was changed, what came out.',
-    image: '/placeholders/project-02.svg',
-    imageAlt: 'Placeholder image for the second featured project',
-    tags: ['Engine', 'Wiring'],
-    status: 'in-progress' as const,
-  },
-  {
-    title: 'Placeholder Project Three',
-    vehicle: 'Vehicle / Year',
-    summary:
-      'One or two lines on the scope of the project — what came in, what was changed, what came out.',
-    image: '/placeholders/project-03.svg',
-    imageAlt: 'Placeholder image for the third featured project',
-    tags: ['Restoration', 'Paint'],
-    status: 'complete' as const,
-  },
-];
+const POSITIONING =
+  'Mechanical Restoration - Fabrication - 3D Modeling and Additive Manufacturing';
+
+/**
+ * The homepage shows the `featured` subset only — /projects is the full
+ * archive. Newest first, capped at three so the grid layout holds.
+ */
+const featured = (
+  await getCollection('projects', ({ data }) => data.featured && !data.draft)
+)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
+
+const [lead, ...rest] = featured;
+
+const cardProps = (project: (typeof featured)[number]) => ({
+  title: project.data.title,
+  summary: project.data.summary,
+  image: project.data.coverImage,
+  imageAlt:
+    project.data.coverImageAlt ??
+    `Cover photo for ${project.data.title} (${project.data.vehicle})`,
+  tags: project.data.tags,
+  vehicle: project.data.vehicle,
+  status: project.data.status,
+  href: `/projects/${project.id}`,
+});
 ---
 
 <BaseLayout title={SITE.name} description={SITE.description}>
-  <!-- Hero -->
+  <!-- Hero — deliberately compact so the project grid reaches the first viewport. -->
   <section class="relative overflow-hidden border-b border-line">
     <div class="grid-hairline absolute inset-0 opacity-70" aria-hidden="true"></div>
     <div
@@ -51,58 +48,75 @@ const featured = [
     >
     </div>
 
-    <div class="container-page relative py-20 md:py-28 lg:py-32">
-      <p class="eyebrow">Projects &middot; Fabrication &middot; Restoration</p>
+    <div class="container-page relative py-8 md:py-14">
+      <p class="hero-eyebrow">{POSITIONING}</p>
 
-      <h1 class="mt-5 max-w-3xl text-5xl text-ink-950 md:text-6xl">Sean Melotti</h1>
+      <h1 class="mt-4 max-w-3xl text-4xl text-ink-950 md:text-5xl">Sean Melotti</h1>
 
-      <!-- Placeholder positioning statement — Sean replaces this copy. -->
-      <p class="mt-6 max-w-xl text-lg text-ink-500 md:text-xl">
-        Custom vehicle projects, fabrication and restoration — documented end to end, from
-        teardown to the last torque check.
+      <p class="mt-4 max-w-xl text-base text-ink-500 md:text-lg">
+        Documented end to end — from teardown to the last torque check.
       </p>
 
-      <div class="mt-9 flex flex-wrap items-center gap-3">
-        <a href="/projects" class="btn btn-primary">View the projects</a>
+      <div class="mt-6 flex flex-wrap items-center gap-3">
+        <a href="/projects" class="btn btn-primary">View projects</a>
         <a href="/contact" class="btn btn-secondary">Get in touch</a>
       </div>
     </div>
   </section>
 
-  <!-- Featured projects -->
-  <section class="section" aria-labelledby="featured-projects">
+  <!-- Featured projects — the primary thing to interact with on this page. -->
+  <section class="pt-8 pb-14 md:pt-12 md:pb-20" aria-labelledby="featured-projects">
     <div class="container-page">
-      <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
-        <div>
-          <p class="eyebrow">Selected work</p>
-          <h2 id="featured-projects" class="mt-3 text-3xl text-ink-950">Featured projects</h2>
-        </div>
+      <div class="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+        <h2 id="featured-projects" class="text-2xl text-ink-950 md:text-3xl">
+          Featured projects
+        </h2>
         <a href="/projects" class="link-accent text-sm">All projects &rarr;</a>
       </div>
 
-      <ul class="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {
-          featured.map((project) => (
-            <li class="flex">
-              <ProjectCard {...project} />
+      {
+        lead && (
+          <ul class="mt-5 grid grid-cols-1 gap-5 md:mt-6 lg:grid-cols-12">
+            <li class="flex lg:col-span-7">
+              <ProjectCard {...cardProps(lead)} prominent eager />
             </li>
-          ))
-        }
-      </ul>
+            {rest.length > 0 && (
+              <li class="lg:col-span-5">
+                <ul class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:h-full lg:grid-cols-1">
+                  {rest.map((project) => (
+                    <li class="flex">
+                      <ProjectCard {...cardProps(project)} eager />
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            )}
+          </ul>
+        )
+      }
     </div>
   </section>
 
-  <!-- Closing CTA -->
+  <!-- Closing CTA — one warm contact bubble, nothing else. -->
   <section class="border-t border-line bg-surface">
-    <div class="container-page py-16 md:py-20">
-      <div class="flex flex-col items-start gap-6 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 class="text-2xl text-ink-950">Got a project in mind?</h2>
-          <p class="mt-2 max-w-md text-ink-500">
-            Tell me what you're working on and where it's stuck.
-          </p>
-        </div>
-        <a href="/contact" class="btn btn-primary">Start a conversation</a>
+    <div class="container-page py-14 md:py-16">
+      <div class="flex flex-col items-center gap-5 text-center">
+        <a href="/contact" class="cta-bubble">
+          Let&rsquo;s have a conversation
+          <svg
+            class="h-4 w-4"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 8h9.5M9 4.5 12.5 8 9 11.5"></path>
+          </svg>
+        </a>
+        <p class="text-sm text-ink-400">Email or phone — both go straight to me.</p>
       </div>
     </div>
   </section>
