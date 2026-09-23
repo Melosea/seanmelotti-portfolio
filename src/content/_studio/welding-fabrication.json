@@ -1,0 +1,85 @@
+{
+  "slug": "welding-fabrication",
+  "title": "Welding & Fabrication Projects",
+  "summary": "MIG, TIG and stick welding across structural repairs, custom fabrications and chassis work \u2014 demonstrating range across material types and joint configurations.",
+  "date": "2024-09-01",
+  "vehicle": "Various",
+  "tags": [
+    "Welding",
+    "Fabrication",
+    "MIG",
+    "TIG",
+    "Sheet Metal"
+  ],
+  "status": "complete",
+  "featured": false,
+  "draft": false,
+  "type": "skill",
+  "photos": [
+    {
+      "filename": "welding-fabrication-001.jpg",
+      "caption": "",
+      "isCover": true
+    },
+    {
+      "filename": "welding-fabrication-002.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "welding-fabrication-003.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "welding-fabrication-004.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "welding-fabrication-005.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "welding-fabrication-006.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "welding-fabrication-007.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "welding-fabrication-008.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "welding-fabrication-009.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "welding-fabrication-010.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "welding-fabrication-011.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "welding-fabrication-012.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "welding-fabrication-013.jpg",
+      "caption": "",
+      "isCover": false
+    }
+  ]
+}

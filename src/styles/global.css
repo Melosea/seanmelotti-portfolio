@@ -639,6 +639,40 @@
       transform: none;
     }
   }
+
+  /* --- Photo column (project + skill templates) --------------------------
+     A single chronological column: full-width image, one-line caption below.
+     Used in MDX via <figure class="photo-entry"> elements. */
+  .photo-column {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  .photo-column > * + * {
+    margin-top: 0;
+  }
+
+  .photo-entry {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .photo-entry img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-line);
+    background-color: var(--color-surface-sunken);
+  }
+
+  .photo-entry figcaption {
+    font-size: var(--text-sm);
+    line-height: 1.5;
+    color: var(--color-ink-400);
+    padding-inline: 0.125rem;
+  }
 }
 
 /* ============================================================================

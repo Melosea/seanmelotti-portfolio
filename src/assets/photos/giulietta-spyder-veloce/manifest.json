@@ -1,0 +1,711 @@
+{
+  "slug": "giulietta-spyder-veloce",
+  "count": 88,
+  "skipped": 0,
+  "photos": [
+    {
+      "original_filename": "IMG_6159.HEIC",
+      "new_filename": "giulietta-spyder-veloce-001.jpg",
+      "exif_timestamp": "2026-01-06T18:56:03",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6160.HEIC",
+      "new_filename": "giulietta-spyder-veloce-002.jpg",
+      "exif_timestamp": "2026-01-06T19:09:52",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6165.HEIC",
+      "new_filename": "giulietta-spyder-veloce-003.jpg",
+      "exif_timestamp": "2026-01-07T15:25:21",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6166.HEIC",
+      "new_filename": "giulietta-spyder-veloce-004.jpg",
+      "exif_timestamp": "2026-01-07T16:19:57",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6167.HEIC",
+      "new_filename": "giulietta-spyder-veloce-005.jpg",
+      "exif_timestamp": "2026-01-07T16:21:27",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6180.HEIC",
+      "new_filename": "giulietta-spyder-veloce-006.jpg",
+      "exif_timestamp": "2026-01-09T18:59:10",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6206.HEIC",
+      "new_filename": "giulietta-spyder-veloce-007.jpg",
+      "exif_timestamp": "2026-01-13T18:28:40",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6207.HEIC",
+      "new_filename": "giulietta-spyder-veloce-008.jpg",
+      "exif_timestamp": "2026-01-13T18:32:56",
+      "width": 2048,
+      "height": 1536,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6208.HEIC",
+      "new_filename": "giulietta-spyder-veloce-009.jpg",
+      "exif_timestamp": "2026-01-13T18:34:33",
+      "width": 2048,
+      "height": 1536,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6209.HEIC",
+      "new_filename": "giulietta-spyder-veloce-010.jpg",
+      "exif_timestamp": "2026-01-13T20:27:40",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6210.HEIC",
+      "new_filename": "giulietta-spyder-veloce-011.jpg",
+      "exif_timestamp": "2026-01-13T20:27:42",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6211.HEIC",
+      "new_filename": "giulietta-spyder-veloce-012.jpg",
+      "exif_timestamp": "2026-01-13T21:35:43",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6212.HEIC",
+      "new_filename": "giulietta-spyder-veloce-013.jpg",
+      "exif_timestamp": "2026-01-13T21:39:12",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6214.HEIC",
+      "new_filename": "giulietta-spyder-veloce-014.jpg",
+      "exif_timestamp": "2026-01-13T21:45:02",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6223.HEIC",
+      "new_filename": "giulietta-spyder-veloce-015.jpg",
+      "exif_timestamp": "2026-01-15T15:47:29",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6224.HEIC",
+      "new_filename": "giulietta-spyder-veloce-016.jpg",
+      "exif_timestamp": "2026-01-15T15:47:32",
+      "width": 2048,
+      "height": 1536,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6225.HEIC",
+      "new_filename": "giulietta-spyder-veloce-017.jpg",
+      "exif_timestamp": "2026-01-15T15:47:39",
+      "width": 2048,
+      "height": 1536,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6226.HEIC",
+      "new_filename": "giulietta-spyder-veloce-018.jpg",
+      "exif_timestamp": "2026-01-15T15:47:41",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6230.HEIC",
+      "new_filename": "giulietta-spyder-veloce-019.jpg",
+      "exif_timestamp": "2026-01-16T19:02:04",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6231.HEIC",
+      "new_filename": "giulietta-spyder-veloce-020.jpg",
+      "exif_timestamp": "2026-01-16T19:14:53",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6232.HEIC",
+      "new_filename": "giulietta-spyder-veloce-021.jpg",
+      "exif_timestamp": "2026-01-16T19:14:56",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6233.HEIC",
+      "new_filename": "giulietta-spyder-veloce-022.jpg",
+      "exif_timestamp": "2026-01-16T19:39:43",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6234.HEIC",
+      "new_filename": "giulietta-spyder-veloce-023.jpg",
+      "exif_timestamp": "2026-01-16T19:52:44",
+      "width": 2048,
+      "height": 1536,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6235.HEIC",
+      "new_filename": "giulietta-spyder-veloce-024.jpg",
+      "exif_timestamp": "2026-01-16T20:01:42",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6236.HEIC",
+      "new_filename": "giulietta-spyder-veloce-025.jpg",
+      "exif_timestamp": "2026-01-16T20:10:07",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6237.HEIC",
+      "new_filename": "giulietta-spyder-veloce-026.jpg",
+      "exif_timestamp": "2026-01-16T20:54:35",
+      "width": 2048,
+      "height": 1536,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6238.HEIC",
+      "new_filename": "giulietta-spyder-veloce-027.jpg",
+      "exif_timestamp": "2026-01-16T20:54:40",
+      "width": 2048,
+      "height": 1536,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6242.HEIC",
+      "new_filename": "giulietta-spyder-veloce-028.jpg",
+      "exif_timestamp": "2026-01-18T12:24:15",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6243.HEIC",
+      "new_filename": "giulietta-spyder-veloce-029.jpg",
+      "exif_timestamp": "2026-01-18T15:48:48",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6244.HEIC",
+      "new_filename": "giulietta-spyder-veloce-030.jpg",
+      "exif_timestamp": "2026-01-18T15:48:51",
+      "width": 2048,
+      "height": 1536,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6245.HEIC",
+      "new_filename": "giulietta-spyder-veloce-031.jpg",
+      "exif_timestamp": "2026-01-18T15:48:55",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6246.HEIC",
+      "new_filename": "giulietta-spyder-veloce-032.jpg",
+      "exif_timestamp": "2026-01-18T15:48:57",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6295.HEIC",
+      "new_filename": "giulietta-spyder-veloce-033.jpg",
+      "exif_timestamp": "2026-01-22T20:05:37",
+      "width": 2048,
+      "height": 1536,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6326.HEIC",
+      "new_filename": "giulietta-spyder-veloce-034.jpg",
+      "exif_timestamp": "2026-01-29T18:24:21",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6327.HEIC",
+      "new_filename": "giulietta-spyder-veloce-035.jpg",
+      "exif_timestamp": "2026-01-29T18:24:40",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6328.HEIC",
+      "new_filename": "giulietta-spyder-veloce-036.jpg",
+      "exif_timestamp": "2026-01-29T19:00:53",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6329.HEIC",
+      "new_filename": "giulietta-spyder-veloce-037.jpg",
+      "exif_timestamp": "2026-01-29T19:00:58",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6330.HEIC",
+      "new_filename": "giulietta-spyder-veloce-038.jpg",
+      "exif_timestamp": "2026-01-29T20:25:59",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6378.HEIC",
+      "new_filename": "giulietta-spyder-veloce-039.jpg",
+      "exif_timestamp": "2026-02-03T20:50:50",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6379.HEIC",
+      "new_filename": "giulietta-spyder-veloce-040.jpg",
+      "exif_timestamp": "2026-02-03T20:50:53",
+      "width": 2048,
+      "height": 1536,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6380.HEIC",
+      "new_filename": "giulietta-spyder-veloce-041.jpg",
+      "exif_timestamp": "2026-02-03T20:50:57",
+      "width": 2048,
+      "height": 1536,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6512.HEIC",
+      "new_filename": "giulietta-spyder-veloce-042.jpg",
+      "exif_timestamp": "2026-02-26T19:31:22",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6627.HEIC",
+      "new_filename": "giulietta-spyder-veloce-043.jpg",
+      "exif_timestamp": "2026-03-20T18:30:46",
+      "width": 2048,
+      "height": 1536,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6628.HEIC",
+      "new_filename": "giulietta-spyder-veloce-044.jpg",
+      "exif_timestamp": "2026-03-20T18:30:53",
+      "width": 2048,
+      "height": 1536,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6663.HEIC",
+      "new_filename": "giulietta-spyder-veloce-045.jpg",
+      "exif_timestamp": "2026-03-28T21:02:35",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_6664.HEIC",
+      "new_filename": "giulietta-spyder-veloce-046.jpg",
+      "exif_timestamp": "2026-03-28T21:06:33",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7490.HEIC",
+      "new_filename": "giulietta-spyder-veloce-047.jpg",
+      "exif_timestamp": "2026-07-17T13:31:55",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7491.HEIC",
+      "new_filename": "giulietta-spyder-veloce-048.jpg",
+      "exif_timestamp": "2026-07-17T13:37:10",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7620.HEIC",
+      "new_filename": "giulietta-spyder-veloce-049.jpg",
+      "exif_timestamp": "2026-08-13T20:53:37",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7621.HEIC",
+      "new_filename": "giulietta-spyder-veloce-050.jpg",
+      "exif_timestamp": "2026-08-13T21:10:54",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7622.HEIC",
+      "new_filename": "giulietta-spyder-veloce-051.jpg",
+      "exif_timestamp": "2026-08-13T21:11:06",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7623.HEIC",
+      "new_filename": "giulietta-spyder-veloce-052.jpg",
+      "exif_timestamp": "2026-08-14T11:16:00",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7642.HEIC",
+      "new_filename": "giulietta-spyder-veloce-053.jpg",
+      "exif_timestamp": "2026-08-19T10:08:02",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7643.HEIC",
+      "new_filename": "giulietta-spyder-veloce-054.jpg",
+      "exif_timestamp": "2026-08-19T10:12:12",
+      "width": 2048,
+      "height": 1536,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7644.HEIC",
+      "new_filename": "giulietta-spyder-veloce-055.jpg",
+      "exif_timestamp": "2026-08-19T10:12:21",
+      "width": 2048,
+      "height": 1536,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7645.HEIC",
+      "new_filename": "giulietta-spyder-veloce-056.jpg",
+      "exif_timestamp": "2026-08-19T10:15:25",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7646.HEIC",
+      "new_filename": "giulietta-spyder-veloce-057.jpg",
+      "exif_timestamp": "2026-08-19T10:15:58",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7698.HEIC",
+      "new_filename": "giulietta-spyder-veloce-058.jpg",
+      "exif_timestamp": "2026-08-26T11:49:57",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7699.HEIC",
+      "new_filename": "giulietta-spyder-veloce-059.jpg",
+      "exif_timestamp": "2026-08-26T11:49:59",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_0268.HEIC",
+      "new_filename": "giulietta-spyder-veloce-060.jpg",
+      "exif_timestamp": "2026-08-29T20:45:53",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_0269.HEIC",
+      "new_filename": "giulietta-spyder-veloce-061.jpg",
+      "exif_timestamp": "2026-08-29T20:50:29",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7727.HEIC",
+      "new_filename": "giulietta-spyder-veloce-062.jpg",
+      "exif_timestamp": "2026-08-30T17:06:37",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7728.HEIC",
+      "new_filename": "giulietta-spyder-veloce-063.jpg",
+      "exif_timestamp": "2026-08-30T17:06:41",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7729.HEIC",
+      "new_filename": "giulietta-spyder-veloce-064.jpg",
+      "exif_timestamp": "2026-08-30T17:06:44",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7730.HEIC",
+      "new_filename": "giulietta-spyder-veloce-065.jpg",
+      "exif_timestamp": "2026-08-30T17:06:50",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_0270.HEIC",
+      "new_filename": "giulietta-spyder-veloce-066.jpg",
+      "exif_timestamp": "2026-08-30T17:47:21",
+      "width": 2048,
+      "height": 1536,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_0271.HEIC",
+      "new_filename": "giulietta-spyder-veloce-067.jpg",
+      "exif_timestamp": "2026-08-30T17:47:32",
+      "width": 2048,
+      "height": 1536,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7731.HEIC",
+      "new_filename": "giulietta-spyder-veloce-068.jpg",
+      "exif_timestamp": "2026-08-30T18:23:15",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7734.HEIC",
+      "new_filename": "giulietta-spyder-veloce-069.jpg",
+      "exif_timestamp": "2026-09-01T12:05:10",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_0279.HEIC",
+      "new_filename": "giulietta-spyder-veloce-070.jpg",
+      "exif_timestamp": "2026-09-02T22:47:22",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_0280.HEIC",
+      "new_filename": "giulietta-spyder-veloce-071.jpg",
+      "exif_timestamp": "2026-09-02T22:58:40",
+      "width": 2048,
+      "height": 1536,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7735.HEIC",
+      "new_filename": "giulietta-spyder-veloce-072.jpg",
+      "exif_timestamp": "2026-09-02T23:37:28",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7745.HEIC",
+      "new_filename": "giulietta-spyder-veloce-073.jpg",
+      "exif_timestamp": "2026-09-04T17:18:58",
+      "width": 2048,
+      "height": 1536,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7852.HEIC",
+      "new_filename": "giulietta-spyder-veloce-074.jpg",
+      "exif_timestamp": "2026-09-19T10:45:37",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7853.HEIC",
+      "new_filename": "giulietta-spyder-veloce-075.jpg",
+      "exif_timestamp": "2026-09-19T10:45:40",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7854.HEIC",
+      "new_filename": "giulietta-spyder-veloce-076.jpg",
+      "exif_timestamp": "2026-09-19T10:45:44",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7855.HEIC",
+      "new_filename": "giulietta-spyder-veloce-077.jpg",
+      "exif_timestamp": "2026-09-19T11:08:04",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7856.HEIC",
+      "new_filename": "giulietta-spyder-veloce-078.jpg",
+      "exif_timestamp": "2026-09-19T11:36:33",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7857.HEIC",
+      "new_filename": "giulietta-spyder-veloce-079.jpg",
+      "exif_timestamp": "2026-09-19T11:36:36",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7858.HEIC",
+      "new_filename": "giulietta-spyder-veloce-080.jpg",
+      "exif_timestamp": "2026-09-19T11:58:24",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7859.HEIC",
+      "new_filename": "giulietta-spyder-veloce-081.jpg",
+      "exif_timestamp": "2026-09-19T11:59:13",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7860.HEIC",
+      "new_filename": "giulietta-spyder-veloce-082.jpg",
+      "exif_timestamp": "2026-09-19T12:54:03",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7861.HEIC",
+      "new_filename": "giulietta-spyder-veloce-083.jpg",
+      "exif_timestamp": "2026-09-19T12:54:05",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7862.HEIC",
+      "new_filename": "giulietta-spyder-veloce-084.jpg",
+      "exif_timestamp": "2026-09-19T12:54:07",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7863.HEIC",
+      "new_filename": "giulietta-spyder-veloce-085.jpg",
+      "exif_timestamp": "2026-09-19T13:24:34",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7864.HEIC",
+      "new_filename": "giulietta-spyder-veloce-086.jpg",
+      "exif_timestamp": "2026-09-19T15:10:40",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7865.HEIC",
+      "new_filename": "giulietta-spyder-veloce-087.jpg",
+      "exif_timestamp": "2026-09-19T15:21:41",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7866.HEIC",
+      "new_filename": "giulietta-spyder-veloce-088.jpg",
+      "exif_timestamp": "2026-09-19T19:11:17",
+      "width": 1536,
+      "height": 2048,
+      "sort_basis": "exif"
+    }
+  ]
+}

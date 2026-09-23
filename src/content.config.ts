@@ -30,7 +30,30 @@ const projects = defineCollection({
     featured: z.boolean().default(false),
     /** Drafts are kept out of listings. */
     draft: z.boolean().default(false),
+    /** Optional: 'skill' renders the skill-showcase template instead of the project template. */
+    contentType: z.enum(['project', 'skill']).default('project').optional(),
   }),
 });
 
-export const collections = { projects };
+/**
+ * `skills` — capability showcase pages grouped by technique.
+ * Each skill entry shares the same photo-column layout as projects
+ * but is presented as a portfolio piece rather than a dated narrative.
+ */
+const skills = defineCollection({
+  loader: glob({ base: './src/content/skills', pattern: '**/*.{md,mdx}' }),
+  schema: z.object({
+    title: z.string(),
+    summary: z.string(),
+    date: z.coerce.date(),
+    coverImage: z.string(),
+    coverImageAlt: z.string().optional(),
+    tags: z.array(z.string()).default([]),
+    vehicle: z.string().optional(),
+    status: z.enum(['complete', 'in-progress', 'planned']).default('complete'),
+    featured: z.boolean().default(false),
+    draft: z.boolean().default(false),
+  }),
+});
+
+export const collections = { projects, skills };

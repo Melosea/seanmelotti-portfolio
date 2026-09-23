@@ -1,0 +1,111 @@
+{
+  "slug": "welding-fabrication",
+  "count": 13,
+  "skipped": 0,
+  "photos": [
+    {
+      "original_filename": "IMG_7116.HEIC",
+      "new_filename": "welding-fabrication-001.jpg",
+      "exif_timestamp": "2026-05-20T10:48:02",
+      "width": 3000,
+      "height": 4000,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7118.HEIC",
+      "new_filename": "welding-fabrication-002.jpg",
+      "exif_timestamp": "2026-05-20T10:48:15",
+      "width": 3000,
+      "height": 4000,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_7119.HEIC",
+      "new_filename": "welding-fabrication-003.jpg",
+      "exif_timestamp": "2026-05-20T10:48:21",
+      "width": 3000,
+      "height": 4000,
+      "sort_basis": "exif"
+    },
+    {
+      "original_filename": "IMG_4467.JPG",
+      "new_filename": "welding-fabrication-004.jpg",
+      "exif_timestamp": null,
+      "width": 1080,
+      "height": 1920,
+      "sort_basis": "mtime"
+    },
+    {
+      "original_filename": "IMG_4468.JPG",
+      "new_filename": "welding-fabrication-005.jpg",
+      "exif_timestamp": null,
+      "width": 1920,
+      "height": 1080,
+      "sort_basis": "mtime"
+    },
+    {
+      "original_filename": "IMG_5090.JPG",
+      "new_filename": "welding-fabrication-006.jpg",
+      "exif_timestamp": null,
+      "width": 1080,
+      "height": 1920,
+      "sort_basis": "mtime"
+    },
+    {
+      "original_filename": "IMG_6651.JPG",
+      "new_filename": "welding-fabrication-007.jpg",
+      "exif_timestamp": null,
+      "width": 1920,
+      "height": 1080,
+      "sort_basis": "mtime"
+    },
+    {
+      "original_filename": "IMG_6652.JPG",
+      "new_filename": "welding-fabrication-008.jpg",
+      "exif_timestamp": null,
+      "width": 1080,
+      "height": 1920,
+      "sort_basis": "mtime"
+    },
+    {
+      "original_filename": "IMG_6653.JPG",
+      "new_filename": "welding-fabrication-009.jpg",
+      "exif_timestamp": null,
+      "width": 1080,
+      "height": 1920,
+      "sort_basis": "mtime"
+    },
+    {
+      "original_filename": "IMG_6654.JPG",
+      "new_filename": "welding-fabrication-010.jpg",
+      "exif_timestamp": null,
+      "width": 1080,
+      "height": 1920,
+      "sort_basis": "mtime"
+    },
+    {
+      "original_filename": "IMG_6655.JPG",
+      "new_filename": "welding-fabrication-011.jpg",
+      "exif_timestamp": null,
+      "width": 1920,
+      "height": 1080,
+      "sort_basis": "mtime"
+    },
+    {
+      "original_filename": "IMG_6656.JPG",
+      "new_filename": "welding-fabrication-012.jpg",
+      "exif_timestamp": null,
+      "width": 1080,
+      "height": 1920,
+      "sort_basis": "mtime"
+    },
+    {
+      "original_filename": "IMG_6657.JPG",
+      "new_filename": "welding-fabrication-013.jpg",
+      "exif_timestamp": null,
+      "width": 1080,
+      "height": 1920,
+      "sort_basis": "mtime"
+    }
+  ]
+}

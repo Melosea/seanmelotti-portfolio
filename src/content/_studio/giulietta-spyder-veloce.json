@@ -1,0 +1,460 @@
+{
+  "slug": "giulietta-spyder-veloce",
+  "title": "1958 Alfa Romeo Giulietta Spyder Veloce Restoration & Assembly",
+  "summary": "Frame-off restoration of a 1958 Alfa Romeo Giulietta Spyder Veloce \u2014 from bare metal body panels to final assembly and engine run-in.",
+  "date": "2024-06-01",
+  "vehicle": "1958 Alfa Romeo Giulietta Spyder Veloce",
+  "tags": [
+    "Restoration",
+    "Italian Classic",
+    "Sheet Metal",
+    "Engine",
+    "Assembly"
+  ],
+  "status": "in-progress",
+  "featured": true,
+  "draft": false,
+  "type": "project",
+  "photos": [
+    {
+      "filename": "giulietta-spyder-veloce-001.jpg",
+      "caption": "",
+      "isCover": true
+    },
+    {
+      "filename": "giulietta-spyder-veloce-002.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-003.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-004.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-005.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-006.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-007.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-008.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-009.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-010.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-011.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-012.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-013.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-014.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-015.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-016.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-017.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-018.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-019.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-020.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-021.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-022.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-023.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-024.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-025.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-026.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-027.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-028.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-029.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-030.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-031.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-032.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-033.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-034.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-035.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-036.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-037.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-038.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-039.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-040.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-041.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-042.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-043.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-044.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-045.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-046.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-047.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-048.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-049.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-050.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-051.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-052.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-053.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-054.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-055.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-056.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-057.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-058.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-059.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-060.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-061.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-062.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-063.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-064.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-065.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-066.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-067.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-068.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-069.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-070.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-071.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-072.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-073.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-074.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-075.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-076.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-077.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-078.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-079.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-080.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-081.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-082.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-083.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-084.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-085.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-086.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-087.jpg",
+      "caption": "",
+      "isCover": false
+    },
+    {
+      "filename": "giulietta-spyder-veloce-088.jpg",
+      "caption": "",
+      "isCover": false
+    }
+  ]
+}
