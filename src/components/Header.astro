@@ -1,0 +1,141 @@
+---
+import { NAV_ITEMS, SITE } from '../consts';
+
+/** Normalised current path so "/builds/" and "/builds" both mark Builds active. */
+const path = Astro.url.pathname.replace(/(.)\/$/, '$1');
+
+const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+---
+
+<header
+  id="site-header"
+  data-scrolled="false"
+  class="sticky top-0 z-50 w-full border-b border-transparent bg-canvas/80 backdrop-blur-md transition-[background-color,border-color,box-shadow] duration-200 data-[scrolled=true]:border-line data-[scrolled=true]:shadow-xs"
+>
+  <div class="container-page flex items-center justify-between" style="height: var(--header-height)">
+    <a
+      href="/"
+      class="text-sm font-[560] tracking-[-0.01em] text-ink-900 transition-colors hover:text-accent"
+      aria-label={`${SITE.name} — home`}
+    >
+      Sean&nbsp;Melotti
+    </a>
+
+    <!-- Desktop navigation -->
+    <nav aria-label="Primary" class="hidden md:block">
+      <ul class="flex items-center gap-1">
+        {
+          NAV_ITEMS.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                aria-current={isActive(item.href) ? 'page' : undefined}
+                class="inline-flex h-8 items-center rounded-md px-3 text-sm text-ink-500 transition-colors hover:bg-surface hover:text-ink-900 aria-[current=page]:text-ink-900"
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="hidden md:block">
+      <a href="/contact" class="btn btn-secondary h-8 px-3.5 text-[0.8125rem]">Get in touch</a>
+    </div>
+
+    <!-- Mobile menu trigger -->
+    <button
+      id="menu-toggle"
+      type="button"
+      class="-mr-1.5 inline-flex h-9 w-9 items-center justify-center rounded-md text-ink-700 transition-colors hover:bg-surface md:hidden"
+      aria-controls="mobile-menu"
+      aria-expanded="false"
+      aria-label="Open menu"
+    >
+      <svg
+        class="h-5 w-5"
+        viewBox="0 0 20 20"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <path class="menu-icon-open" d="M3 6h14M3 10h14M3 14h14"></path>
+        <path class="menu-icon-close hidden" d="M5 5l10 10M15 5L5 15"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Mobile menu panel -->
+  <div
+    id="mobile-menu"
+    hidden
+    class="border-t border-line bg-canvas md:hidden"
+  >
+    <nav aria-label="Mobile" class="container-page py-3">
+      <ul class="flex flex-col">
+        {
+          NAV_ITEMS.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                aria-current={isActive(item.href) ? 'page' : undefined}
+                class="flex h-11 items-center border-b border-line-subtle text-[0.9375rem] text-ink-500 transition-colors hover:text-ink-900 aria-[current=page]:text-ink-900 aria-[current=page]:font-[540]"
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <a href="/contact" class="btn btn-primary mt-4 w-full">Get in touch</a>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const header = document.getElementById('site-header');
+  const toggle = document.getElementById('menu-toggle');
+  const menu = document.getElementById('mobile-menu');
+  const iconOpen = toggle?.querySelector('.menu-icon-open');
+  const iconClose = toggle?.querySelector('.menu-icon-close');
+
+  let menuOpen = false;
+
+  const setMenu = (open: boolean) => {
+    if (!toggle || !menu) return;
+    menuOpen = open;
+    menu.hidden = !open;
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    iconOpen?.classList.toggle('hidden', open);
+    iconClose?.classList.toggle('hidden', !open);
+    document.body.style.overflow = open ? 'hidden' : '';
+  };
+
+  toggle?.addEventListener('click', () => {
+    setMenu(!menuOpen);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && menuOpen) {
+      setMenu(false);
+      toggle?.focus();
+    }
+  });
+
+  // Desktop nav takes over at 48rem — never leave the panel open behind it.
+  const desktop = window.matchMedia('(min-width: 48rem)');
+  desktop.addEventListener('change', (event) => {
+    if (event.matches) setMenu(false);
+  });
+
+  // Hairline + shadow appear only once the page has moved.
+  const onScroll = () => {
+    header?.setAttribute('data-scrolled', String(window.scrollY > 4));
+  };
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+</script>

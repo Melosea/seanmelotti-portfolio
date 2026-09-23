@@ -1,0 +1,64 @@
+---
+import { NAV_ITEMS, SITE, SOCIAL_LINKS } from '../consts';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-auto border-t border-line bg-surface">
+  <div class="container-page py-12 md:py-14">
+    <div class="grid grid-cols-2 gap-10 md:grid-cols-12 md:gap-8">
+      <div class="col-span-2 max-w-xs md:col-span-6">
+        <p class="text-sm font-[560] text-ink-900">Sean Melotti</p>
+        <p class="mt-2 text-sm text-ink-400">
+          Custom builds, fabrication and restoration. Documented end to end.
+        </p>
+      </div>
+
+      <div class="md:col-span-3">
+        <h2 class="eyebrow">Site</h2>
+        <ul class="mt-4 flex flex-col gap-2.5">
+          {
+            NAV_ITEMS.map((item) => (
+              <li>
+                <a
+                  href={item.href}
+                  class="text-sm text-ink-500 transition-colors hover:text-ink-900"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div class="md:col-span-3">
+        <h2 class="eyebrow">Elsewhere</h2>
+        <ul class="mt-4 flex flex-col gap-2.5">
+          {
+            SOCIAL_LINKS.map((social) => (
+              <li>
+                <a
+                  href={social.href}
+                  class="text-sm text-ink-500 transition-colors hover:text-ink-900"
+                  rel={social.href.startsWith('http') ? 'me noopener' : undefined}
+                >
+                  {social.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+
+    <div
+      class="mt-12 flex flex-col gap-2 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p class="font-mono text-2xs tracking-[0.08em] text-ink-300 uppercase">
+        &copy; {year} {SITE.name}
+      </p>
+      <p class="font-mono text-2xs tracking-[0.08em] text-ink-300 uppercase">Built with Astro</p>
+    </div>
+  </div>
+</footer>
