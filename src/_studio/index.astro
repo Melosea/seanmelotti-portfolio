@@ -260,9 +260,25 @@
         border-radius: 5px; color: var(--text); font-size: 13px;
         font-family: var(--sans); line-height: 1.5;
         transition: border-color 0.15s;
+        resize: none; overflow: hidden; min-height: 2.25rem;
+        display: block; box-sizing: border-box;
       }
       .caption-input:focus, .alt-input:focus { outline: none; border-color: var(--accent); }
       .caption-input::placeholder, .alt-input::placeholder { color: var(--muted); }
+
+      /* Per-photo saved indicator */
+      .photo-save-indicator {
+        font-size: 10px; font-family: var(--mono); padding: 1px 6px;
+        border-radius: 3px; white-space: nowrap; flex-shrink: 0;
+        opacity: 0; transition: opacity 0.3s;
+      }
+      .photo-save-indicator.dirty { background: var(--warn-soft); color: var(--warn); opacity: 1; }
+      .photo-save-indicator.saved { background: #0d2a1d; color: #4ade80; opacity: 1; }
+
+      /* Drag-and-drop */
+      .photo-entry[draggable="true"] { cursor: grab; }
+      .photo-entry[draggable="true"]:active { cursor: grabbing; }
+      .photo-entry.drag-over { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 4px; }
 
       .alt-missing-warn {
         display: none; font-size: 10px; font-family: var(--mono);
@@ -320,6 +336,8 @@
       let state = null;
       let saveTimer = null;
       let isDirty = false;
+      let dirtyPhotos = new Set(); // filenames with unsaved changes
+      let dragSrcFn = null; // filename being dragged
 
       const projectList = document.getElementById('project-list');
       const studioMain = document.getElementById('studio-main');
@@ -488,7 +506,7 @@
         const seqLast = isInSeq && seqPos === state.seqOrder.length - 1;
 
         return `
-          <div class="photo-entry ${destClass}" data-filename="${escHtml(photo.filename)}">
+          <div class="photo-entry ${destClass}" data-filename="${escHtml(photo.filename)}" data-masteridx="${masterIdx}" draggable="true">
             <div class="photo-entry-inner">
               <div class="photo-controls">
                 <span class="master-idx">#${masterIdx + 1}</span>
@@ -527,33 +545,32 @@
                   <div class="caption-field-label">
                     Caption
                     <span class="char-count ${captionWarn}" id="cap-count-${masterIdx}">${captionLen}/90</span>
+                    <span class="photo-save-indicator" id="save-ind-${masterIdx}"></span>
                   </div>
-                  <input
+                  <textarea
                     class="caption-input"
-                    type="text"
                     data-filename="${escHtml(photo.filename)}"
                     data-field="caption"
-                    value="${escHtml(photo.caption)}"
                     placeholder="What's happening in this photo"
                     maxlength="120"
+                    rows="1"
                     aria-label="Caption for ${escHtml(photo.filename)}"
-                  />
+                  >${escHtml(photo.caption)}</textarea>
                 </div>
                 <div>
                   <div class="caption-field-label">
                     Alt text
                     <span class="char-count" id="alt-count-${masterIdx}">${altLen}/125</span>
                   </div>
-                  <input
+                  <textarea
                     class="alt-input"
-                    type="text"
                     data-filename="${escHtml(photo.filename)}"
                     data-field="alt"
-                    value="${escHtml(photo.alt)}"
                     placeholder="Literal description of what is visible"
                     maxlength="150"
+                    rows="1"
                     aria-label="Alt text for ${escHtml(photo.filename)}"
-                  />
+                  >${escHtml(photo.alt)}</textarea>
                   <div class="alt-missing-warn${altMissing ? ' visible' : ''}">
                     ⚠ Alt text required for export
                   </div>
@@ -673,7 +690,7 @@
               updateMissingAltBadge();
             }
 
-            markDirty();
+            markDirty(fn);
           });
 
           // Keyboard: tab from caption → alt → next photo's caption
@@ -699,6 +716,56 @@
               }
             }
           });
+
+          // Auto-grow textareas
+          photoList.querySelectorAll('.caption-input, .alt-input').forEach(ta => {
+            const grow = () => { ta.style.height = ''; ta.style.height = ta.scrollHeight + 'px'; };
+            ta.addEventListener('input', grow);
+            grow(); // set initial height
+          });
+        }
+
+        // ─── Drag-and-drop reorder ────────────────────────────────────────────
+        const photoList2 = document.getElementById('photo-list');
+        if (photoList2) {
+          photoList2.addEventListener('dragstart', e => {
+            const entry = e.target.closest('.photo-entry');
+            if (!entry) return;
+            dragSrcFn = entry.dataset.filename;
+            e.dataTransfer.effectAllowed = 'move';
+          });
+          photoList2.addEventListener('dragover', e => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const entry = e.target.closest('.photo-entry');
+            photoList2.querySelectorAll('.photo-entry').forEach(el => el.classList.remove('drag-over'));
+            if (entry && entry.dataset.filename !== dragSrcFn) entry.classList.add('drag-over');
+          });
+          photoList2.addEventListener('dragleave', e => {
+            const entry = e.target.closest('.photo-entry');
+            if (entry) entry.classList.remove('drag-over');
+          });
+          photoList2.addEventListener('drop', e => {
+            e.preventDefault();
+            photoList2.querySelectorAll('.photo-entry').forEach(el => el.classList.remove('drag-over'));
+            const entry = e.target.closest('.photo-entry');
+            if (!entry || !dragSrcFn || entry.dataset.filename === dragSrcFn) return;
+            const targetFn = entry.dataset.filename;
+            const srcIdx = state.photos.findIndex(p => p.filename === dragSrcFn);
+            const dstIdx = state.photos.findIndex(p => p.filename === targetFn);
+            if (srcIdx < 0 || dstIdx < 0) return;
+            // Move src photo to dst position in master list
+            const [moved] = state.photos.splice(srcIdx, 1);
+            state.photos.splice(dstIdx, 0, moved);
+            // Keep seqOrder intact (filenames don't change, just master display order)
+            markDirty();
+            renderStudio();
+            dragSrcFn = null;
+          });
+          photoList2.addEventListener('dragend', () => {
+            photoList2.querySelectorAll('.photo-entry').forEach(el => el.classList.remove('drag-over'));
+            dragSrcFn = null;
+          });
         }
       }
 
@@ -722,8 +789,14 @@
       }
 
       // ─── Save / autosave ────────────────────────────────────────────────────
-      function markDirty() {
+      function markDirty(filename) {
         isDirty = true;
+        if (filename) {
+          dirtyPhotos.add(filename);
+          const masterIdx = state.photos.findIndex(p => p.filename === filename);
+          const ind = document.getElementById(`save-ind-${masterIdx}`);
+          if (ind) { ind.textContent = '● unsaved'; ind.className = 'photo-save-indicator dirty'; }
+        }
         setSaveStatus('unsaved');
         clearTimeout(saveTimer);
         saveTimer = setTimeout(autoSave, 1500);
@@ -742,6 +815,18 @@
         try {
           await apiPost(`/sidecar/${state.slug}`, state);
           isDirty = false;
+          // Flash per-photo indicators as saved then fade out
+          const saved = Array.from(dirtyPhotos);
+          dirtyPhotos.clear();
+          for (const fn of saved) {
+            const masterIdx = state.photos.findIndex(p => p.filename === fn);
+            const ind = document.getElementById(`save-ind-${masterIdx}`);
+            if (ind) {
+              ind.textContent = '✓ saved';
+              ind.className = 'photo-save-indicator saved';
+              setTimeout(() => { if (ind) ind.className = 'photo-save-indicator'; }, 2500);
+            }
+          }
           setSaveStatus('saved');
         } catch (e) {
           setSaveStatus('unsaved');
