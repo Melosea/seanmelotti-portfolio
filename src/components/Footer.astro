@@ -1,5 +1,5 @@
 ---
-import { NAV_ITEMS, SITE, SOCIAL_LINKS } from '../consts';
+import { CONTACT_METHODS, NAV_ITEMS, SITE, SOCIAL_LINKS } from '../consts';
 
 const year = new Date().getFullYear();
 ---
@@ -10,7 +10,7 @@ const year = new Date().getFullYear();
       <div class="col-span-2 max-w-xs md:col-span-6">
         <p class="text-sm font-[560] text-ink-900">Sean Melotti</p>
         <p class="mt-2 text-sm text-ink-400">
-          Custom builds, fabrication and restoration. Documented end to end.
+          Custom projects, fabrication and restoration. Documented end to end.
         </p>
       </div>
 
@@ -32,24 +32,44 @@ const year = new Date().getFullYear();
         </ul>
       </div>
 
-      <div class="md:col-span-3">
-        <h2 class="eyebrow">Elsewhere</h2>
+      <div class="col-span-2 md:col-span-3">
+        <h2 class="eyebrow">Contact</h2>
         <ul class="mt-4 flex flex-col gap-2.5">
           {
-            SOCIAL_LINKS.map((social) => (
+            CONTACT_METHODS.map((method) => (
               <li>
                 <a
-                  href={social.href}
-                  class="text-sm text-ink-500 transition-colors hover:text-ink-900"
-                  rel={social.href.startsWith('http') ? 'me noopener' : undefined}
+                  href={method.href}
+                  class="text-sm break-all text-ink-500 transition-colors hover:text-ink-900"
                 >
-                  {social.label}
+                  {method.value}
                 </a>
               </li>
             ))
           }
         </ul>
       </div>
+
+      {
+        SOCIAL_LINKS.length > 0 && (
+          <div class="col-span-2 md:col-span-3">
+            <h2 class="eyebrow">Elsewhere</h2>
+            <ul class="mt-4 flex flex-col gap-2.5">
+              {SOCIAL_LINKS.map((social) => (
+                <li>
+                  <a
+                    href={social.href}
+                    class="text-sm text-ink-500 transition-colors hover:text-ink-900"
+                    rel={social.href.startsWith('http') ? 'me noopener' : undefined}
+                  >
+                    {social.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
     </div>
 
     <div

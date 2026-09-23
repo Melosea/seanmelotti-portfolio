@@ -1,12 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHeader from '../components/PageHeader.astro';
-import { SOCIAL_LINKS } from '../consts';
+import { CONTACT_METHODS, SOCIAL_LINKS } from '../consts';
 ---
 
 <BaseLayout
   title="Contact"
-  description="Get in touch with Sean Melotti about a build, a commission or a collaboration."
+  description="Get in touch with Sean Melotti about a project, a commission or a collaboration."
 >
   <PageHeader
     eyebrow="Contact"
@@ -18,31 +18,33 @@ import { SOCIAL_LINKS } from '../consts';
     <div class="container-narrow">
       <p class="text-lg text-ink-500">
         Placeholder copy. The quickest route is email — a few lines on the vehicle, the
-        scope and your timeline is plenty to start.
+        scope and your timeline is plenty to start. Phone works too if it's easier.
       </p>
 
       <ul class="mt-10 divide-y divide-line border-y border-line">
         {
-          SOCIAL_LINKS.map((social) => (
-            <li>
-              <a
-                href={social.href}
-                class="group flex flex-col gap-1 py-4 transition-colors hover:text-ink-900 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
-                rel={social.href.startsWith('http') ? 'me noopener' : undefined}
-              >
-                <span class="text-sm font-[540] text-ink-900">{social.label}</span>
-                <span class="font-mono text-xs break-all text-ink-400 transition-colors group-hover:text-accent">
-                  {social.handle}
-                </span>
-              </a>
-            </li>
-          ))
+          [...CONTACT_METHODS, ...SOCIAL_LINKS.map((s) => ({ ...s, value: s.handle }))].map(
+            (method) => (
+              <li>
+                <a
+                  href={method.href}
+                  class="group flex flex-col gap-1 py-4 transition-colors hover:text-ink-900 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                  rel={method.href.startsWith('http') ? 'me noopener' : undefined}
+                >
+                  <span class="text-sm font-[540] text-ink-900">{method.label}</span>
+                  <span class="font-mono text-xs break-all text-ink-400 transition-colors group-hover:text-accent">
+                    {method.value}
+                  </span>
+                </a>
+              </li>
+            ),
+          )
         }
       </ul>
 
       <p class="mt-8 text-sm text-ink-400">
-        A contact form may land in a later phase — for now these links are placeholders
-        pending Sean's real handles.
+        A contact form may land in a later phase — for now email and phone are the
+        fastest way through.
       </p>
     </div>
   </section>

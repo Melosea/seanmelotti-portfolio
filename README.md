@@ -1,6 +1,6 @@
 # seanmelotti.com
 
-Portfolio site for Sean Melotti — custom vehicle builds, fabrication and restoration.
+Portfolio site for Sean Melotti — custom vehicle projects, fabrication and restoration.
 Built with [Astro](https://astro.build), styled with Tailwind CSS v4, deployed to
 Cloudflare Pages.
 
@@ -20,17 +20,17 @@ Cloudflare Pages.
 src/
 ├── components/        Site shell + UI components
 │   ├── Header.astro   Sticky header, desktop nav, mobile menu
-│   ├── Footer.astro   Site links + socials
+│   ├── Footer.astro   Site links + contact details
 │   ├── PageHeader.astro  Eyebrow / title / lede band for inner pages
-│   └── BuildCard.astro   Build card (image, title, summary, tags, status)
-├── content/builds/    Build write-ups (MDX)
+│   └── ProjectCard.astro Project card (image, title, summary, tags, status)
+├── content/projects/  Project write-ups (MDX)
 ├── layouts/
 │   └── BaseLayout.astro  <head> + SEO, skip link, header/main/footer
-├── pages/             index, builds, about, contact, 404
+├── pages/             index, projects, about, contact, 404
 ├── styles/
 │   └── global.css     ALL design tokens + component primitives
-├── content.config.ts  `builds` collection schema
-└── consts.ts          Site metadata, nav items, social links
+├── content.config.ts  `projects` collection schema
+└── consts.ts          Site metadata, nav items, contact details, social links
 ```
 
 ## Design system
@@ -41,7 +41,7 @@ introduce a one-off colour, font size or radius — add it there first.
 - **Colours** — light canvas, cool neutral ink scale (`--color-ink-300` → `950`),
   three hairline weights (`--color-line-subtle|line|line-strong`), one restrained
   accent (`--color-accent`, indigo-blue `#2f56d9`) plus soft/line variants, and two
-  semantic status colours for build state.
+  semantic status colours for project state.
 - **Type** — [Inter Variable](https://fontsource.org/fonts/inter) for UI and body,
   [JetBrains Mono Variable](https://fontsource.org/fonts/jetbrains-mono) for eyebrows,
   tags and meta. Both self-hosted via `@fontsource-variable/*` and bundled by Vite —
@@ -58,7 +58,7 @@ Tokens declared inside `@theme` also generate Tailwind utilities, so
 
 ## Content
 
-`src/content.config.ts` defines the `builds` collection:
+`src/content.config.ts` defines the `projects` collection:
 
 | Field           | Type                                       |
 | :-------------- | :----------------------------------------- |
@@ -72,10 +72,17 @@ Tokens declared inside `@theme` also generate Tailwind utilities, so
 | `status`        | `complete` \| `in-progress` \| `planned`   |
 | `draft`         | boolean, default `false` — hidden from listings |
 
-Add a build by dropping an `.mdx` file into `src/content/builds/`.
+Add a project by dropping an `.mdx` file into `src/content/projects/`.
 
 ## Assets
 
 Placeholder covers live in `public/placeholders/`. The Open Graph card is generated
 once by `node scripts/generate-og.mjs` and committed to `public/og-default.png`; re-run
 it if the palette or wording changes.
+
+## Contact & socials
+
+`CONTACT_METHODS` in `src/consts.ts` holds Sean's email and phone; the footer and
+`/contact` render it. `SOCIAL_LINKS` is intentionally empty — socials are off for
+now. The rendering is still wired up in both places, so adding an entry there is
+all it takes to bring them back.
