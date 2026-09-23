@@ -4,8 +4,11 @@ import { glob } from 'astro/loaders';
 /**
  * `projects` — one entry per vehicle project write-up.
  *
- * Phase 1 defines the schema only; there is a single placeholder entry to prove
- * the collection compiles. Phase 2 fills it with real write-ups and photos.
+ * Phase 1 defines the schema and seeds placeholder entries so the archive and
+ * the homepage grid both render real data. Phase 2 replaces the copy and covers.
+ *
+ * `/projects` lists every non-draft entry newest-first on `date`; the homepage
+ * shows the `featured` subset only.
  *
  * `coverImage` is a path under /public for now. When real photos land, consider
  * moving them into src/ and switching this field to Astro's `image()` helper so
@@ -23,6 +26,8 @@ const projects = defineCollection({
     tags: z.array(z.string()).default([]),
     vehicle: z.string(),
     status: z.enum(['complete', 'in-progress', 'planned']),
+    /** Featured entries surface on the homepage; the archive lists everything. */
+    featured: z.boolean().default(false),
     /** Drafts are kept out of listings. */
     draft: z.boolean().default(false),
   }),
