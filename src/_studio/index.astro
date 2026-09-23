@@ -8,10 +8,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Caption Studio</title>
-    <style>
+    <style is:global>
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
       :root {
+        /* Studio chrome — dark */
         --bg: #0a0b0d;
         --surface: #141518;
         --surface2: #1e2024;
@@ -28,15 +29,31 @@
         --red: #f87171;
         --sans: "Inter Variable","Inter",system-ui,sans-serif;
         --mono: "JetBrains Mono Variable","JetBrains Mono",monospace;
-        --header-h: 3.5rem;
+        --header-h: 3rem;
+        --sidebar-w: 220px;
+
+        /* Page-preview tokens — mirrors published site */
+        --page-bg: #ffffff;
+        --page-text: #33373e;
+        --page-muted: #7c838e;
+        --page-line: #e8eaed;
+        --page-caption-color: #5c626c;
+        --page-caption-size: 0.875rem;       /* 14px = text-sm */
+        --page-caption-lh: 1.4286;
+        --page-col-max: 720px;               /* narrow content column — scannable preview */
+        --page-seq-gap: 3.5rem;              /* vertical gap between steps */
+        --page-caption-measure: 34rem;       /* max-width of caption text */
+        --page-img-radius: 0.5rem;           /* radius-md from real page */
+        --page-img-ratio: 3 / 2;             /* default landscape ratio */
       }
 
       html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; }
 
+      /* ── Chrome layout ──────────────────────────────────────────────────── */
       .studio-layout {
         display: grid;
         grid-template-rows: var(--header-h) 1fr;
-        grid-template-columns: 280px 1fr;
+        grid-template-columns: var(--sidebar-w) 1fr;
         height: 100vh;
       }
 
@@ -44,13 +61,21 @@
         grid-column: 1 / -1;
         display: flex;
         align-items: center;
-        gap: 1rem;
-        padding: 0 1.25rem;
+        gap: 0.75rem;
+        padding: 0 1rem;
         background: var(--surface);
         border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
       }
 
-      .studio-header h1 { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+      .studio-header h1 {
+        font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+        text-transform: uppercase; color: var(--muted); flex-shrink: 0;
+      }
+
+      .header-sep { width: 1px; height: 16px; background: var(--border); flex-shrink: 0; }
+
+      .header-actions { display: flex; align-items: center; gap: 0.5rem; margin-left: auto; }
 
       .studio-sidebar {
         background: var(--surface);
@@ -61,45 +86,48 @@
       }
 
       .studio-sidebar-header {
-        padding: 1rem 1.25rem 0.75rem;
+        padding: 0.75rem 1rem 0.625rem;
         border-bottom: 1px solid var(--border);
-        font-size: 11px;
+        font-size: 10px;
         font-family: var(--mono);
         text-transform: uppercase;
         letter-spacing: 0.08em;
         color: var(--muted);
       }
 
-      .project-list { flex: 1; overflow-y: auto; padding: 0.5rem; }
+      .project-list { flex: 1; overflow-y: auto; padding: 0.375rem; }
 
       .project-btn {
         display: block; width: 100%; text-align: left;
-        padding: 0.625rem 0.875rem; border-radius: 6px;
+        padding: 0.5rem 0.75rem; border-radius: 5px;
         border: 1px solid transparent; background: transparent;
-        color: var(--text); cursor: pointer; font-size: 13px;
+        color: var(--text); cursor: pointer; font-size: 12px;
         font-family: var(--sans); transition: background 0.15s; margin-bottom: 2px;
       }
       .project-btn:hover { background: var(--surface2); }
       .project-btn.active { background: var(--accent-soft); border-color: var(--accent); color: #c7d3fa; }
-      .project-btn .count { float: right; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+      .project-btn .count { float: right; font-family: var(--mono); font-size: 10px; color: var(--muted); }
 
-      .studio-main { overflow-y: auto; display: flex; flex-direction: column; }
+      /* ── Main scrollable area ───────────────────────────────────────────── */
+      .studio-main { overflow-y: auto; display: flex; flex-direction: column; background: #111214; }
 
+      /* ── Toolbar (sticky) ───────────────────────────────────────────────── */
       .toolbar {
-        display: flex; align-items: center; gap: 0.75rem;
-        padding: 0.75rem 1.25rem;
+        display: flex; align-items: center; gap: 0.625rem;
+        padding: 0.5rem 1rem;
         background: var(--surface); border-bottom: 1px solid var(--border);
-        flex-shrink: 0; flex-wrap: wrap; position: sticky; top: 0; z-index: 10;
+        flex-shrink: 0; flex-wrap: wrap; position: sticky; top: 0; z-index: 20;
       }
 
-      .toolbar-group { display: flex; align-items: center; gap: 0.5rem; }
-      .toolbar-sep { width: 1px; height: 20px; background: var(--border); }
+      .toolbar-group { display: flex; align-items: center; gap: 0.375rem; }
+      .toolbar-sep { width: 1px; height: 16px; background: var(--border); }
 
+      /* ── Shared button style (studio chrome) ────────────────────────────── */
       .btn {
-        display: inline-flex; align-items: center; gap: 0.375rem;
-        height: 30px; padding: 0 0.75rem; border-radius: 5px;
+        display: inline-flex; align-items: center; gap: 0.3rem;
+        height: 26px; padding: 0 0.625rem; border-radius: 4px;
         border: 1px solid var(--border); background: var(--surface2);
-        color: var(--text); font-size: 12px; font-family: var(--sans);
+        color: var(--text); font-size: 11px; font-family: var(--sans);
         font-weight: 500; cursor: pointer; white-space: nowrap;
         transition: background 0.15s, border-color 0.15s;
       }
@@ -108,104 +136,147 @@
       .btn-primary:hover { background: #2545b4; border-color: #2545b4; }
 
       .save-status {
-        font-size: 11px; font-family: var(--mono); padding: 3px 8px;
-        border-radius: 4px; white-space: nowrap;
+        font-size: 10px; font-family: var(--mono); padding: 2px 7px;
+        border-radius: 3px; white-space: nowrap;
       }
-      .save-status.saved { background: var(--green-soft); color: var(--green); }
+      .save-status.saved { background: #0d2a1d; color: #4ade80; }
       .save-status.unsaved { background: var(--warn-soft); color: var(--warn); }
       .save-status.saving { background: #1e2a3a; color: #60a5fa; }
 
       .seq-counter {
-        font-size: 11px; font-family: var(--mono); padding: 3px 8px;
-        border-radius: 4px; background: var(--surface2); color: var(--muted);
+        font-size: 10px; font-family: var(--mono); padding: 2px 7px;
+        border-radius: 3px; background: var(--surface2); color: var(--muted);
         white-space: nowrap;
       }
       .seq-counter.on-target { color: #4ade80; }
 
       .missing-alt-badge {
-        font-size: 11px; font-family: var(--mono); padding: 3px 8px;
-        border-radius: 4px; background: var(--red-soft); color: var(--red);
+        font-size: 10px; font-family: var(--mono); padding: 2px 7px;
+        border-radius: 3px; background: var(--red-soft); color: var(--red);
         white-space: nowrap; display: none;
       }
       .missing-alt-badge.visible { display: inline-block; }
 
-      .preview-area {
-        flex: 1; padding: 2rem 1.5rem;
-        max-width: 860px; margin: 0 auto; width: 100%;
+      /* ── Page preview wrapper ───────────────────────────────────────────── */
+      .page-preview {
+        flex: 1;
+        padding: 2.5rem 1.5rem 5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
       }
 
-      .header-field { margin-bottom: 2rem; }
+      /* Narrow content column — mirrors published site */
+      .page-col {
+        width: 100%;
+        max-width: var(--page-col-max);
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ── Project header fields (inside preview) ──────────────────────────── */
+      .page-header-area {
+        background: var(--page-bg);
+        border: 1px solid var(--page-line);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .field-row { margin-bottom: 1rem; }
+      .field-row:last-child { margin-bottom: 0; }
+
       .field-label {
-        font-size: 10px; font-family: var(--mono); text-transform: uppercase;
-        letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.375rem;
-        display: flex; align-items: center; gap: 0.5rem;
+        font-size: 9px; font-family: var(--mono); text-transform: uppercase;
+        letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.25rem;
+        display: flex; align-items: center; gap: 0.375rem;
       }
-      .char-count {
-        font-size: 10px; font-family: var(--mono); padding: 1px 6px; border-radius: 3px;
+
+      .word-count, .char-count {
+        font-size: 9px; font-family: var(--mono); padding: 1px 5px; border-radius: 3px;
         background: var(--surface2); color: var(--muted);
       }
-      .char-count.warn { background: var(--warn-soft); color: var(--warn); }
-      .word-count {
-        font-size: 10px; font-family: var(--mono); padding: 1px 6px; border-radius: 3px;
-        background: var(--surface2); color: var(--muted);
-      }
-      .word-count.warn { background: var(--warn-soft); color: var(--warn); }
+      .word-count.warn, .char-count.warn { background: var(--warn-soft); color: var(--warn); }
 
       .header-input {
-        width: 100%; padding: 0.625rem 0.75rem;
+        width: 100%; padding: 0.5rem 0.625rem;
         background: var(--surface2); border: 1px solid var(--border);
-        border-radius: 6px; color: var(--text); font-size: 16px;
-        font-family: var(--sans); font-weight: 560; line-height: 1.5;
-        resize: none; min-height: 3rem; transition: border-color 0.15s;
+        border-radius: 5px; color: var(--text); font-size: 14px;
+        font-family: var(--sans); font-weight: 540; line-height: 1.5;
+        resize: none; min-height: 2.75rem; transition: border-color 0.15s;
       }
       .header-input:focus { outline: none; border-color: var(--accent); }
 
-      /* Photo entries */
-      .photo-list { display: flex; flex-direction: column; gap: 0; }
-
-      .photo-entry {
-        position: relative; padding: 1.5rem 0;
-        border-bottom: 1px solid var(--border);
+      /* ── Section headings in page preview ───────────────────────────────── */
+      .preview-section-label {
+        display: flex; align-items: center; gap: 0.625rem;
+        font-size: 10px; font-family: var(--mono); text-transform: uppercase;
+        letter-spacing: 0.08em; color: var(--muted);
+        margin-bottom: 1.5rem;
       }
-      .photo-entry:first-child { border-top: 1px solid var(--border); }
+      .preview-section-label::after {
+        content: ''; flex: 1; height: 1px; background: var(--border);
+      }
 
-      .photo-entry-inner { display: flex; flex-direction: column; gap: 0.75rem; }
+      /* ── Chapter divider (mirrors real seq-chapter) ──────────────────────── */
+      .preview-chapter {
+        display: flex; align-items: center; gap: 0.625rem;
+        font-size: 10px; font-family: var(--mono); text-transform: uppercase;
+        letter-spacing: 0.08em; color: var(--page-muted);
+        margin-bottom: 1.5rem; margin-top: 3rem;
+        background: var(--page-bg);
+        padding: 0.75rem 1rem;
+        border-radius: 4px;
+        border-left: 2px solid var(--page-line);
+      }
 
-      /* Top controls row */
-      .photo-controls {
-        display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+      /* ── Photo step (page-preview style) ────────────────────────────────── */
+      .step-block {
+        position: relative;
+        background: var(--page-bg);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: var(--page-seq-gap);
+        /* Subtle shadow to indicate it's a page element */
+        box-shadow: 0 1px 4px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.04);
+      }
+
+      /* Top control strip — dark chrome overlaid on the preview card */
+      .step-controls {
+        display: flex; align-items: center; gap: 0.375rem; flex-wrap: wrap;
+        padding: 0.5rem 0.75rem;
+        background: var(--surface); border-bottom: 1px solid var(--border);
+        border-radius: 8px 8px 0 0;
       }
 
       .master-idx {
         font-family: var(--mono); font-size: 10px; color: var(--muted);
-        min-width: 28px; text-align: center; flex-shrink: 0;
+        min-width: 24px; text-align: center; flex-shrink: 0;
       }
 
       /* Destination selector */
       .dest-select {
-        font-size: 11px; font-family: var(--mono); text-transform: uppercase;
-        letter-spacing: 0.05em; padding: 2px 6px; border-radius: 4px;
+        font-size: 10px; font-family: var(--mono); text-transform: uppercase;
+        letter-spacing: 0.05em; padding: 2px 5px; border-radius: 3px;
         border: 1px solid var(--border); background: var(--surface2);
         color: var(--muted); cursor: pointer; appearance: none;
-        -webkit-appearance: none; min-width: 110px;
+        -webkit-appearance: none;
       }
       .dest-select:focus { outline: none; border-color: var(--accent); }
       .dest-select.dest-main { border-color: var(--accent); color: #c7d3fa; background: var(--accent-soft); }
       .dest-select.dest-gallery { border-color: #2d6b4a; color: #4ade80; background: #0d2a1d; }
       .dest-select.dest-cut { border-color: #555; color: #555; }
 
-      /* Sequence position + up/down (only visible when dest=main) */
-      .seq-controls {
-        display: none; align-items: center; gap: 0.25rem;
-      }
+      /* Seq position + up/down */
+      .seq-controls { display: none; align-items: center; gap: 0.2rem; }
       .seq-controls.visible { display: flex; }
       .seq-pos-badge {
         font-family: var(--mono); font-size: 10px; color: #c7d3fa;
         background: var(--accent-soft); border: 1px solid var(--accent);
-        padding: 1px 6px; border-radius: 3px; min-width: 36px; text-align: center;
+        padding: 1px 5px; border-radius: 3px; min-width: 28px; text-align: center;
       }
       .seq-btn {
-        width: 22px; height: 22px; border-radius: 3px;
+        width: 20px; height: 20px; border-radius: 3px;
         border: 1px solid var(--border); background: var(--surface2);
         color: var(--muted); cursor: pointer; font-size: 11px;
         display: flex; align-items: center; justify-content: center;
@@ -216,9 +287,9 @@
 
       /* Hero radio */
       .hero-label {
-        display: flex; align-items: center; gap: 0.25rem;
+        display: flex; align-items: center; gap: 0.2rem;
         font-size: 10px; font-family: var(--mono); text-transform: uppercase;
-        letter-spacing: 0.06em; padding: 2px 7px; border-radius: 4px;
+        letter-spacing: 0.06em; padding: 2px 6px; border-radius: 3px;
         border: 1px solid var(--border); background: transparent;
         color: var(--muted); cursor: pointer; transition: all 0.15s;
         white-space: nowrap;
@@ -230,67 +301,124 @@
 
       .photo-filename { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-left: auto; }
 
-      /* Image wrapper */
-      .photo-img-wrapper {
-        width: 100%; background: var(--surface2); border-radius: 6px;
-        overflow: hidden; border: 1px solid var(--border);
-      }
-      .photo-img-wrapper img {
-        width: 100%; height: auto; display: block;
-        max-height: 520px; object-fit: contain;
-      }
-      .photo-img-wrapper .img-placeholder {
-        height: 180px; display: flex; align-items: center;
-        justify-content: center; color: var(--muted);
-        font-size: 12px; font-family: var(--mono);
-      }
-
-      /* Caption + alt inputs */
-      .caption-row { display: flex; flex-direction: column; gap: 0.375rem; }
-
-      .caption-field-label {
-        font-size: 10px; font-family: var(--mono); text-transform: uppercase;
-        letter-spacing: 0.06em; color: var(--muted);
-        display: flex; align-items: center; gap: 0.375rem;
-      }
-
-      .caption-input, .alt-input {
-        width: 100%; padding: 0.45rem 0.65rem;
-        background: var(--surface2); border: 1px solid var(--border);
-        border-radius: 5px; color: var(--text); font-size: 13px;
-        font-family: var(--sans); line-height: 1.5;
-        transition: border-color 0.15s;
-        resize: none; overflow: hidden; min-height: 2.25rem;
-        display: block; box-sizing: border-box;
-      }
-      .caption-input:focus, .alt-input:focus { outline: none; border-color: var(--accent); }
-      .caption-input::placeholder, .alt-input::placeholder { color: var(--muted); }
-
-      /* Per-photo saved indicator */
+      /* Per-photo save indicator */
       .photo-save-indicator {
-        font-size: 10px; font-family: var(--mono); padding: 1px 6px;
+        font-size: 10px; font-family: var(--mono); padding: 1px 5px;
         border-radius: 3px; white-space: nowrap; flex-shrink: 0;
         opacity: 0; transition: opacity 0.3s;
       }
       .photo-save-indicator.dirty { background: var(--warn-soft); color: var(--warn); opacity: 1; }
       .photo-save-indicator.saved { background: #0d2a1d; color: #4ade80; opacity: 1; }
 
-      /* Drag-and-drop */
-      .photo-entry[draggable="true"] { cursor: grab; }
-      .photo-entry[draggable="true"]:active { cursor: grabbing; }
-      .photo-entry.drag-over { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 4px; }
+      /* ── Image area (page-preview style) ────────────────────────────────── */
+      .step-image-area {
+        background: #f5f6f7; /* matches --color-surface-sunken from real page */
+        overflow: hidden;
+      }
 
+      .step-image-area img {
+        width: 100%;
+        aspect-ratio: var(--page-img-ratio);
+        object-fit: cover;
+        display: block;
+      }
+
+      /* Portrait orientation */
+      .step-block.portrait .step-image-area img {
+        aspect-ratio: 2 / 3;
+        max-width: 60%;
+        margin-inline: auto;
+      }
+
+      /* Placeholder when image doesn't load */
+      .img-placeholder {
+        aspect-ratio: var(--page-img-ratio);
+        display: flex; align-items: center; justify-content: center;
+        color: var(--muted); font-size: 12px; font-family: var(--mono);
+        background: var(--surface2);
+      }
+
+      /* ── Caption area (page-preview style) ──────────────────────────────── */
+      .step-caption-area {
+        padding: 0.75rem 1rem 1rem;
+        background: var(--page-bg);
+      }
+
+      /* Caption textarea styled to match published figcaption */
+      .caption-input {
+        width: 100%;
+        max-width: var(--page-caption-measure);
+        font-size: var(--page-caption-size);
+        line-height: var(--page-caption-lh);
+        color: var(--page-text);
+        font-family: var(--sans);
+        background: transparent;
+        border: none;
+        border-bottom: 1px dashed #d0d3d8;
+        border-radius: 0;
+        padding: 0.125rem 0;
+        resize: none;
+        overflow: hidden;
+        min-height: 1.5rem;
+        display: block;
+        transition: border-color 0.15s;
+        outline: none;
+      }
+      .caption-input:focus { border-bottom-color: var(--accent); }
+      .caption-input::placeholder { color: #c0c3c9; font-style: italic; }
+
+      /* Caption meta row */
+      .caption-meta {
+        display: flex; align-items: center; gap: 0.375rem; margin-top: 0.375rem;
+      }
+      .caption-field-label {
+        font-size: 9px; font-family: var(--mono); text-transform: uppercase;
+        letter-spacing: 0.06em; color: #b0b5be;
+        display: flex; align-items: center; gap: 0.25rem;
+      }
+
+      /* ── Alt text row (de-emphasized below caption) ──────────────────────── */
+      .alt-row {
+        padding: 0.5rem 1rem 0.75rem;
+        background: #f9fafb;
+        border-top: 1px solid #f0f1f3;
+      }
+      .alt-input {
+        width: 100%;
+        padding: 0.3rem 0.5rem;
+        background: #fff; border: 1px solid #e0e2e6;
+        border-radius: 4px; color: #5c626c; font-size: 12px;
+        font-family: var(--sans); line-height: 1.45;
+        transition: border-color 0.15s;
+        resize: none; overflow: hidden; min-height: 2rem;
+        display: block;
+      }
+      .alt-input:focus { outline: none; border-color: var(--accent); }
+      .alt-input::placeholder { color: #b0b5be; }
+
+      .alt-field-label {
+        font-size: 9px; font-family: var(--mono); text-transform: uppercase;
+        letter-spacing: 0.06em; color: #b0b5be;
+        display: flex; align-items: center; gap: 0.25rem;
+        margin-bottom: 0.25rem;
+      }
       .alt-missing-warn {
         display: none; font-size: 10px; font-family: var(--mono);
-        color: var(--red); margin-top: 0.25rem;
+        color: var(--red); margin-top: 0.2rem;
       }
       .alt-missing-warn.visible { display: block; }
 
-      /* Greyed out when cut */
-      .photo-entry.dest-cut .photo-img-wrapper { opacity: 0.3; }
-      .photo-entry.dest-cut .caption-row { opacity: 0.4; pointer-events: none; }
+      /* ── Greyed out / cut state ──────────────────────────────────────────── */
+      .step-block.dest-cut .step-image-area { opacity: 0.3; }
+      .step-block.dest-cut .step-caption-area,
+      .step-block.dest-cut .alt-row { opacity: 0.35; pointer-events: none; }
 
-      /* Empty state */
+      /* ── Drag-and-drop ───────────────────────────────────────────────────── */
+      .step-block[draggable="true"] { cursor: grab; }
+      .step-block[draggable="true"]:active { cursor: grabbing; }
+      .step-block.drag-over { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+      /* ── Empty / loading states ──────────────────────────────────────────── */
       .empty-state {
         flex: 1; display: flex; flex-direction: column;
         align-items: center; justify-content: center;
@@ -300,15 +428,26 @@
       .empty-state h2 { font-size: 18px; color: var(--text); font-weight: 500; }
 
       .loading { text-align: center; padding: 3rem; color: var(--muted); font-family: var(--mono); font-size: 12px; }
+
+      /* ── Cut section (collapsed at bottom) ───────────────────────────────── */
+      .cut-section-toggle {
+        display: flex; align-items: center; gap: 0.5rem;
+        cursor: pointer; font-size: 10px; font-family: var(--mono);
+        text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
+        padding: 0.5rem 0; border: none; background: none; width: 100%;
+        margin-top: 2rem;
+      }
+      .cut-section-toggle:hover { color: var(--text); }
+      .cut-list { display: none; }
+      .cut-list.open { display: flex; flex-direction: column; }
     </style>
   </head>
   <body>
     <div class="studio-layout">
       <header class="studio-header">
         <h1>Caption Studio</h1>
-        <div id="toolbar" style="display:none" class="toolbar-group">
-          <button class="btn btn-primary" id="btn-export" type="button">Export MDX</button>
-          <span id="save-status" class="save-status saved">Saved</span>
+        <div id="toolbar-inline" style="display:none" class="toolbar-group">
+          <span id="save-status-header" class="save-status saved">Saved</span>
         </div>
       </header>
 
@@ -322,27 +461,24 @@
       <main class="studio-main" id="studio-main">
         <div class="empty-state" id="empty-state">
           <h2>Select a project</h2>
-          <p>Choose a project from the sidebar to start editing captions.</p>
+          <p>Choose a project from the sidebar to start editing.</p>
         </div>
       </main>
     </div>
 
     <script type="module">
       // ─── State ──────────────────────────────────────────────────────────────
-      // state.photos = master list, EXIF order (immutable sort)
-      // state.seqOrder = ordered array of filenames currently in main sequence
-      // state.heroFilename = filename of hero, or null
       let currentSlug = null;
       let state = null;
       let saveTimer = null;
       let isDirty = false;
-      let dirtyPhotos = new Set(); // filenames with unsaved changes
-      let dragSrcFn = null; // filename being dragged
+      let dirtyPhotos = new Set();
+      let dragSrcFn = null;
 
       const projectList = document.getElementById('project-list');
       const studioMain = document.getElementById('studio-main');
       const emptyState = document.getElementById('empty-state');
-      const toolbar = document.getElementById('toolbar');
+      const toolbarInline = document.getElementById('toolbar-inline');
 
       // ─── API ────────────────────────────────────────────────────────────────
       async function apiGet(path) {
@@ -382,14 +518,13 @@
         currentSlug = slug;
         document.querySelectorAll('.project-btn').forEach(b => b.classList.toggle('active', b.dataset.slug === slug));
         studioMain.innerHTML = '<div class="loading">Loading…</div>';
-        toolbar.style.display = '';
+        toolbarInline.style.display = '';
 
         const { photos: photoFiles } = await apiGet(`/photos/${slug}`);
 
         let saved = null;
         try { saved = await apiGet(`/sidecar/${slug}`); } catch {}
 
-        // Build master list from disk order (EXIF-sorted filenames from API)
         const masterPhotos = photoFiles.map(filename => {
           const existing = saved?.photos?.find(p => p.filename === filename);
           return {
@@ -397,12 +532,11 @@
             caption: existing?.caption ?? '',
             alt: existing?.alt ?? '',
             destination: existing?.destination ?? 'unassigned',
+            orientation: existing?.orientation ?? 'landscape',
           };
         });
-        // Add any saved photos that aren't on disk anymore (just skip them)
 
         state = {
-          // Spread saved first so metadata fields (tags, vehicle, date, type, etc.) are preserved
           ...(saved ?? {}),
           slug,
           title: saved?.title ?? slugToTitle(slug),
@@ -413,13 +547,10 @@
           seqOrder: (saved?.seqOrder ?? []).filter(fn => masterPhotos.some(p => p.filename === fn)),
         };
 
-        // Ensure seqOrder only contains filenames currently marked as main
-        // (dest may have changed since last save)
         state.seqOrder = state.seqOrder.filter(fn => {
           const p = state.photos.find(p => p.filename === fn);
           return p && p.destination === 'main';
         });
-        // Append any main photos not in seqOrder
         for (const p of state.photos) {
           if (p.destination === 'main' && !state.seqOrder.includes(p.filename)) {
             state.seqOrder.push(p.filename);
@@ -450,41 +581,76 @@
         const warnClass = wordCount > 35 ? 'warn' : '';
         const seqOnTarget = seqCount >= 12 && seqCount <= 24;
 
+        // Build step groups (by chapter) for main sequence
+        const seqPhotos = state.seqOrder.map(fn => state.photos.find(p => p.filename === fn)).filter(Boolean);
+        const unassignedPhotos = state.photos.filter(p => p.destination === 'unassigned');
+        const galleryPhotos = state.photos.filter(p => p.destination === 'gallery');
+        const cutPhotos = state.photos.filter(p => p.destination === 'cut');
+
         studioMain.innerHTML = `
           <div class="toolbar">
             <div class="toolbar-group">
-              <span style="font-size:11px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">${state.slug}</span>
+              <span style="font-size:10px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">${escHtml(state.slug)}</span>
             </div>
             <div class="toolbar-sep"></div>
             <span class="seq-counter${seqOnTarget ? ' on-target' : ''}" id="seq-counter">
-              Seq: ${seqCount} <span style="opacity:0.5">/ target 12–24</span>
+              Seq: ${seqCount} <span style="opacity:0.5">/ 12–24</span>
             </span>
-            <span class="seq-counter" id="captioned-counter" style="min-width:96px">
+            <span class="seq-counter" id="captioned-counter" style="min-width:80px">
               ${captionedCount} <span style="opacity:0.5">/ ${totalCount} captioned</span>
             </span>
             <span class="missing-alt-badge${missingAlt > 0 ? ' visible' : ''}" id="missing-alt-badge">
               ${missingAlt} missing alt
             </span>
             <div class="toolbar-sep"></div>
-            <div class="toolbar-group">
-              <button class="btn btn-primary" id="btn-export">Export MDX</button>
-              <span id="save-status" class="save-status saved">Saved</span>
-            </div>
+            <button class="btn btn-primary" id="btn-export">Export MDX</button>
+            <span id="save-status" class="save-status saved">Saved</span>
           </div>
-          <div class="preview-area">
-            <div class="header-field">
-              <div class="field-label">
-                Summary / Header
-                <span class="word-count ${warnClass}" id="word-count">${wordCount}/35 words</span>
-              </div>
-              <textarea
-                class="header-input" id="summary-input" rows="2"
-                placeholder="~30-word project summary for employers scanning fast…"
-              >${escHtml(state.summary)}</textarea>
-            </div>
 
-            <div class="photo-list" id="photo-list">
-              ${state.photos.map((photo, i) => renderPhotoEntry(photo, i)).join('')}
+          <div class="page-preview">
+            <div class="page-col" id="photo-list">
+
+              <div style="margin-bottom:2rem">
+                <div class="page-header-area">
+                  <div class="field-row">
+                    <div class="field-label">
+                      Summary
+                      <span class="word-count ${warnClass}" id="word-count">${wordCount}/35 words</span>
+                    </div>
+                    <textarea
+                      class="header-input" id="summary-input" rows="2"
+                      placeholder="~30-word project summary…"
+                    >${escHtml(state.summary)}</textarea>
+                  </div>
+                </div>
+              </div>
+
+              ${seqPhotos.length > 0 ? `
+                <div class="preview-section-label">Main sequence — ${seqCount} steps</div>
+                ${seqPhotos.map((photo, seqIdx) => renderStep(photo, seqIdx, 'main')).join('')}
+              ` : `
+                <div class="preview-section-label">No photos in main sequence yet</div>
+              `}
+
+              ${galleryPhotos.length > 0 ? `
+                <div class="preview-section-label" style="margin-top:2.5rem">Gallery — ${galleryPhotos.length} photos</div>
+                ${galleryPhotos.map((photo, i) => renderStep(photo, i, 'gallery')).join('')}
+              ` : ''}
+
+              ${unassignedPhotos.length > 0 ? `
+                <div class="preview-section-label" style="margin-top:2.5rem">Unassigned — ${unassignedPhotos.length} photos</div>
+                ${unassignedPhotos.map((photo, i) => renderStep(photo, i, 'unassigned')).join('')}
+              ` : ''}
+
+              ${cutPhotos.length > 0 ? `
+                <button class="cut-section-toggle" id="cut-toggle" type="button">
+                  ▸ Cut — ${cutPhotos.length} photos (hidden)
+                </button>
+                <div class="cut-list" id="cut-list">
+                  ${cutPhotos.map((photo, i) => renderStep(photo, i, 'cut')).join('')}
+                </div>
+              ` : ''}
+
             </div>
           </div>
         `;
@@ -492,7 +658,8 @@
         bindEvents();
       }
 
-      function renderPhotoEntry(photo, masterIdx) {
+      function renderStep(photo, displayIdx, section) {
+        const masterIdx = state.photos.indexOf(photo);
         const imgSrc = `/photos/${currentSlug}/${photo.filename}`;
         const seqPos = state.seqOrder.indexOf(photo.filename);
         const isInSeq = seqPos >= 0;
@@ -504,77 +671,79 @@
         const altMissing = (photo.destination === 'main' || photo.destination === 'gallery') && !photo.alt.trim();
         const seqFirst = isInSeq && seqPos === 0;
         const seqLast = isInSeq && seqPos === state.seqOrder.length - 1;
+        const isPortrait = photo.orientation === 'portrait';
 
         return `
-          <div class="photo-entry ${destClass}" data-filename="${escHtml(photo.filename)}" data-masteridx="${masterIdx}" draggable="true">
-            <div class="photo-entry-inner">
-              <div class="photo-controls">
-                <span class="master-idx">#${masterIdx + 1}</span>
+          <div class="step-block ${destClass}${isPortrait ? ' portrait' : ''}"
+               data-filename="${escHtml(photo.filename)}" data-masteridx="${masterIdx}" draggable="true">
 
-                <select class="dest-select ${destClass}" data-filename="${escHtml(photo.filename)}" aria-label="Destination">
-                  <option value="unassigned"${photo.destination === 'unassigned' ? ' selected' : ''}>Unassigned</option>
-                  <option value="main"${photo.destination === 'main' ? ' selected' : ''}>Main sequence</option>
-                  <option value="gallery"${photo.destination === 'gallery' ? ' selected' : ''}>Gallery</option>
-                  <option value="cut"${photo.destination === 'cut' ? ' selected' : ''}>Cut</option>
-                </select>
+            <div class="step-controls">
+              <span class="master-idx">#${masterIdx + 1}</span>
 
-                <div class="seq-controls${isInSeq ? ' visible' : ''}">
-                  <span class="seq-pos-badge">#${isInSeq ? seqPos + 1 : '—'}</span>
-                  <button class="seq-btn" data-action="seq-up" data-filename="${escHtml(photo.filename)}"
-                    ${seqFirst ? 'disabled' : ''} title="Move earlier in sequence">↑</button>
-                  <button class="seq-btn" data-action="seq-down" data-filename="${escHtml(photo.filename)}"
-                    ${seqLast ? 'disabled' : ''} title="Move later in sequence">↓</button>
-                </div>
+              <select class="dest-select ${destClass}" data-filename="${escHtml(photo.filename)}" aria-label="Destination">
+                <option value="unassigned"${photo.destination === 'unassigned' ? ' selected' : ''}>Unassigned</option>
+                <option value="main"${photo.destination === 'main' ? ' selected' : ''}>Main seq</option>
+                <option value="gallery"${photo.destination === 'gallery' ? ' selected' : ''}>Gallery</option>
+                <option value="cut"${photo.destination === 'cut' ? ' selected' : ''}>Cut</option>
+              </select>
 
-                <label class="hero-label" title="Set as hero image">
-                  <input type="radio" name="hero-radio" value="${escHtml(photo.filename)}"${isHero ? ' checked' : ''} />
-                  ${isHero ? '★ Hero' : '☆ Hero'}
-                </label>
-
-                <span class="photo-filename">${escHtml(photo.filename)}</span>
+              <div class="seq-controls${isInSeq ? ' visible' : ''}">
+                <span class="seq-pos-badge">#${isInSeq ? seqPos + 1 : '—'}</span>
+                <button class="seq-btn" data-action="seq-up" data-filename="${escHtml(photo.filename)}"
+                  ${seqFirst ? 'disabled' : ''} title="Move earlier">↑</button>
+                <button class="seq-btn" data-action="seq-down" data-filename="${escHtml(photo.filename)}"
+                  ${seqLast ? 'disabled' : ''} title="Move later">↓</button>
               </div>
 
-              <div class="photo-img-wrapper">
-                <img src="${imgSrc}" alt="${escHtml(photo.alt || photo.filename)}"
-                     loading="lazy"
-                     onerror="this.parentElement.innerHTML='<div class=\\'img-placeholder\\'>Image not found</div>'" />
-              </div>
+              <label class="hero-label" title="Set as hero image">
+                <input type="radio" name="hero-radio" value="${escHtml(photo.filename)}"${isHero ? ' checked' : ''} />
+                ${isHero ? '★ Hero' : '☆ Hero'}
+              </label>
 
-              <div class="caption-row">
-                <div>
-                  <div class="caption-field-label">
-                    Caption
-                    <span class="char-count ${captionWarn}" id="cap-count-${masterIdx}">${captionLen}/90</span>
-                    <span class="photo-save-indicator" id="save-ind-${masterIdx}"></span>
-                  </div>
-                  <textarea
-                    class="caption-input"
-                    data-filename="${escHtml(photo.filename)}"
-                    data-field="caption"
-                    placeholder="What's happening in this photo"
-                    maxlength="120"
-                    rows="1"
-                    aria-label="Caption for ${escHtml(photo.filename)}"
-                  >${escHtml(photo.caption)}</textarea>
-                </div>
-                <div>
-                  <div class="caption-field-label">
-                    Alt text
-                    <span class="char-count" id="alt-count-${masterIdx}">${altLen}/125</span>
-                  </div>
-                  <textarea
-                    class="alt-input"
-                    data-filename="${escHtml(photo.filename)}"
-                    data-field="alt"
-                    placeholder="Literal description of what is visible"
-                    maxlength="150"
-                    rows="1"
-                    aria-label="Alt text for ${escHtml(photo.filename)}"
-                  >${escHtml(photo.alt)}</textarea>
-                  <div class="alt-missing-warn${altMissing ? ' visible' : ''}">
-                    ⚠ Alt text required for export
-                  </div>
-                </div>
+              <span class="photo-filename">${escHtml(photo.filename)}</span>
+              <span class="photo-save-indicator" id="save-ind-${masterIdx}"></span>
+            </div>
+
+            <div class="step-image-area">
+              <img src="${imgSrc}" alt="${escHtml(photo.alt || photo.filename)}"
+                   loading="lazy"
+                   onerror="this.parentElement.innerHTML='<div class=\\'img-placeholder\\'>Image not found</div>'" />
+            </div>
+
+            <div class="step-caption-area">
+              <textarea
+                class="caption-input"
+                data-filename="${escHtml(photo.filename)}"
+                data-field="caption"
+                placeholder="Caption for this photo…"
+                maxlength="120"
+                rows="1"
+                aria-label="Caption for ${escHtml(photo.filename)}"
+              >${escHtml(photo.caption)}</textarea>
+              <div class="caption-meta">
+                <span class="caption-field-label">
+                  Caption
+                  <span class="char-count ${captionWarn}" id="cap-count-${masterIdx}">${captionLen}/90</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="alt-row">
+              <div class="alt-field-label">
+                Alt text
+                <span class="char-count" id="alt-count-${masterIdx}">${altLen}/125</span>
+              </div>
+              <textarea
+                class="alt-input"
+                data-filename="${escHtml(photo.filename)}"
+                data-field="alt"
+                placeholder="Literal description of what is visible"
+                maxlength="150"
+                rows="1"
+                aria-label="Alt text for ${escHtml(photo.filename)}"
+              >${escHtml(photo.alt)}</textarea>
+              <div class="alt-missing-warn${altMissing ? ' visible' : ''}">
+                ⚠ Alt text required for export
               </div>
             </div>
           </div>
@@ -583,8 +752,16 @@
 
       // ─── Bind all events (called after innerHTML write) ─────────────────────
       function bindEvents() {
-        // Export button
         document.getElementById('btn-export')?.addEventListener('click', handleExport);
+
+        // Cut section toggle
+        document.getElementById('cut-toggle')?.addEventListener('click', () => {
+          const list = document.getElementById('cut-list');
+          const btn = document.getElementById('cut-toggle');
+          if (!list) return;
+          list.classList.toggle('open');
+          if (btn) btn.textContent = btn.textContent.replace(/[▸▾]/, list.classList.contains('open') ? '▾' : '▸');
+        });
 
         // Summary
         const summaryInput = document.getElementById('summary-input');
@@ -616,7 +793,7 @@
             }
 
             markDirty();
-            renderStudio(); // re-render for seq counter + styling
+            renderStudio();
           });
         });
 
@@ -648,7 +825,6 @@
             if (radio.checked) {
               state.heroFilename = radio.value;
               markDirty();
-              // Update labels without full re-render
               document.querySelectorAll('.hero-label').forEach(lbl => {
                 const r = lbl.querySelector('input');
                 lbl.lastChild.textContent = r?.checked ? '★ Hero' : '☆ Hero';
@@ -657,7 +833,7 @@
           });
         });
 
-        // Caption / alt inputs — delegate by field
+        // Caption / alt inputs — delegated
         const photoList = document.getElementById('photo-list');
         if (photoList) {
           photoList.addEventListener('input', e => {
@@ -669,7 +845,6 @@
             if (!photo) return;
             photo[field] = input.value;
 
-            // Update char counter inline
             const masterIdx = state.photos.indexOf(photo);
             if (field === 'caption') {
               const el = document.getElementById(`cap-count-${masterIdx}`);
@@ -678,30 +853,27 @@
             } else if (field === 'alt') {
               const el = document.getElementById(`alt-count-${masterIdx}`);
               if (el) { el.textContent = `${input.value.length}/125`; }
-              // Toggle missing alt warning
-              const row = input.closest('.photo-entry');
+              const row = input.closest('.step-block');
               const warn = row?.querySelector('.alt-missing-warn');
               if (warn) {
                 const p = state.photos.find(p => p.filename === fn);
                 const needs = p && (p.destination === 'main' || p.destination === 'gallery');
                 warn.classList.toggle('visible', needs && !input.value.trim());
               }
-              // Update global missing count
               updateMissingAltBadge();
             }
 
             markDirty(fn);
           });
 
-          // Keyboard: tab from caption → alt → next photo's caption
+          // Tab: caption → alt → next caption
           photoList.addEventListener('keydown', e => {
             if (e.key !== 'Tab' || e.shiftKey) return;
             const input = e.target;
             if (!input.dataset.filename || !input.dataset.field) return;
             if (input.dataset.field === 'caption') {
               e.preventDefault();
-              const fn = input.dataset.filename;
-              const row = input.closest('.photo-entry');
+              const row = input.closest('.step-block');
               const altInput = row?.querySelector('.alt-input');
               if (altInput) altInput.focus();
             } else if (input.dataset.field === 'alt') {
@@ -718,18 +890,18 @@
           });
 
           // Auto-grow textareas
-          photoList.querySelectorAll('.caption-input, .alt-input').forEach(ta => {
+          photoList.querySelectorAll('.caption-input, .alt-input, .header-input').forEach(ta => {
             const grow = () => { ta.style.height = ''; ta.style.height = ta.scrollHeight + 'px'; };
             ta.addEventListener('input', grow);
-            grow(); // set initial height
+            grow();
           });
         }
 
-        // ─── Drag-and-drop reorder ────────────────────────────────────────────
+        // Drag-and-drop reorder
         const photoList2 = document.getElementById('photo-list');
         if (photoList2) {
           photoList2.addEventListener('dragstart', e => {
-            const entry = e.target.closest('.photo-entry');
+            const entry = e.target.closest('.step-block');
             if (!entry) return;
             dragSrcFn = entry.dataset.filename;
             e.dataTransfer.effectAllowed = 'move';
@@ -737,33 +909,31 @@
           photoList2.addEventListener('dragover', e => {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
-            const entry = e.target.closest('.photo-entry');
-            photoList2.querySelectorAll('.photo-entry').forEach(el => el.classList.remove('drag-over'));
+            const entry = e.target.closest('.step-block');
+            photoList2.querySelectorAll('.step-block').forEach(el => el.classList.remove('drag-over'));
             if (entry && entry.dataset.filename !== dragSrcFn) entry.classList.add('drag-over');
           });
           photoList2.addEventListener('dragleave', e => {
-            const entry = e.target.closest('.photo-entry');
+            const entry = e.target.closest('.step-block');
             if (entry) entry.classList.remove('drag-over');
           });
           photoList2.addEventListener('drop', e => {
             e.preventDefault();
-            photoList2.querySelectorAll('.photo-entry').forEach(el => el.classList.remove('drag-over'));
-            const entry = e.target.closest('.photo-entry');
+            photoList2.querySelectorAll('.step-block').forEach(el => el.classList.remove('drag-over'));
+            const entry = e.target.closest('.step-block');
             if (!entry || !dragSrcFn || entry.dataset.filename === dragSrcFn) return;
             const targetFn = entry.dataset.filename;
             const srcIdx = state.photos.findIndex(p => p.filename === dragSrcFn);
             const dstIdx = state.photos.findIndex(p => p.filename === targetFn);
             if (srcIdx < 0 || dstIdx < 0) return;
-            // Move src photo to dst position in master list
             const [moved] = state.photos.splice(srcIdx, 1);
             state.photos.splice(dstIdx, 0, moved);
-            // Keep seqOrder intact (filenames don't change, just master display order)
             markDirty();
             renderStudio();
             dragSrcFn = null;
           });
           photoList2.addEventListener('dragend', () => {
-            photoList2.querySelectorAll('.photo-entry').forEach(el => el.classList.remove('drag-over'));
+            photoList2.querySelectorAll('.step-block').forEach(el => el.classList.remove('drag-over'));
             dragSrcFn = null;
           });
         }
@@ -803,10 +973,12 @@
       }
 
       function setSaveStatus(s) {
-        const el = document.getElementById('save-status');
-        if (!el) return;
-        el.className = `save-status ${s}`;
-        el.textContent = s === 'saved' ? 'Saved' : s === 'unsaved' ? '● Unsaved' : 'Saving…';
+        for (const id of ['save-status', 'save-status-header']) {
+          const el = document.getElementById(id);
+          if (!el) continue;
+          el.className = `save-status ${s}`;
+          el.textContent = s === 'saved' ? 'Saved' : s === 'unsaved' ? '● Unsaved' : 'Saving…';
+        }
       }
 
       async function autoSave() {
@@ -815,7 +987,6 @@
         try {
           await apiPost(`/sidecar/${state.slug}`, state);
           isDirty = false;
-          // Flash per-photo indicators as saved then fade out
           const saved = Array.from(dirtyPhotos);
           dirtyPhotos.clear();
           for (const fn of saved) {
