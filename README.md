@@ -1,43 +1,81 @@
-# Astro Starter Kit: Minimal
+# seanmelotti.com
 
-```sh
-npm create astro@latest -- --template minimal
-```
+Portfolio site for Sean Melotti — custom vehicle builds, fabrication and restoration.
+Built with [Astro](https://astro.build), styled with Tailwind CSS v4, deployed to
+Cloudflare Pages.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Commands
 
-## 🚀 Project Structure
+| Command           | Action                                              |
+| :---------------- | :-------------------------------------------------- |
+| `npm install`     | Install dependencies (Node 22.12+, see `.nvmrc`)     |
+| `npm run dev`     | Dev server at `localhost:4321`                       |
+| `npm run build`   | Production build to `./dist/`                        |
+| `npm run preview` | Serve the production build locally                   |
+| `npm run check`   | Type-check `.astro`/`.ts` with `astro check`         |
 
-Inside of your Astro project, you'll see the following folders and files:
+## Structure
 
 ```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+src/
+├── components/        Site shell + UI components
+│   ├── Header.astro   Sticky header, desktop nav, mobile menu
+│   ├── Footer.astro   Site links + socials
+│   ├── PageHeader.astro  Eyebrow / title / lede band for inner pages
+│   └── BuildCard.astro   Build card (image, title, summary, tags, status)
+├── content/builds/    Build write-ups (MDX)
+├── layouts/
+│   └── BaseLayout.astro  <head> + SEO, skip link, header/main/footer
+├── pages/             index, builds, about, contact, 404
+├── styles/
+│   └── global.css     ALL design tokens + component primitives
+├── content.config.ts  `builds` collection schema
+└── consts.ts          Site metadata, nav items, social links
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## Design system
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+Every token lives in `src/styles/global.css`. Nothing else in the codebase should
+introduce a one-off colour, font size or radius — add it there first.
 
-Any static assets, like images, can be placed in the `public/` directory.
+- **Colours** — light canvas, cool neutral ink scale (`--color-ink-300` → `950`),
+  three hairline weights (`--color-line-subtle|line|line-strong`), one restrained
+  accent (`--color-accent`, indigo-blue `#2f56d9`) plus soft/line variants, and two
+  semantic status colours for build state.
+- **Type** — [Inter Variable](https://fontsource.org/fonts/inter) for UI and body,
+  [JetBrains Mono Variable](https://fontsource.org/fonts/jetbrains-mono) for eyebrows,
+  tags and meta. Both self-hosted via `@fontsource-variable/*` and bundled by Vite —
+  no external font CDN. The scale runs `--text-2xs` → `--text-6xl`, with tighter
+  leading and negative tracking on the display steps.
+- **Layout** — `--container-max` (72rem), `--container-narrow` (46rem) and a
+  responsive `--container-gutter`, consumed by the `.container-page` /
+  `.container-narrow` classes.
+- **Primitives** — `.btn` (`.btn-primary` / `.btn-secondary`), `.tag`, `.card`,
+  `.eyebrow`, `.link-accent`, `.hairline`, `.skip-link`, `.section`.
 
-## 🧞 Commands
+Tokens declared inside `@theme` also generate Tailwind utilities, so
+`text-ink-500`, `border-line` and `bg-accent-soft` all resolve to the same values.
 
-All commands are run from the root of the project, from a terminal:
+## Content
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+`src/content.config.ts` defines the `builds` collection:
 
-## 👀 Want to learn more?
+| Field           | Type                                       |
+| :-------------- | :----------------------------------------- |
+| `title`         | string                                     |
+| `summary`       | string                                     |
+| `date`          | date                                       |
+| `coverImage`    | string (path under `public/`)              |
+| `coverImageAlt` | string, optional                           |
+| `tags`          | string[]                                   |
+| `vehicle`       | string                                     |
+| `status`        | `complete` \| `in-progress` \| `planned`   |
+| `draft`         | boolean, default `false` — hidden from listings |
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+Add a build by dropping an `.mdx` file into `src/content/builds/`.
+
+## Assets
+
+Placeholder covers live in `public/placeholders/`. The Open Graph card is generated
+once by `node scripts/generate-og.mjs` and committed to `public/og-default.png`; re-run
+it if the palette or wording changes.
