@@ -335,20 +335,10 @@
       transform 0.2s var(--ease-out-quint);
   }
 
-  .card:hover {
-    border-color: var(--color-line-strong);
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-  }
-
-  /* The global reduced-motion rule only zeroes the duration, which leaves the
-     lift as an instant jump. Drop the movement outright — the border and shadow
-     still signal the hover. Lives here because @layer components outranks base. */
-  @media (prefers-reduced-motion: reduce) {
-    .card:hover {
-      transform: none;
-    }
-  }
+  /* No hover response on .card itself — a bare card is a static panel (the
+     disciplines on /about), and lifting it under the cursor would promise a
+     click that never happens. The hover lives on .card-interactive below,
+     which is only applied when the card actually goes somewhere. */
 
   /* --- Hero eyebrow ------------------------------------------------------
      The positioning statement above the name. Body typeface, not the mono
@@ -442,6 +432,7 @@
   .card-interactive:hover {
     border-color: var(--color-accent-line);
     box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
   }
 
   .card-interactive:focus-within {
@@ -639,7 +630,7 @@
      the layer so it outranks the equally-specific rules above; the skip link is
      deliberately left alone since its transform IS the reveal. */
   @media (prefers-reduced-motion: reduce) {
-    .card:hover,
+    .card-interactive:hover,
     .cta-bubble:hover,
     .cta-bubble:hover svg,
     .card:hover .card-cta svg,
