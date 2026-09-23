@@ -1,17 +1,109 @@
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import BuildCard from '../components/BuildCard.astro';
+import { SITE } from '../consts';
 
+/**
+ * Placeholder featured builds. Phase 2 replaces this array with a query against
+ * the `builds` content collection and real cover photos from Sean's Drive folder.
+ */
+const featured = [
+  {
+    title: 'Placeholder Build One',
+    vehicle: 'Vehicle / Year',
+    summary:
+      'One or two lines on the scope of the build — what came in, what was changed, what came out.',
+    image: '/placeholders/build-01.svg',
+    imageAlt: 'Placeholder image for the first featured build',
+    tags: ['Fabrication', 'Suspension'],
+    status: 'complete' as const,
+  },
+  {
+    title: 'Placeholder Build Two',
+    vehicle: 'Vehicle / Year',
+    summary:
+      'One or two lines on the scope of the build — what came in, what was changed, what came out.',
+    image: '/placeholders/build-02.svg',
+    imageAlt: 'Placeholder image for the second featured build',
+    tags: ['Engine', 'Wiring'],
+    status: 'in-progress' as const,
+  },
+  {
+    title: 'Placeholder Build Three',
+    vehicle: 'Vehicle / Year',
+    summary:
+      'One or two lines on the scope of the build — what came in, what was changed, what came out.',
+    image: '/placeholders/build-03.svg',
+    imageAlt: 'Placeholder image for the third featured build',
+    tags: ['Restoration', 'Paint'],
+    status: 'complete' as const,
+  },
+];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout title={SITE.name} description={SITE.description}>
+  <!-- Hero -->
+  <section class="relative overflow-hidden border-b border-line">
+    <div class="grid-hairline absolute inset-0 opacity-70" aria-hidden="true"></div>
+    <div
+      class="absolute inset-0 bg-gradient-to-b from-transparent via-canvas/60 to-canvas"
+      aria-hidden="true"
+    >
+    </div>
+
+    <div class="container-page relative py-20 md:py-28 lg:py-32">
+      <p class="eyebrow">Builds &middot; Fabrication &middot; Restoration</p>
+
+      <h1 class="mt-5 max-w-3xl text-5xl text-ink-950 md:text-6xl">Sean Melotti</h1>
+
+      <!-- Placeholder positioning statement — Sean replaces this copy. -->
+      <p class="mt-6 max-w-xl text-lg text-ink-500 md:text-xl">
+        Custom vehicle builds, fabrication and restoration — documented end to end, from
+        teardown to the last torque check.
+      </p>
+
+      <div class="mt-9 flex flex-wrap items-center gap-3">
+        <a href="/builds" class="btn btn-primary">View the builds</a>
+        <a href="/contact" class="btn btn-secondary">Get in touch</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured builds -->
+  <section class="section" aria-labelledby="featured-builds">
+    <div class="container-page">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+        <div>
+          <p class="eyebrow">Selected work</p>
+          <h2 id="featured-builds" class="mt-3 text-3xl text-ink-950">Featured builds</h2>
+        </div>
+        <a href="/builds" class="link-accent text-sm">All builds &rarr;</a>
+      </div>
+
+      <ul class="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          featured.map((build) => (
+            <li class="flex">
+              <BuildCard {...build} />
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- Closing CTA -->
+  <section class="border-t border-line bg-surface">
+    <div class="container-page py-16 md:py-20">
+      <div class="flex flex-col items-start gap-6 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 class="text-2xl text-ink-950">Got a project in mind?</h2>
+          <p class="mt-2 max-w-md text-ink-500">
+            Tell me what you're building and where it's stuck.
+          </p>
+        </div>
+        <a href="/contact" class="btn btn-primary">Start a conversation</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

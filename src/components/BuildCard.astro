@@ -1,0 +1,86 @@
+---
+interface Props {
+  title: string;
+  summary: string;
+  /** Cover image src. Placeholder SVGs today, real photos from Phase 2 on. */
+  image: string;
+  /** Describe the build, not the file. Required so cards stay accessible. */
+  imageAlt: string;
+  tags?: string[];
+  /** Vehicle line shown as the mono eyebrow above the title. */
+  vehicle?: string;
+  status?: 'complete' | 'in-progress' | 'planned';
+  /** Destination for the card link. Omitted while build pages don't exist yet. */
+  href?: string;
+}
+
+const {
+  title,
+  summary,
+  image,
+  imageAlt,
+  tags = [],
+  vehicle,
+  status,
+  href,
+} = Astro.props;
+
+const STATUS_LABEL = {
+  complete: 'Complete',
+  'in-progress': 'In progress',
+  planned: 'Planned',
+} as const;
+
+const STATUS_CLASS = {
+  complete: 'text-[var(--color-status-done)] bg-[var(--color-status-done-soft)]',
+  'in-progress': 'text-[var(--color-status-wip)] bg-[var(--color-status-wip-soft)]',
+  planned: 'text-ink-400 bg-surface-sunken',
+} as const;
+
+const Wrapper = href ? 'a' : 'div';
+---
+
+<article class="card h-full w-full">
+  <Wrapper
+    href={href}
+    class="flex h-full flex-col focus-visible:outline-none"
+    aria-label={href ? `${title} — view build` : undefined}
+  >
+    <div class="relative aspect-[16/10] overflow-hidden border-b border-line bg-surface-sunken">
+      <img
+        src={image}
+        alt={imageAlt}
+        loading="lazy"
+        decoding="async"
+        width="800"
+        height="500"
+        class="h-full w-full object-cover"
+      />
+      {
+        status && (
+          <span
+            class={`absolute top-3 left-3 inline-flex h-6 items-center rounded-sm px-2 font-mono text-2xs tracking-[0.02em] ${STATUS_CLASS[status]}`}
+          >
+            {STATUS_LABEL[status]}
+          </span>
+        )
+      }
+    </div>
+
+    <div class="flex flex-1 flex-col p-5">
+      {vehicle && <p class="eyebrow">{vehicle}</p>}
+      <h3 class="mt-2 text-lg font-[560] tracking-[-0.011em] text-ink-900">{title}</h3>
+      <p class="mt-2 text-sm text-ink-500">{summary}</p>
+
+      {
+        tags.length > 0 && (
+          <ul class="mt-5 flex flex-wrap gap-1.5 pt-1">
+            {tags.map((tag) => (
+              <li class="tag">{tag}</li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+  </Wrapper>
+</article>
