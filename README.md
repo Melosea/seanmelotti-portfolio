@@ -85,6 +85,26 @@ Add a project by dropping an `.mdx` file into `src/content/projects/`. `/project
 lists every non-draft entry newest-first on `date` and is the full archive; the
 homepage shows the three most recent `featured` entries.
 
+## The About page
+
+`/about` renders entirely from `PROFILE` and `DISCIPLINES` in `src/consts.ts` — the
+page itself holds no copy, so it can be rewritten without touching markup.
+
+`PROFILE.facts` entries are `null` until Sean supplies them. **A null fact is dropped
+from the page, not printed as a placeholder**, and the whole fact block hides while
+they are all null — the page reads as finished at every stage of filling it in.
+
+What is still needed from Sean, in his own words:
+
+| Field                 | What to supply                                                    |
+| :-------------------- | :---------------------------------------------------------------- |
+| `PROFILE.intro`       | 3–5 sentences: how he got into this work and the standard he holds it to. The current text is a neutral holding draft — it restates the positioning statement and makes no biographical claims. |
+| `facts['Based in']`   | City / state, or region if he would rather not be precise.         |
+| `facts['Working since']` | The year he started doing this work.                            |
+| `facts['Shop setup']` | One line on where the work happens and the main equipment.         |
+| `facts['Open to']`    | Whether he takes outside work at all, and of what kind. Leave null if not. |
+| `DISCIPLINES[].description` | Sanity-check the four one-liners — they were written from the positioning statement, not dictated by him. |
+
 ## Assets
 
 Placeholder covers live in `public/placeholders/`. The Open Graph card is generated

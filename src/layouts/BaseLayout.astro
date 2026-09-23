@@ -63,7 +63,11 @@ const socialImage = new URL(image, Astro.site);
     <meta property="og:image" content={socialImage.href} />
     <meta property="og:locale" content={SITE.locale} />
 
-    <!-- Twitter / X -->
+    <!-- Twitter / X card metadata. These are kept deliberately despite socials
+         being switched off: they are not links, accounts or a social presence —
+         they only control how the site looks when someone texts, Slacks or
+         messages the URL to a person. Stripping them makes a shared link render
+         as a bare URL. Delete this block if that trade is ever not worth it. -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={description} />
