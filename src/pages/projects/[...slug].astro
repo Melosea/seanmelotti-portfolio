@@ -30,13 +30,13 @@ function getImg(slugSlashFile: string): ImageMetadata | null {
 }
 
 const STATUS_LABEL = {
-  complete: 'Complete',
-  'in-progress': 'In progress',
+  completed: 'Completed',
+  'in-progress': 'In Progress',
   planned: 'Planned',
 } as const;
 
 const STATUS_CLASS = {
-  complete: 'status-pill-complete',
+  completed: 'status-pill-complete',
   'in-progress': 'status-pill-progress',
   planned: 'status-pill-planned',
 } as const;
