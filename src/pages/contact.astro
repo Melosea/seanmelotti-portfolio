@@ -1,0 +1,54 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { CONTACT_METHODS } from '../consts';
+
+/**
+ * Legibility is the whole point of this page. The email and phone are rendered
+ * at headline size in the body typeface, in ink-950 (about 20:1 on canvas),
+ * underlined at rest, inside an 88px-tall bordered target — no hover required
+ * to discover the link, nothing truncated or hidden behind an icon.
+ * The phone gets wide tracking so digits are easy to read one at a time.
+ */
+const isPhone = (href: string) => href.startsWith('tel:');
+---
+
+<BaseLayout
+  title="Contact"
+  description="Get in touch with Sean Melotti about a project, a commission or a collaboration. Email seancmelotti@gmail.com or call 443-480-8889."
+>
+  <PageHeader
+    eyebrow="Contact"
+    title="Let's have a conversation"
+    lede="Email or phone — both reach me directly. A few lines on the project, the scope and your timeline is plenty to start."
+  />
+
+  <section class="section">
+    <div class="container-page">
+      <ul class="flex max-w-2xl flex-col gap-4">
+        {
+          CONTACT_METHODS.map((method) => (
+            <li>
+              <a href={method.href} class="contact-card">
+                <span class="contact-card-label">{method.label}</span>
+                <span
+                  class:list={[
+                    'contact-card-value',
+                    isPhone(method.href) && 'contact-card-value-phone',
+                  ]}
+                >
+                  {method.value}
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+
+      <p class="mt-10 max-w-2xl text-base text-ink-500">
+        Email is usually quickest. If you would rather talk it through, call or text the
+        number above — daytime is best.
+      </p>
+    </div>
+  </section>
+</BaseLayout>

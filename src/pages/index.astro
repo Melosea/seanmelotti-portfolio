@@ -1,17 +1,123 @@
 ---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { SITE } from '../consts';
 
+/**
+ * Sean's positioning statement, verbatim. Non-breaking spaces glue each
+ * separator to the word before it so a stray hyphen never starts a line when
+ * the statement wraps on a narrow screen.
+ */
+const POSITIONING =
+  'Mechanical Restoration - Fabrication - 3D Modeling and Additive Manufacturing';
+
+/**
+ * The homepage shows the `featured` subset only — /projects is the full
+ * archive. Newest first, capped at three so the grid layout holds.
+ */
+const featured = (
+  await getCollection('projects', ({ data }) => data.featured && !data.draft)
+)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
+
+const [lead, ...rest] = featured;
+
+const cardProps = (project: (typeof featured)[number]) => ({
+  title: project.data.title,
+  summary: project.data.summary,
+  image: project.data.coverImage,
+  imageAlt:
+    project.data.coverImageAlt ??
+    `Cover photo for ${project.data.title} (${project.data.vehicle})`,
+  tags: project.data.tags,
+  vehicle: project.data.vehicle,
+  status: project.data.status,
+  href: `/projects/${project.id}`,
+});
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout title={SITE.name} description={SITE.description}>
+  <!-- Hero — deliberately compact so the project grid reaches the first viewport. -->
+  <section class="relative overflow-hidden border-b border-line">
+    <div class="grid-hairline absolute inset-0 opacity-70" aria-hidden="true"></div>
+    <div
+      class="absolute inset-0 bg-gradient-to-b from-transparent via-canvas/60 to-canvas"
+      aria-hidden="true"
+    >
+    </div>
+
+    <div class="container-page relative py-8 md:py-14">
+      <p class="hero-eyebrow">{POSITIONING}</p>
+
+      <h1 class="mt-4 max-w-3xl text-4xl text-ink-950 md:text-5xl">Sean Melotti</h1>
+
+      <p class="mt-4 max-w-xl text-base text-ink-500 md:text-lg">
+        Documented end to end — from teardown to the last torque check.
+      </p>
+
+      <div class="mt-6 flex flex-wrap items-center gap-3">
+        <a href="/projects" class="btn btn-primary">View projects</a>
+        <a href="/contact" class="btn btn-secondary">Get in touch</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured projects — the primary thing to interact with on this page. -->
+  <section class="pt-8 pb-14 md:pt-12 md:pb-20" aria-labelledby="featured-projects">
+    <div class="container-page">
+      <div class="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+        <h2 id="featured-projects" class="text-2xl text-ink-950 md:text-3xl">
+          Featured projects
+        </h2>
+        <a href="/projects" class="link-accent text-sm">All projects &rarr;</a>
+      </div>
+
+      {
+        lead && (
+          <ul class="mt-5 grid grid-cols-1 gap-5 md:mt-6 lg:grid-cols-12">
+            <li class="flex lg:col-span-7">
+              <ProjectCard {...cardProps(lead)} prominent eager />
+            </li>
+            {rest.length > 0 && (
+              <li class="lg:col-span-5">
+                <ul class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:h-full lg:grid-cols-1">
+                  {rest.map((project) => (
+                    <li class="flex">
+                      <ProjectCard {...cardProps(project)} eager />
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            )}
+          </ul>
+        )
+      }
+    </div>
+  </section>
+
+  <!-- Closing CTA — one warm contact bubble, nothing else. -->
+  <section class="border-t border-line bg-surface">
+    <div class="container-page py-14 md:py-16">
+      <div class="flex flex-col items-center gap-5 text-center">
+        <a href="/contact" class="cta-bubble">
+          Let&rsquo;s have a conversation
+          <svg
+            class="h-4 w-4"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 8h9.5M9 4.5 12.5 8 9 11.5"></path>
+          </svg>
+        </a>
+        <p class="text-sm text-ink-400">Email or phone — both go straight to me.</p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

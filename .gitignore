@@ -22,3 +22,11 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# Large binary download staging area
+src/assets/photos/Portfolio*/
+missing_files.json
+
+# Cerebro caption autosave watcher runtime
+.cerebro-tools/autosave.log
+.cerebro-tools/*.pid

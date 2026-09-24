@@ -1,0 +1,73 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import PageHeader from '../../components/PageHeader.astro';
+
+/**
+ * The full archive: every non-draft entry, current and past, newest first.
+ * The homepage shows only the `featured` subset.
+ */
+const projects = (await getCollection('projects', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+
+const monthYear = new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric' });
+---
+
+<BaseLayout
+  title="Projects"
+  description="The full archive of Sean Melotti's projects — mechanical restoration, fabrication, 3D modeling and additive manufacturing, newest first."
+>
+  <PageHeader
+    eyebrow="Archive"
+    title="Projects"
+    lede="Every project, current and past, newest first. Write-ups and photography are being added as the archive is digitised."
+  />
+
+  <section class="section">
+    <div class="container-page">
+      {
+        projects.length > 0 ? (
+          <>
+            <p class="eyebrow">
+              {projects.length} {projects.length === 1 ? 'project' : 'projects'}
+            </p>
+            <ul class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {projects.map((project, index) => (
+                <li class="flex">
+                  <ProjectCard
+                    title={project.data.title}
+                    summary={project.data.summary}
+                    image={project.data.coverImage}
+                    imageAlt={
+                      project.data.coverImageAlt ??
+                      `Cover photo for ${project.data.title} (${project.data.vehicle})`
+                    }
+                    tags={project.data.tags}
+                    vehicle={project.data.vehicle}
+                    dateLabel={monthYear.format(project.data.date)}
+                    status={project.data.status}
+                    href={`/projects/${project.id}`}
+                    eager={index < 3}
+                  />
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <div class="rounded-lg border border-dashed border-line-strong bg-surface px-6 py-16 text-center">
+            <p class="eyebrow">Nothing here yet</p>
+            <p class="mx-auto mt-3 max-w-sm text-ink-500">
+              Project write-ups are on the way. Check back shortly, or get in touch in the
+              meantime.
+            </p>
+            <a href="/contact" class="btn btn-secondary mt-6">
+              Get in touch
+            </a>
+          </div>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>

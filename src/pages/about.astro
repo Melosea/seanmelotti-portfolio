@@ -1,0 +1,76 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { DISCIPLINES, PROFILE } from '../consts';
+
+/**
+ * All copy on this page comes from PROFILE and DISCIPLINES in src/consts.ts.
+ * Facts Sean hasn't supplied yet are null there, and a null fact is dropped
+ * rather than printed — the page reads as finished at every stage of filling
+ * it in, and never shows the word "placeholder" to a visitor.
+ */
+const facts = PROFILE.facts.filter((fact) => fact.value !== null);
+---
+
+<BaseLayout
+  title="About"
+  description="Sean Melotti — mechanical restoration, fabrication, 3D modeling and additive manufacturing, documented project by project."
+>
+  <PageHeader eyebrow="About" title="About Sean" lede={PROFILE.lede} />
+
+  <section class="section">
+    <div class="container-page">
+      <!-- container-page (not container-narrow) so the copy's left edge lines up
+           with the page header, the section headings and the footer above and
+           below it. Measure is capped instead by max-w-2xl. -->
+      <div class="prose-page max-w-2xl">
+        {PROFILE.intro.map((paragraph) => <p>{paragraph}</p>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="border-t border-line bg-surface" aria-labelledby="disciplines">
+    <div class="container-page py-14 md:py-20">
+      <h2 id="disciplines" class="text-2xl text-ink-950 md:text-3xl">What I do</h2>
+
+      <ul class="mt-6 grid grid-cols-1 gap-5 md:mt-8 md:grid-cols-2">
+        {
+          DISCIPLINES.map((discipline, index) => (
+            <li class="card p-6">
+              <p class="eyebrow">{String(index + 1).padStart(2, '0')}</p>
+              <h3 class="mt-3 text-lg text-ink-950">{discipline.name}</h3>
+              <p class="mt-2 text-base text-ink-500">{discipline.description}</p>
+            </li>
+          ))
+        }
+      </ul>
+
+      {
+        facts.length > 0 && (
+          <dl class="mt-12 grid grid-cols-1 gap-8 border-t border-line pt-10 sm:grid-cols-2">
+            {facts.map((fact) => (
+              <div>
+                <dt class="eyebrow">{fact.label}</dt>
+                <dd class="mt-2 text-ink-700">{fact.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container-page">
+      <div class="flex flex-col items-start gap-5">
+        <h2 class="max-w-xl text-2xl text-ink-950 md:text-3xl">
+          The work says more than this page does.
+        </h2>
+        <div class="flex flex-wrap items-center gap-3">
+          <a href="/projects" class="btn btn-primary">View projects</a>
+          <a href="/contact" class="btn btn-secondary">Get in touch</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

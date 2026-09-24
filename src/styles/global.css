@@ -1,0 +1,894 @@
+@import 'tailwindcss';
+
+/* ============================================================================
+   DESIGN TOKENS — single source of truth for the whole site.
+   Light, technical-clean. Precise type, generous whitespace, hairline borders,
+   one restrained accent. Components consume these tokens, either as Tailwind
+   utilities generated from @theme or as var(--token) directly.
+   ========================================================================= */
+
+@theme {
+  /* --- Color: neutral ink scale (very slightly cool) --------------------- */
+  --color-canvas: #ffffff;
+  --color-surface: #fafafb;
+  --color-surface-sunken: #f5f6f7;
+
+  --color-ink-950: #0a0b0d; /* display headings */
+  --color-ink-900: #16181c; /* headings */
+  --color-ink-700: #33373e; /* strong body */
+  --color-ink-500: #5c626c; /* body */
+  --color-ink-400: #7c838e; /* muted / meta */
+  --color-ink-300: #a3a9b3; /* placeholder */
+
+  /* --- Color: hairlines and borders -------------------------------------- */
+  --color-line: #e8eaed; /* default hairline */
+  --color-line-strong: #d8dbe0; /* hover / emphasis hairline */
+  --color-line-subtle: #f0f1f3; /* inner dividers */
+
+  /* --- Color: accent (restrained technical indigo-blue) ------------------- */
+  --color-accent: #2f56d9;
+  --color-accent-hover: #2545b4;
+  /* Deep step used where white-on-accent needs to clear 7:1 (the contact CTA). */
+  --color-accent-deep: #1c3689;
+  --color-accent-soft: #eef1fd; /* tinted surface */
+  --color-accent-line: #d6ddfa;
+
+  /* --- Color: semantic status (project status pills) ------------------------ */
+  /* Text tones are deliberately dark: the pills are read at a glance over a
+     photo, so they clear 6.4:1 against their own soft background. */
+  --color-status-done: #0f6344;
+  --color-status-done-soft: #e8f5ef;
+  --color-status-done-line: #bfe3d3;
+  --color-status-wip: #7a4705;
+  --color-status-wip-soft: #fdf3e4;
+  --color-status-wip-line: #f0dcb8;
+
+  /* --- Typography -------------------------------------------------------- */
+  --font-sans:
+    "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono:
+    "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, SFMono-Regular,
+    Menlo, Consolas, monospace;
+
+  /* Modular scale; display steps get tighter tracking and leading. */
+  --text-2xs: 0.6875rem; /* 11px — mono eyebrows */
+  --text-2xs--line-height: 1rem;
+  --text-2xs--letter-spacing: 0.08em;
+
+  --text-xs: 0.75rem; /* 12px */
+  --text-xs--line-height: 1.125rem;
+
+  --text-sm: 0.875rem; /* 14px */
+  --text-sm--line-height: 1.4286;
+
+  --text-base: 1rem; /* 16px */
+  --text-base--line-height: 1.65;
+
+  --text-lg: 1.125rem; /* 18px */
+  --text-lg--line-height: 1.6;
+
+  --text-xl: 1.3125rem; /* 21px */
+  --text-xl--line-height: 1.5;
+  --text-xl--letter-spacing: -0.008em;
+
+  --text-2xl: 1.625rem; /* 26px */
+  --text-2xl--line-height: 1.32;
+  --text-2xl--letter-spacing: -0.014em;
+
+  --text-3xl: 2rem; /* 32px */
+  --text-3xl--line-height: 1.22;
+  --text-3xl--letter-spacing: -0.02em;
+
+  --text-4xl: 2.5rem; /* 40px */
+  --text-4xl--line-height: 1.14;
+  --text-4xl--letter-spacing: -0.024em;
+
+  --text-5xl: 3.25rem; /* 52px */
+  --text-5xl--line-height: 1.06;
+  --text-5xl--letter-spacing: -0.028em;
+
+  --text-6xl: 4rem; /* 64px */
+  --text-6xl--line-height: 1.02;
+  --text-6xl--letter-spacing: -0.032em;
+
+  /* --- Radii ------------------------------------------------------------- */
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+
+  /* --- Elevation (barely-there; hairlines do the structural work) --------- */
+  --shadow-xs: 0 1px 2px 0 rgb(16 18 22 / 0.04);
+  --shadow-sm: 0 1px 3px 0 rgb(16 18 22 / 0.05), 0 1px 2px -1px rgb(16 18 22 / 0.04);
+  --shadow-md: 0 6px 16px -6px rgb(16 18 22 / 0.09), 0 2px 5px -2px rgb(16 18 22 / 0.05);
+  --shadow-lg: 0 18px 40px -16px rgb(16 18 22 / 0.14);
+
+  /* --- Motion ------------------------------------------------------------ */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Layout tokens that don't map to a Tailwind theme namespace but are still
+   part of the same system. Consumed via var() in component styles. */
+:root {
+  --container-max: 72rem; /* 1152px content ceiling */
+  --container-narrow: 46rem; /* 736px prose ceiling */
+  --container-gutter: 1.25rem; /* 375px-safe side gutter */
+  --header-height: 3.75rem;
+  --section-gap: 4.5rem;
+  --section-gap-lg: 7rem;
+  /* Phase 2: photo-sequence layout tokens */
+  --seq-gap: 4.5rem;
+  --seq-gap-lg: 6rem;
+  --seq-caption-gap: 0.75rem;
+  --seq-chapter-gap: 8rem;
+  --seq-caption-measure: 34rem;
+  --seq-ratio: 3 / 2;
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --container-gutter: 2rem;
+    --header-height: 4rem;
+    --section-gap: 6rem;
+  }
+}
+
+@media (min-width: 80rem) {
+  :root {
+    --container-gutter: 2.5rem;
+  }
+}
+
+/* ============================================================================
+   BASE
+   ========================================================================= */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--color-line);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--header-height) + 1rem);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink-500);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: 1.65;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--color-ink-900);
+    font-weight: 560;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+
+  ::selection {
+    background-color: var(--color-accent-soft);
+    color: var(--color-ink-900);
+  }
+
+  img,
+  svg,
+  video {
+    display: block;
+    max-width: 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ============================================================================
+   COMPONENT PRIMITIVES — token-driven, reused across pages.
+   ========================================================================= */
+
+@layer components {
+  /* --- Layout ------------------------------------------------------------ */
+  .container-page {
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--container-gutter);
+  }
+
+  .container-narrow {
+    width: 100%;
+    max-width: var(--container-narrow);
+    margin-inline: auto;
+    padding-inline: var(--container-gutter);
+  }
+
+  .section {
+    padding-block: var(--section-gap);
+  }
+
+  /* --- Eyebrow / mono label ---------------------------------------------- */
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    line-height: var(--text-2xs--line-height);
+    letter-spacing: var(--text-2xs--letter-spacing);
+    text-transform: uppercase;
+    color: var(--color-ink-400);
+  }
+
+  /* --- Buttons ----------------------------------------------------------- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 2.625rem;
+    padding-inline: 1.125rem;
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    font-size: var(--text-sm);
+    font-weight: 540;
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 0.18s var(--ease-out-quint),
+      border-color 0.18s var(--ease-out-quint),
+      color 0.18s var(--ease-out-quint),
+      box-shadow 0.18s var(--ease-out-quint);
+  }
+
+  .btn-primary {
+    background-color: var(--color-accent);
+    color: #ffffff;
+    box-shadow: var(--shadow-xs);
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-accent-hover);
+  }
+
+  .btn-secondary {
+    background-color: var(--color-canvas);
+    color: var(--color-ink-900);
+    border-color: var(--color-line-strong);
+    box-shadow: var(--shadow-xs);
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-surface);
+    border-color: var(--color-ink-300);
+  }
+
+  /* --- Text link --------------------------------------------------------- */
+  .link-accent {
+    color: var(--color-accent);
+    font-weight: 500;
+    transition: color 0.18s var(--ease-out-quint);
+  }
+
+  .link-accent:hover {
+    color: var(--color-accent-hover);
+  }
+
+  /* --- Tag / pill -------------------------------------------------------- */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    height: 1.5rem;
+    padding-inline: 0.5rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-surface);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: 0.02em;
+    color: var(--color-ink-400);
+  }
+
+  /* --- Card -------------------------------------------------------------- */
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-canvas);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition:
+      border-color 0.2s var(--ease-out-quint),
+      box-shadow 0.2s var(--ease-out-quint),
+      transform 0.2s var(--ease-out-quint);
+  }
+
+  /* No hover response on .card itself — a bare card is a static panel (the
+     disciplines on /about), and lifting it under the cursor would promise a
+     click that never happens. The hover lives on .card-interactive below,
+     which is only applied when the card actually goes somewhere. */
+
+  /* --- Hero eyebrow ------------------------------------------------------
+     The positioning statement above the name. Body typeface, not the mono
+     micro-label: this is the first thing that explains what Sean does, so it
+     gets real size and weight. Separators are glued to the preceding word with
+     a non-breaking space so a hyphen never orphans at the start of a line. */
+  .hero-eyebrow {
+    max-width: 34ch;
+    font-family: var(--font-sans);
+    font-size: clamp(0.9375rem, 2.4vw, 1.1875rem);
+    line-height: 1.45;
+    font-weight: 560;
+    letter-spacing: -0.004em;
+    color: var(--color-ink-700);
+    text-wrap: balance;
+  }
+
+  @media (min-width: 48rem) {
+    .hero-eyebrow {
+      max-width: 52ch;
+    }
+  }
+
+  /* --- Status pill -------------------------------------------------------
+     A human status badge, not a terminal token: body typeface, 13px, 560
+     weight, a colour dot and a hairline so it holds up over imagery. */
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4375rem;
+    height: 1.875rem;
+    padding-inline: 0.625rem 0.75rem;
+    border: 1px solid;
+    border-radius: var(--radius-md);
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    line-height: 1;
+    font-weight: 560;
+    letter-spacing: 0.005em;
+    box-shadow: var(--shadow-xs);
+  }
+
+  .status-pill::before {
+    content: "";
+    width: 0.4375rem;
+    height: 0.4375rem;
+    border-radius: 999px;
+    background-color: currentColor;
+    flex: none;
+  }
+
+  .status-pill-complete {
+    color: var(--color-status-done);
+    background-color: var(--color-status-done-soft);
+    border-color: var(--color-status-done-line);
+  }
+
+  .status-pill-progress {
+    color: var(--color-status-wip);
+    background-color: var(--color-status-wip-soft);
+    border-color: var(--color-status-wip-line);
+  }
+
+  .status-pill-planned {
+    color: var(--color-ink-500);
+    background-color: var(--color-surface-sunken);
+    border-color: var(--color-line-strong);
+  }
+
+  /* --- Card call-to-action row ------------------------------------------- */
+  .card-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: var(--color-accent);
+    font-size: var(--text-sm);
+    font-weight: 540;
+  }
+
+  .card-cta svg {
+    transition: transform 0.2s var(--ease-out-quint);
+  }
+
+  .card:hover .card-cta svg,
+  .card:focus-within .card-cta svg {
+    transform: translateX(3px);
+  }
+
+  /* Interactive cards read as clickable at rest (accent-tinted cue) and lift
+     the cover image slightly on hover. */
+  .card-interactive:hover {
+    border-color: var(--color-accent-line);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+
+  .card-interactive:focus-within {
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-md);
+  }
+
+  .card-media img {
+    transition: transform 0.35s var(--ease-out-quint);
+  }
+
+  .card-interactive:hover .card-media img {
+    transform: scale(1.03);
+  }
+
+  /* --- Contact bubble (closing CTA) -------------------------------------- */
+  .cta-bubble {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-height: 3.375rem;
+    padding: 0.8125rem 1.75rem;
+    border-radius: 999px;
+    /* Deliberately the deep step, not --color-accent: white on the standard
+       accent is 6.1:1 and this is the CTA older eyes have to find. 8.2:1. */
+    background-color: var(--color-accent-hover);
+    color: #ffffff;
+    font-size: var(--text-lg);
+    font-weight: 560;
+    letter-spacing: -0.008em;
+    box-shadow: var(--shadow-sm);
+    transition:
+      background-color 0.18s var(--ease-out-quint),
+      box-shadow 0.18s var(--ease-out-quint),
+      transform 0.18s var(--ease-out-quint);
+  }
+
+  .cta-bubble:hover {
+    background-color: var(--color-accent-deep);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  .cta-bubble svg {
+    transition: transform 0.2s var(--ease-out-quint);
+  }
+
+  .cta-bubble:hover svg {
+    transform: translateX(3px);
+  }
+
+  /* --- Contact card -----------------------------------------------------
+     Accessibility-led: the email and phone are the most important characters
+     on the site. Body typeface, headline size, ink-950 (about 20:1 on canvas),
+     underlined at rest so the link is obvious without hover, and an 88px-tall
+     target that never depends on a pointer. */
+  .contact-card {
+    display: block;
+    padding: 1.125rem 1.375rem 1.375rem;
+    min-height: 5.5rem;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-canvas);
+    box-shadow: var(--shadow-xs);
+    transition:
+      border-color 0.18s var(--ease-out-quint),
+      background-color 0.18s var(--ease-out-quint),
+      box-shadow 0.18s var(--ease-out-quint);
+  }
+
+  .contact-card:hover {
+    border-color: var(--color-accent);
+    background-color: var(--color-accent-soft);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .contact-card:focus-visible {
+    outline: 3px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+
+  .contact-card-label {
+    /* Block, not inline: the value is a sibling span and would otherwise flow
+       up alongside the label whenever it happened to fit. */
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    line-height: 1.4;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-ink-700);
+  }
+
+  .contact-card-value {
+    display: inline-block;
+    margin-top: 0.375rem;
+    font-family: var(--font-sans);
+    font-size: clamp(1.25rem, 4.2vw, 2rem);
+    line-height: 1.5;
+    font-weight: 560;
+    color: var(--color-ink-950);
+    white-space: nowrap;
+    text-decoration-line: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.16em;
+    text-decoration-color: var(--color-line-strong);
+    transition: text-decoration-color 0.18s var(--ease-out-quint);
+  }
+
+  .contact-card:hover .contact-card-value {
+    text-decoration-color: var(--color-accent);
+  }
+
+  /* Wide tracking so digits are easy to parse one at a time. */
+  .contact-card-value-phone {
+    letter-spacing: 0.06em;
+  }
+
+  /* --- Long-form body copy (MDX project write-ups) ------------------------ */
+  .prose-page > * + * {
+    margin-top: 1.25rem;
+  }
+
+  .prose-page h2 {
+    margin-top: 2.5rem;
+    font-size: var(--text-2xl);
+    line-height: var(--text-2xl--line-height);
+    letter-spacing: var(--text-2xl--letter-spacing);
+    color: var(--color-ink-950);
+  }
+
+  .prose-page h3 {
+    margin-top: 2rem;
+    font-size: var(--text-xl);
+    color: var(--color-ink-900);
+  }
+
+  .prose-page p,
+  .prose-page li {
+    font-size: var(--text-lg);
+    line-height: 1.65;
+    color: var(--color-ink-500);
+  }
+
+  .prose-page ul {
+    padding-left: 1.25rem;
+    list-style: disc;
+  }
+
+  .prose-page li::marker {
+    color: var(--color-ink-300);
+  }
+
+  .prose-page li + li {
+    margin-top: 0.5rem;
+  }
+
+  .prose-page a {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  /* --- Hairline rule ----------------------------------------------------- */
+  .hairline {
+    border: 0;
+    border-top: 1px solid var(--color-line);
+  }
+
+  /* --- Skip link --------------------------------------------------------- */
+  .skip-link {
+    position: absolute;
+    left: 0.75rem;
+    top: 0.75rem;
+    z-index: 100;
+    padding: 0.5rem 0.875rem;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-md);
+    background-color: var(--color-canvas);
+    color: var(--color-ink-900);
+    font-size: var(--text-sm);
+    font-weight: 540;
+    box-shadow: var(--shadow-md);
+    transform: translateY(calc(-100% - 1.5rem));
+    transition: transform 0.18s var(--ease-out-quint);
+  }
+
+  .skip-link:focus-visible {
+    transform: translateY(0);
+  }
+
+  /* Reduced motion: the global base rule only zeroes durations, which turns a
+     transform into an instant jump. Drop the movement itself. Declared last in
+     the layer so it outranks the equally-specific rules above; the skip link is
+     deliberately left alone since its transform IS the reveal. */
+  @media (prefers-reduced-motion: reduce) {
+    .card-interactive:hover,
+    .cta-bubble:hover,
+    .cta-bubble:hover svg,
+    .card:hover .card-cta svg,
+    .card:focus-within .card-cta svg,
+    .card-interactive:hover .card-media img {
+      transform: none;
+    }
+  }
+
+  /* --- Photo column (project + skill templates) --------------------------
+     A single chronological column: full-width image, one-line caption below.
+     Used in MDX via <figure class="photo-entry"> elements. */
+  .photo-column {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  .photo-column > * + * {
+    margin-top: 0;
+  }
+
+  .photo-entry {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .photo-entry img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-line);
+    background-color: var(--color-surface-sunken);
+  }
+
+  .photo-entry figcaption {
+    font-size: var(--text-sm);
+    line-height: 1.5;
+    color: var(--color-ink-400);
+    padding-inline: 0.125rem;
+  }
+
+  /* --- Hero image band (Phase 2 project template) ------------------------ */
+  .hero-wrap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hero-photo {
+    height: 68vh;
+    min-height: 400px;
+    max-height: 72vh;
+    overflow: hidden;
+    background: var(--color-surface-sunken);
+  }
+
+  .hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .hero-band {
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-line);
+    padding: 2rem 0 2.5rem;
+  }
+
+  .hero-spec-strip {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-ink-400);
+    letter-spacing: 0.04em;
+    margin-top: 1rem;
+  }
+
+  /* --- Sequence layout (Phase 2 project template) ----------------------- */
+  .seq-section {
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--container-gutter);
+    padding-block: var(--seq-gap);
+  }
+
+  @media (min-width: 48rem) {
+    .seq-section {
+      padding-block: var(--seq-gap-lg);
+    }
+  }
+
+  .seq-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--seq-gap);
+  }
+
+  @media (min-width: 48rem) {
+    .seq-list {
+      gap: var(--seq-gap-lg);
+    }
+  }
+
+  .seq-chapter-break {
+    padding-top: var(--seq-chapter-gap);
+  }
+
+  .seq-chapter {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: var(--text-2xs--letter-spacing);
+    text-transform: uppercase;
+    color: var(--color-ink-400);
+  }
+
+  .seq-chapter::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--color-line);
+  }
+
+  .seq-figure {
+    display: flex;
+    flex-direction: column;
+    gap: var(--seq-caption-gap);
+  }
+
+  .seq-figure img {
+    width: 100%;
+    aspect-ratio: var(--seq-ratio);
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    background: var(--color-surface-sunken);
+    display: block;
+  }
+
+  .seq-figure.portrait img {
+    aspect-ratio: 2 / 3;
+    max-width: 60%;
+    margin-inline: auto;
+  }
+
+  @media (max-width: 48rem) {
+    .seq-figure img {
+      width: 100vw;
+      margin-inline: calc(50% - 50vw);
+      border-radius: 0;
+    }
+  }
+
+  .seq-pair {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--seq-caption-gap);
+  }
+
+  @media (min-width: 48rem) {
+    .seq-pair {
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+  }
+
+  .seq-caption {
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    color: var(--color-ink-500);
+    max-width: var(--seq-caption-measure);
+  }
+
+  /* --- Gallery disclosure (Phase 2) -------------------------------------- */
+  .gallery-section {
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--container-gutter);
+    padding-bottom: var(--seq-gap);
+  }
+
+  .gallery-section summary {
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--color-ink-500);
+    padding-block: 1rem;
+    border-top: 1px solid var(--color-line);
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .gallery-section summary::-webkit-details-marker { display: none; }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+    gap: 0.75rem;
+    padding-top: 1rem;
+  }
+
+  .gallery-grid img {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-sunken);
+    display: block;
+  }
+
+  /* --- Prev/next project navigation -------------------------------------- */
+  .project-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 1.5rem;
+    border-top: 1px solid var(--color-line);
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--container-gutter);
+  }
+
+  .project-nav-link {
+    font-size: var(--text-sm);
+    color: var(--color-ink-500);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .project-nav-link:hover {
+    color: var(--color-accent);
+  }
+}
+
+/* ============================================================================
+   UTILITIES
+   ========================================================================= */
+
+/* Faint technical grid, used behind the hero. */
+@utility grid-hairline {
+  background-image:
+    linear-gradient(to right, var(--color-line-subtle) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-line-subtle) 1px, transparent 1px);
+  background-size: 4rem 4rem;
+}

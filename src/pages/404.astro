@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Page not found"
+  description="That page doesn't exist."
+  noindex
+>
+  <section class="section">
+    <div class="container-narrow py-10 text-center md:py-16">
+      <p class="eyebrow">Error 404</p>
+      <h1 class="mt-4 text-4xl text-ink-950 md:text-5xl">Page not found</h1>
+      <p class="mx-auto mt-4 max-w-md text-lg text-ink-500">
+        That link is a dead end. The project log is still where you left it.
+      </p>
+      <div class="mt-8 flex flex-wrap justify-center gap-3">
+        <a href="/" class="btn btn-primary">Back home</a>
+        <a href="/projects" class="btn btn-secondary">See the projects</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

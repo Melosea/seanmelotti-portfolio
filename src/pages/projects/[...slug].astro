@@ -1,0 +1,323 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects', ({ data }) => !data.draft);
+  return projects.map((project) => ({
+    params: { slug: project.id },
+    props: { project },
+  }));
+}
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+
+// Load all project photos from src/assets/photos/ for astro:assets processing
+const allImages = import.meta.glob<{ default: ImageMetadata }>(
+  '/src/assets/photos/**/*.{jpg,jpeg,JPG,JPEG,png,PNG,webp,WEBP}',
+  { eager: true }
+);
+
+function getImg(slugSlashFile: string): ImageMetadata | null {
+  const key = `/src/assets/photos/${slugSlashFile}`;
+  return allImages[key]?.default ?? null;
+}
+
+const STATUS_LABEL = {
+  completed: 'Completed',
+  'in-progress': 'In Progress',
+  planned: 'Planned',
+} as const;
+
+const STATUS_CLASS = {
+  completed: 'status-pill-complete',
+  'in-progress': 'status-pill-progress',
+  planned: 'status-pill-planned',
+} as const;
+
+const fullDate = new Intl.DateTimeFormat('en-US', {
+  month: 'long',
+  year: 'numeric',
+}).format(project.data.date);
+
+const { hero, specStrip, steps, gallery } = project.data;
+
+// Warn at build time for captions over 90 chars
+if (steps) {
+  for (const step of steps) {
+    if (step.caption.length > 90) {
+      console.warn(`[${project.id}] Caption >90 chars: "${step.caption.slice(0, 50)}..."`);
+    }
+  }
+}
+
+// Build chapter groups from steps array
+type StepWithImg = (typeof steps)[number] & { img: ImageMetadata | null; seqIdx: number };
+const stepsWithImg: StepWithImg[] = (steps ?? []).map((s, i) => ({
+  ...s,
+  img: getImg(s.src),
+  seqIdx: i,
+}));
+
+// Group steps by chapter for rendering
+type ChapterGroup = { label: string | null; steps: StepWithImg[] };
+const chapterGroups: ChapterGroup[] = [];
+for (const step of stepsWithImg) {
+  const chapter = step.chapter ?? null;
+  const last = chapterGroups[chapterGroups.length - 1];
+  if (!last || last.label !== chapter) {
+    chapterGroups.push({ label: chapter, steps: [step] });
+  } else {
+    last.steps.push(step);
+  }
+}
+
+// Pair steps: steps with pair:true are grouped with the previous non-pair step
+// For simplicity, adjacent pair:true steps render side by side
+const heroImg = hero ? getImg(hero.src) : null;
+
+// Prev/next from all projects in date order
+const allProjects = (await getCollection('projects', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const currentIdx = allProjects.findIndex((p) => p.id === project.id);
+const prevProject = currentIdx < allProjects.length - 1 ? allProjects[currentIdx + 1] : null;
+const nextProject = currentIdx > 0 ? allProjects[currentIdx - 1] : null;
+
+const useNewLayout = !!hero;
+---
+
+<BaseLayout
+  title={project.data.title}
+  description={project.data.summary}
+  image={project.data.coverImage}
+>
+  <article>
+    {useNewLayout ? (
+      <>
+        {/* ── Hero ── */}
+        <div class="hero-wrap">
+          <div class="hero-photo">
+            {heroImg ? (
+              <Image
+                src={heroImg}
+                alt={hero!.alt}
+                loading="eager"
+                fetchpriority="high"
+                decoding="sync"
+                widths={[640, 960, 1440, 1920]}
+                sizes="100vw"
+                class="hero-img"
+              />
+            ) : (
+              <img
+                src={`/photos/${project.id}/${hero!.src.split('/').pop()}`}
+                alt={hero!.alt}
+                loading="eager"
+                fetchpriority="high"
+                decoding="sync"
+                class="hero-img"
+              />
+            )}
+          </div>
+          <div class="hero-band">
+            <div class="container-narrow">
+              <a href="/projects" class="link-accent text-sm">&larr; All projects</a>
+              <p class="eyebrow mt-6">{project.data.vehicle} &middot; {fullDate}</p>
+              <h1 class="mt-2 text-4xl text-ink-950">{project.data.title}</h1>
+              <p class="mt-4 text-xl text-ink-700">{project.data.summary}</p>
+              {specStrip && specStrip.length > 0 && (
+                <p class="hero-spec-strip">{specStrip.join(' · ')}</p>
+              )}
+              <div class="mt-5 flex flex-wrap items-center gap-2">
+                <span class:list={['status-pill', STATUS_CLASS[project.data.status]]}>
+                  {STATUS_LABEL[project.data.status]}
+                </span>
+                {project.data.tags.map((tag) => <span class="tag">{tag}</span>)}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Sequence ── */}
+        {stepsWithImg.length > 0 && (
+          <div class="seq-section">
+            <div class="seq-list">
+              {chapterGroups.map((group) => (
+                <div class:list={['seq-chapter-group', group.label ? 'seq-chapter-break' : '']}>
+                  {group.label && (
+                    <p class="seq-chapter">{group.label}</p>
+                  )}
+                  {/* Render steps, pairing adjacent pair:true steps */}
+                  {(() => {
+                    const rendered: any[] = [];
+                    let i = 0;
+                    while (i < group.steps.length) {
+                      const step = group.steps[i];
+                      const nextStep = group.steps[i + 1];
+                      if (step.pair && nextStep?.pair) {
+                        rendered.push(
+                          <div class="seq-pair" key={`pair-${step.seqIdx}`}>
+                            <figure class:list={['seq-figure', step.orientation === 'portrait' ? 'portrait' : '']}>
+                              {step.img ? (
+                                <Image
+                                  src={step.img}
+                                  alt={step.alt}
+                                  loading="lazy"
+                                  decoding="async"
+                                  widths={[640, 960, 1440, 1920]}
+                                  sizes="(min-width: 72rem) 576px, 50vw"
+                                />
+                              ) : null}
+                              {step.caption && <figcaption class="seq-caption">{step.caption}</figcaption>}
+                            </figure>
+                            <figure class:list={['seq-figure', nextStep.orientation === 'portrait' ? 'portrait' : '']}>
+                              {nextStep.img ? (
+                                <Image
+                                  src={nextStep.img}
+                                  alt={nextStep.alt}
+                                  loading="lazy"
+                                  decoding="async"
+                                  widths={[640, 960, 1440, 1920]}
+                                  sizes="(min-width: 72rem) 576px, 50vw"
+                                />
+                              ) : null}
+                              {nextStep.caption && <figcaption class="seq-caption">{nextStep.caption}</figcaption>}
+                            </figure>
+                          </div>
+                        );
+                        i += 2;
+                      } else {
+                        rendered.push(
+                          <figure class:list={['seq-figure', step.orientation === 'portrait' ? 'portrait' : '']} key={`step-${step.seqIdx}`}>
+                            {step.img ? (
+                              <Image
+                                src={step.img}
+                                alt={step.alt}
+                                loading="lazy"
+                                decoding="async"
+                                widths={[640, 960, 1440, 1920]}
+                                sizes="(min-width: 72rem) 1152px, 100vw"
+                              />
+                            ) : null}
+                            {step.caption && <figcaption class="seq-caption">{step.caption}</figcaption>}
+                          </figure>
+                        );
+                        i++;
+                      }
+                    }
+                    return rendered;
+                  })()}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Gallery overflow ── */}
+        {gallery && gallery.length > 0 && (
+          <div class="gallery-section">
+            <details>
+              <summary>
+                <svg class="inline-block" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M2 5l6 6 6-6"/>
+                </svg>
+                Full gallery — {gallery.length} photos
+              </summary>
+              <div class="gallery-grid">
+                {gallery.map((item) => {
+                  const img = getImg(item.src);
+                  return img ? (
+                    <Image
+                      src={img}
+                      alt={item.alt}
+                      loading="lazy"
+                      decoding="async"
+                      widths={[400, 800]}
+                      sizes="(min-width: 72rem) 260px, 50vw"
+                    />
+                  ) : null;
+                })}
+              </div>
+            </details>
+          </div>
+        )}
+
+        {/* ── CTA + prev/next ── */}
+        <div class="seq-section" style="padding-top: 0;">
+          <div class="container-narrow mx-0">
+            <a href="/contact" class="cta-bubble">
+              Let&rsquo;s have a conversation
+              <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 8h9.5M9 4.5 12.5 8 9 11.5"></path>
+              </svg>
+            </a>
+          </div>
+        </div>
+        {(prevProject || nextProject) && (
+          <nav class="project-nav" aria-label="Project navigation">
+            <div>
+              {prevProject && (
+                <a href={`/projects/${prevProject.id}`} class="project-nav-link">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 8H3.5M7 4.5 3.5 8 7 11.5"/></svg>
+                  {prevProject.data.title}
+                </a>
+              )}
+            </div>
+            <div>
+              {nextProject && (
+                <a href={`/projects/${nextProject.id}`} class="project-nav-link">
+                  {nextProject.data.title}
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h9.5M9 4.5 12.5 8 9 11.5"/></svg>
+                </a>
+              )}
+            </div>
+          </nav>
+        )}
+      </>
+    ) : (
+      <>
+        {/* ── Legacy layout (Phase 1 placeholder entries) ── */}
+        <div class="border-b border-line bg-surface">
+          <div class="container-narrow py-12 md:py-16">
+            <a href="/projects" class="link-accent text-sm">&larr; All projects</a>
+            <p class="eyebrow mt-8">{project.data.vehicle} &middot; {fullDate}</p>
+            <h1 class="mt-3 text-3xl text-ink-950 md:text-4xl">{project.data.title}</h1>
+            <p class="mt-4 text-lg text-ink-500">{project.data.summary}</p>
+            <div class="mt-6 flex flex-wrap items-center gap-2">
+              <span class:list={['status-pill', STATUS_CLASS[project.data.status]]}>
+                {STATUS_LABEL[project.data.status]}
+              </span>
+              {project.data.tags.map((tag) => <span class="tag">{tag}</span>)}
+            </div>
+          </div>
+        </div>
+        <div class="container-narrow py-12 md:py-16">
+          <img
+            src={project.data.coverImage}
+            alt={project.data.coverImageAlt ?? `Cover photo for ${project.data.title}`}
+            width="800"
+            height="500"
+            class="w-full rounded-lg border border-line bg-surface-sunken"
+          />
+          <div class="prose-page mt-10">
+            <Content />
+          </div>
+          <div class="mt-14 border-t border-line pt-8">
+            <a href="/contact" class="cta-bubble">
+              Let&rsquo;s have a conversation
+              <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 8h9.5M9 4.5 12.5 8 9 11.5"></path>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </>
+    )}
+  </article>
+</BaseLayout>

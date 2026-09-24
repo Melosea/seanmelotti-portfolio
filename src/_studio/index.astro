@@ -1,0 +1,1310 @@
+---
+// Caption Studio — dev only. Injected by astro.config.mjs only when command === 'dev'.
+// This file is NOT in src/pages/ and is never emitted in production builds.
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Caption Studio</title>
+    <style is:global>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        /* Studio chrome — dark */
+        --bg: #0a0b0d;
+        --surface: #141518;
+        --surface2: #1e2024;
+        --border: #2a2c32;
+        --text: #e8eaed;
+        --muted: #7c838e;
+        --accent: #2f56d9;
+        --accent-soft: #1a2d6e;
+        --green: #0f6344;
+        --green-soft: #e8f5ef;
+        --warn: #7a4705;
+        --warn-soft: #fdf3e4;
+        --red-soft: #3d1a1a;
+        --red: #f87171;
+        --sans: "Inter Variable","Inter",system-ui,sans-serif;
+        --mono: "JetBrains Mono Variable","JetBrains Mono",monospace;
+        --header-h: 3rem;
+        --sidebar-w: 220px;
+
+        /* Page-preview tokens — mirrors published site */
+        --page-bg: #ffffff;
+        --page-text: #33373e;
+        --page-muted: #7c838e;
+        --page-line: #e8eaed;
+        --page-caption-color: #5c626c;
+        --page-caption-size: 0.875rem;       /* 14px = text-sm */
+        --page-caption-lh: 1.4286;
+        --page-col-max: 720px;               /* narrow content column — scannable preview */
+        --page-seq-gap: 3.5rem;              /* vertical gap between steps */
+        --page-caption-measure: 34rem;       /* max-width of caption text */
+        --page-img-radius: 0.5rem;           /* radius-md from real page */
+        --page-img-ratio: 3 / 2;             /* default landscape ratio */
+      }
+
+      html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; }
+
+      /* ── Chrome layout ──────────────────────────────────────────────────── */
+      .studio-layout {
+        display: grid;
+        grid-template-rows: var(--header-h) 1fr;
+        grid-template-columns: var(--sidebar-w) 1fr;
+        height: 100vh;
+      }
+
+      .studio-header {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0 1rem;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+
+      .studio-header h1 {
+        font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+        text-transform: uppercase; color: var(--muted); flex-shrink: 0;
+      }
+
+      .header-sep { width: 1px; height: 16px; background: var(--border); flex-shrink: 0; }
+
+      .header-actions { display: flex; align-items: center; gap: 0.5rem; margin-left: auto; }
+
+      .studio-sidebar {
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .studio-sidebar-header {
+        padding: 0.75rem 1rem 0.625rem;
+        border-bottom: 1px solid var(--border);
+        font-size: 10px;
+        font-family: var(--mono);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+
+      .project-list { flex: 1; overflow-y: auto; padding: 0.375rem; }
+
+      .project-btn {
+        display: block; width: 100%; text-align: left;
+        padding: 0.5rem 0.75rem; border-radius: 5px;
+        border: 1px solid transparent; background: transparent;
+        color: var(--text); cursor: pointer; font-size: 12px;
+        font-family: var(--sans); transition: background 0.15s; margin-bottom: 2px;
+      }
+      .project-btn:hover { background: var(--surface2); }
+      .project-btn.active { background: var(--accent-soft); border-color: var(--accent); color: #c7d3fa; }
+      .project-btn .count { float: right; font-family: var(--mono); font-size: 10px; color: var(--muted); }
+
+      /* ── Main scrollable area ───────────────────────────────────────────── */
+      .studio-main { overflow-y: auto; display: flex; flex-direction: column; background: #111214; }
+
+      /* ── Toolbar (sticky) ───────────────────────────────────────────────── */
+      .toolbar {
+        display: flex; align-items: center; gap: 0.625rem;
+        padding: 0.5rem 1rem;
+        background: var(--surface); border-bottom: 1px solid var(--border);
+        flex-shrink: 0; flex-wrap: wrap; position: sticky; top: 0; z-index: 20;
+      }
+
+      .toolbar-group { display: flex; align-items: center; gap: 0.375rem; }
+      .toolbar-sep { width: 1px; height: 16px; background: var(--border); }
+
+      /* ── Shared button style (studio chrome) ────────────────────────────── */
+      .btn {
+        display: inline-flex; align-items: center; gap: 0.3rem;
+        height: 26px; padding: 0 0.625rem; border-radius: 4px;
+        border: 1px solid var(--border); background: var(--surface2);
+        color: var(--text); font-size: 11px; font-family: var(--sans);
+        font-weight: 500; cursor: pointer; white-space: nowrap;
+        transition: background 0.15s, border-color 0.15s;
+      }
+      .btn:hover { background: #2a2d34; border-color: #444; }
+      .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+      .btn-primary:hover { background: #2545b4; border-color: #2545b4; }
+
+      .save-status {
+        font-size: 10px; font-family: var(--mono); padding: 2px 7px;
+        border-radius: 3px; white-space: nowrap;
+      }
+      .save-status.saved { background: #0d2a1d; color: #4ade80; }
+      .save-status.unsaved { background: var(--warn-soft); color: var(--warn); }
+      .save-status.saving { background: #1e2a3a; color: #60a5fa; }
+
+      .seq-counter {
+        font-size: 10px; font-family: var(--mono); padding: 2px 7px;
+        border-radius: 3px; background: var(--surface2); color: var(--muted);
+        white-space: nowrap;
+      }
+      .seq-counter.on-target { color: #4ade80; }
+
+      .missing-alt-badge {
+        font-size: 10px; font-family: var(--mono); padding: 2px 7px;
+        border-radius: 3px; background: var(--red-soft); color: var(--red);
+        white-space: nowrap; display: none;
+      }
+      .missing-alt-badge.visible { display: inline-block; }
+
+      /* ── Page preview wrapper ───────────────────────────────────────────── */
+      .page-preview {
+        flex: 1;
+        padding: 2.5rem 1.5rem 5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      /* Narrow content column — mirrors published site */
+      .page-col {
+        width: 100%;
+        max-width: var(--page-col-max);
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ── Project header fields (inside preview) ──────────────────────────── */
+      .page-header-area {
+        background: var(--page-bg);
+        border: 1px solid var(--page-line);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .field-row { margin-bottom: 1rem; }
+      .field-row:last-child { margin-bottom: 0; }
+
+      .field-label {
+        font-size: 9px; font-family: var(--mono); text-transform: uppercase;
+        letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.25rem;
+        display: flex; align-items: center; gap: 0.375rem;
+      }
+
+      .word-count, .char-count {
+        font-size: 9px; font-family: var(--mono); padding: 1px 5px; border-radius: 3px;
+        background: var(--surface2); color: var(--muted);
+      }
+      .word-count.warn, .char-count.warn { background: var(--warn-soft); color: var(--warn); }
+
+      .header-input {
+        width: 100%; padding: 0.5rem 0.625rem;
+        background: var(--surface2); border: 1px solid var(--border);
+        border-radius: 5px; color: var(--text); font-size: 14px;
+        font-family: var(--sans); font-weight: 540; line-height: 1.5;
+        resize: none; min-height: 2.75rem; transition: border-color 0.15s;
+      }
+      .header-input:focus { outline: none; border-color: var(--accent); }
+
+      /* ── Section headings in page preview ───────────────────────────────── */
+      .preview-section-label {
+        display: flex; align-items: center; gap: 0.625rem;
+        font-size: 10px; font-family: var(--mono); text-transform: uppercase;
+        letter-spacing: 0.08em; color: var(--muted);
+        margin-bottom: 1.5rem;
+      }
+      .preview-section-label::after {
+        content: ''; flex: 1; height: 1px; background: var(--border);
+      }
+
+      /* ── Chapter divider (mirrors real seq-chapter) ──────────────────────── */
+      .preview-chapter {
+        display: flex; align-items: center; gap: 0.625rem;
+        font-size: 10px; font-family: var(--mono); text-transform: uppercase;
+        letter-spacing: 0.08em; color: var(--page-muted);
+        margin-bottom: 1.5rem; margin-top: 3rem;
+        background: var(--page-bg);
+        padding: 0.75rem 1rem;
+        border-radius: 4px;
+        border-left: 2px solid var(--page-line);
+      }
+
+      /* ── Photo step (page-preview style) ────────────────────────────────── */
+      .step-block {
+        position: relative;
+        background: var(--page-bg);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: var(--page-seq-gap);
+        /* Subtle shadow to indicate it's a page element */
+        box-shadow: 0 1px 4px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.04);
+      }
+
+      /* Top control strip — dark chrome overlaid on the preview card */
+      .step-controls {
+        display: flex; align-items: center; gap: 0.375rem; flex-wrap: wrap;
+        padding: 0.5rem 0.75rem;
+        background: var(--surface); border-bottom: 1px solid var(--border);
+        border-radius: 8px 8px 0 0;
+      }
+
+      .master-idx {
+        font-family: var(--mono); font-size: 10px; color: var(--muted);
+        min-width: 24px; text-align: center; flex-shrink: 0;
+      }
+
+      /* Destination selector */
+      .dest-select {
+        font-size: 10px; font-family: var(--mono); text-transform: uppercase;
+        letter-spacing: 0.05em; padding: 2px 5px; border-radius: 3px;
+        border: 1px solid var(--border); background: var(--surface2);
+        color: var(--muted); cursor: pointer; appearance: none;
+        -webkit-appearance: none;
+      }
+      .dest-select:focus { outline: none; border-color: var(--accent); }
+      .dest-select.dest-main { border-color: var(--accent); color: #c7d3fa; background: var(--accent-soft); }
+      .dest-select.dest-gallery { border-color: #2d6b4a; color: #4ade80; background: #0d2a1d; }
+      .dest-select.dest-cut { border-color: #555; color: #555; }
+
+      /* Seq position + up/down */
+      .seq-controls { display: none; align-items: center; gap: 0.2rem; }
+      .seq-controls.visible { display: flex; }
+      .seq-pos-badge {
+        font-family: var(--mono); font-size: 10px; color: #c7d3fa;
+        background: var(--accent-soft); border: 1px solid var(--accent);
+        padding: 1px 5px; border-radius: 3px; min-width: 28px; text-align: center;
+      }
+      .seq-btn {
+        width: 20px; height: 20px; border-radius: 3px;
+        border: 1px solid var(--border); background: var(--surface2);
+        color: var(--muted); cursor: pointer; font-size: 11px;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.1s;
+      }
+      .seq-btn:hover { background: #2a2d34; color: var(--text); }
+      .seq-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+      /* Hero radio */
+      .hero-label {
+        display: flex; align-items: center; gap: 0.2rem;
+        font-size: 10px; font-family: var(--mono); text-transform: uppercase;
+        letter-spacing: 0.06em; padding: 2px 6px; border-radius: 3px;
+        border: 1px solid var(--border); background: transparent;
+        color: var(--muted); cursor: pointer; transition: all 0.15s;
+        white-space: nowrap;
+      }
+      .hero-label input { display: none; }
+      .hero-label:has(input:checked) {
+        background: #1a3a1a; border-color: #1f5c30; color: #4ade80;
+      }
+
+      .photo-filename { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-left: auto; }
+
+      /* Per-photo save indicator */
+      .photo-save-indicator {
+        font-size: 10px; font-family: var(--mono); padding: 1px 5px;
+        border-radius: 3px; white-space: nowrap; flex-shrink: 0;
+        opacity: 0; transition: opacity 0.3s;
+      }
+      .photo-save-indicator.dirty { background: var(--warn-soft); color: var(--warn); opacity: 1; }
+      .photo-save-indicator.saved { background: #0d2a1d; color: #4ade80; opacity: 1; }
+
+      /* ── Image area (page-preview style) ────────────────────────────────── */
+      .step-image-area {
+        background: #f5f6f7; /* matches --color-surface-sunken from real page */
+        overflow: hidden;
+      }
+
+      .step-image-area img {
+        width: 100%;
+        aspect-ratio: var(--page-img-ratio);
+        object-fit: cover;
+        display: block;
+      }
+
+      /* Portrait orientation */
+      .step-block.portrait .step-image-area img {
+        aspect-ratio: 2 / 3;
+        max-width: 60%;
+        margin-inline: auto;
+      }
+
+      /* Placeholder when image doesn't load */
+      .img-placeholder {
+        aspect-ratio: var(--page-img-ratio);
+        display: flex; align-items: center; justify-content: center;
+        color: var(--muted); font-size: 12px; font-family: var(--mono);
+        background: var(--surface2);
+      }
+
+      /* ── Caption area (page-preview style) ──────────────────────────────── */
+      .step-caption-area {
+        padding: 0.75rem 1rem 1rem;
+        background: var(--page-bg);
+      }
+
+      /* Caption textarea styled to match published figcaption */
+      .caption-input {
+        width: 100%;
+        max-width: var(--page-caption-measure);
+        font-size: var(--page-caption-size);
+        line-height: var(--page-caption-lh);
+        color: var(--page-text);
+        font-family: var(--sans);
+        background: transparent;
+        border: none;
+        border-bottom: 1px dashed #d0d3d8;
+        border-radius: 0;
+        padding: 0.125rem 0;
+        resize: none;
+        overflow: hidden;
+        min-height: 1.5rem;
+        display: block;
+        transition: border-color 0.15s;
+        outline: none;
+      }
+      .caption-input:focus { border-bottom-color: var(--accent); }
+      .caption-input::placeholder { color: #c0c3c9; font-style: italic; }
+
+      /* Caption meta row */
+      .caption-meta {
+        display: flex; align-items: center; gap: 0.375rem; margin-top: 0.375rem;
+      }
+      .caption-field-label {
+        font-size: 9px; font-family: var(--mono); text-transform: uppercase;
+        letter-spacing: 0.06em; color: #b0b5be;
+        display: flex; align-items: center; gap: 0.25rem;
+      }
+
+      /* ── Alt text row (de-emphasized below caption) ──────────────────────── */
+      .alt-row {
+        padding: 0.5rem 1rem 0.75rem;
+        background: #f9fafb;
+        border-top: 1px solid #f0f1f3;
+      }
+      .alt-input {
+        width: 100%;
+        padding: 0.3rem 0.5rem;
+        background: #fff; border: 1px solid #e0e2e6;
+        border-radius: 4px; color: #5c626c; font-size: 12px;
+        font-family: var(--sans); line-height: 1.45;
+        transition: border-color 0.15s;
+        resize: none; overflow: hidden; min-height: 2rem;
+        display: block;
+      }
+      .alt-input:focus { outline: none; border-color: var(--accent); }
+      .alt-input::placeholder { color: #b0b5be; }
+
+      .alt-field-label {
+        font-size: 9px; font-family: var(--mono); text-transform: uppercase;
+        letter-spacing: 0.06em; color: #b0b5be;
+        display: flex; align-items: center; gap: 0.25rem;
+        margin-bottom: 0.25rem;
+      }
+      .alt-missing-warn {
+        display: none; font-size: 10px; font-family: var(--mono);
+        color: var(--red); margin-top: 0.2rem;
+      }
+      .alt-missing-warn.visible { display: block; }
+
+      /* ── Greyed out / cut state ──────────────────────────────────────────── */
+      .step-block.dest-cut .step-image-area { opacity: 0.3; }
+      .step-block.dest-cut .step-caption-area,
+      .step-block.dest-cut .alt-row { opacity: 0.35; pointer-events: none; }
+
+      /* ── Drag-and-drop ───────────────────────────────────────────────────── */
+      .step-block[draggable="true"] { cursor: grab; }
+      .step-block[draggable="true"]:active { cursor: grabbing; }
+      .step-block.drag-over { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+      /* ── Empty / loading states ──────────────────────────────────────────── */
+      .empty-state {
+        flex: 1; display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: 0.75rem; color: var(--muted); font-size: 13px;
+        padding: 3rem; text-align: center;
+      }
+      .empty-state h2 { font-size: 18px; color: var(--text); font-weight: 500; }
+
+      .loading { text-align: center; padding: 3rem; color: var(--muted); font-family: var(--mono); font-size: 12px; }
+
+      /* ── Cut section (collapsed at bottom) ───────────────────────────────── */
+      .cut-section-toggle {
+        display: flex; align-items: center; gap: 0.5rem;
+        cursor: pointer; font-size: 10px; font-family: var(--mono);
+        text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
+        padding: 0.5rem 0; border: none; background: none; width: 100%;
+        margin-top: 2rem;
+      }
+      .cut-section-toggle:hover { color: var(--text); }
+      .cut-list { display: none; }
+      .cut-list.open { display: flex; flex-direction: column; }
+
+      /* ── Add-project sidebar form ───────────────────────────────────────── */
+      .sidebar-footer {
+        padding: 0.5rem 0.375rem;
+        border-top: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+
+      .btn-add-project {
+        display: flex; align-items: center; justify-content: center; gap: 0.3rem;
+        width: 100%; height: 26px; border-radius: 4px;
+        border: 1px dashed var(--border); background: transparent;
+        color: var(--muted); font-size: 11px; font-family: var(--sans);
+        cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s;
+      }
+      .btn-add-project:hover { background: var(--surface2); color: var(--text); border-color: #444; }
+
+      .add-project-form {
+        display: none; flex-direction: column; gap: 0.375rem; padding: 0.25rem 0;
+      }
+      .add-project-form.open { display: flex; }
+
+      .add-project-input {
+        width: 100%; padding: 0.3rem 0.5rem;
+        background: var(--surface2); border: 1px solid var(--border);
+        border-radius: 4px; color: var(--text); font-size: 12px;
+        font-family: var(--sans); transition: border-color 0.15s;
+      }
+      .add-project-input:focus { outline: none; border-color: var(--accent); }
+      .add-project-input.error { border-color: var(--red); }
+
+      .add-project-error {
+        font-size: 10px; font-family: var(--mono); color: var(--red);
+        padding: 0 0.25rem; display: none;
+      }
+      .add-project-error.visible { display: block; }
+
+      .add-project-actions { display: flex; gap: 0.25rem; }
+      .add-project-actions .btn { flex: 1; justify-content: center; }
+
+      /* ── Blank-canvas add flow ───────────────────────────────────────────── */
+      .blank-canvas-cta {
+        display: flex; flex-direction: column; align-items: center;
+        justify-content: center; gap: 1rem; padding: 4rem 2rem;
+        text-align: center; color: var(--muted);
+        background: var(--page-bg); border-radius: 8px;
+        border: 2px dashed var(--page-line); margin-bottom: 2rem;
+      }
+      .blank-canvas-cta h3 { font-size: 18px; font-weight: 500; color: var(--text); margin-bottom: 0.25rem; }
+      .blank-canvas-cta p { font-size: 13px; }
+      .btn-lg { height: 34px; padding: 0 1.25rem; font-size: 12px; }
+      .add-source-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+
+      /* ── Delete-from-canvas button ───────────────────────────────────────── */
+      .btn-delete {
+        width: 22px; height: 22px; padding: 0; flex-shrink: 0; margin-left: auto;
+        border: 1px solid #4d1a1a; background: var(--red-soft);
+        color: var(--red); border-radius: 3px; font-size: 14px; line-height: 1;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: background 0.15s;
+      }
+      .btn-delete:hover { background: #5a1c1c; }
+    </style>
+  </head>
+  <body>
+    <div class="studio-layout">
+      <header class="studio-header">
+        <h1>Caption Studio</h1>
+        <div id="toolbar-inline" style="display:none" class="toolbar-group">
+          <span id="save-status-header" class="save-status saved">Saved</span>
+        </div>
+      </header>
+
+      <aside class="studio-sidebar">
+        <div class="studio-sidebar-header">Projects</div>
+        <div class="project-list" id="project-list">
+          <div class="loading">Loading…</div>
+        </div>
+        <div class="sidebar-footer">
+          <div class="add-project-form" id="add-project-form">
+            <input
+              type="text"
+              class="add-project-input"
+              id="add-project-input"
+              placeholder="Project name…"
+              maxlength="80"
+              autocomplete="off"
+            />
+            <div class="add-project-error" id="add-project-error"></div>
+            <div class="add-project-actions">
+              <button class="btn btn-primary" id="btn-create-project" type="button">Create</button>
+              <button class="btn" id="btn-cancel-project" type="button">Cancel</button>
+            </div>
+          </div>
+          <button class="btn-add-project" id="btn-add-project" type="button">+ Add Project</button>
+        </div>
+      </aside>
+
+      <main class="studio-main" id="studio-main">
+        <div class="empty-state" id="empty-state">
+          <h2>Select a project</h2>
+          <p>Choose a project from the sidebar to start editing.</p>
+        </div>
+      </main>
+    </div>
+
+    <!-- Hidden file picker — triggered by Add Photos buttons -->
+    <input type="file" id="file-input" accept="image/*" multiple hidden />
+
+    <script type="module">
+      // ─── State ──────────────────────────────────────────────────────────────
+      let currentSlug = null;
+      let state = null;
+      let saveTimer = null;
+      let isDirty = false;
+      let dirtyPhotos = new Set();
+      let dragSrcFn = null;
+
+      const projectList = document.getElementById('project-list');
+      const studioMain = document.getElementById('studio-main');
+      const emptyState = document.getElementById('empty-state');
+      const toolbarInline = document.getElementById('toolbar-inline');
+
+      // ─── API ────────────────────────────────────────────────────────────────
+      async function apiGet(path) {
+        const r = await fetch(`/api/studio${path}`);
+        if (!r.ok) throw new Error(await r.text());
+        return r.json();
+      }
+      async function apiPost(path, body) {
+        const r = await fetch(`/api/studio${path}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (!r.ok) throw new Error(await r.text());
+        return r.json();
+      }
+
+      // ─── Load projects list ─────────────────────────────────────────────────
+      async function loadProjects() {
+        const { projects } = await apiGet('/projects');
+        projectList.innerHTML = '';
+        if (!projects.length) {
+          projectList.innerHTML = '<div class="loading">No projects found.</div>';
+          return;
+        }
+        for (const p of projects) {
+          const btn = document.createElement('button');
+          btn.className = 'project-btn';
+          btn.dataset.slug = p.slug;
+          btn.innerHTML = `${p.slug} <span class="count">${p.photoCount}</span>`;
+          btn.addEventListener('click', () => loadProject(p.slug));
+          projectList.appendChild(btn);
+        }
+
+        // Auto-restore last-selected project from URL param (survives Vite HMR reloads)
+        const urlSlug = new URLSearchParams(location.search).get('project');
+        if (urlSlug && projects.some(p => p.slug === urlSlug)) {
+          loadProject(urlSlug);
+        }
+      }
+
+      // ─── Load project ───────────────────────────────────────────────────────
+      async function loadProject(slug) {
+        currentSlug = slug;
+        // Persist selection in URL so Vite HMR page-reloads don't bounce user to project-select
+        history.replaceState({}, '', `?project=${encodeURIComponent(slug)}`);
+        document.querySelectorAll('.project-btn').forEach(b => b.classList.toggle('active', b.dataset.slug === slug));
+        studioMain.innerHTML = '<div class="loading">Loading…</div>';
+        toolbarInline.style.display = '';
+
+        // Blank-canvas: working set is exclusively what the sidecar says.
+        // Photos are never auto-imported from disk — use "Add Photos" to add them.
+        let saved = null;
+        try { saved = await apiGet(`/sidecar/${slug}`); } catch {}
+
+        const savedPhotos = saved?.photos ?? [];
+        const savedSeqOrder = (saved?.seqOrder ?? []).filter(fn => savedPhotos.some(p => p.filename === fn));
+
+        state = {
+          ...(saved ?? {}),
+          slug,
+          title: saved?.title ?? slugToTitle(slug),
+          summary: saved?.summary ?? '',
+          heroFilename: saved?.heroFilename ?? null,
+          specStrip: saved?.specStrip ?? [],
+          photos: savedPhotos,
+          seqOrder: savedSeqOrder,
+        };
+
+        isDirty = false;
+        renderStudio();
+        setSaveStatus('saved');
+      }
+
+      function slugToTitle(slug) {
+        return slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      }
+
+      // ─── Add-photos flow ────────────────────────────────────────────────────
+      function buildFileData(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onerror = reject;
+          reader.onload = (e) => {
+            const dataUrl = e.target.result;
+            const img = new Image();
+            img.onload = () => resolve({
+              name: file.name,
+              data: dataUrl,
+              orientation: img.naturalHeight > img.naturalWidth ? 'portrait' : 'landscape',
+            });
+            img.onerror = () => resolve({ name: file.name, data: dataUrl, orientation: 'landscape' });
+            img.src = dataUrl;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function handleAddPhotos(files) {
+        if (!currentSlug || !files.length) return;
+        setSaveStatus('saving');
+        try {
+          const fileData = await Promise.all(Array.from(files).map(buildFileData));
+          const r = await fetch('/api/studio/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slug: currentSlug, files: fileData }),
+          });
+          if (!r.ok) throw new Error(await r.text());
+          const { uploaded } = await r.json();
+
+          for (const { filename, originalName } of uploaded) {
+            if (state.photos.some(p => p.filename === filename)) continue;
+            const fd = fileData.find(f => f.name === originalName);
+            state.photos.push({
+              filename,
+              caption: '',
+              alt: '',
+              destination: 'main',
+              orientation: fd?.orientation ?? 'landscape',
+            });
+            state.seqOrder.push(filename);
+          }
+
+          markDirty();
+          renderStudio();
+        } catch (e) {
+          setSaveStatus('unsaved');
+          alert(`Upload failed: ${e.message}`);
+        }
+      }
+
+      // ─── Render studio ──────────────────────────────────────────────────────
+      function renderStudio() {
+        if (!state) return;
+        emptyState.style.display = 'none';
+
+        const seqCount = state.seqOrder.length;
+        const missingAlt = state.photos.filter(p =>
+          (p.destination === 'main' || p.destination === 'gallery') && !p.alt.trim()
+        ).length;
+        const captionedCount = state.photos.filter(p => p.caption.trim()).length;
+        const totalCount = state.photos.length;
+        const wordCount = countWords(state.summary);
+        const warnClass = wordCount > 35 ? 'warn' : '';
+        const seqOnTarget = seqCount >= 12 && seqCount <= 24;
+
+        // Build step groups (by chapter) for main sequence
+        const seqPhotos = state.seqOrder.map(fn => state.photos.find(p => p.filename === fn)).filter(Boolean);
+        const unassignedPhotos = state.photos.filter(p => p.destination === 'unassigned');
+        const galleryPhotos = state.photos.filter(p => p.destination === 'gallery');
+        const cutPhotos = state.photos.filter(p => p.destination === 'cut');
+
+        studioMain.innerHTML = `
+          <div class="toolbar">
+            <div class="toolbar-group">
+              <span style="font-size:10px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">${escHtml(state.slug)}</span>
+            </div>
+            <div class="toolbar-sep"></div>
+            <button class="btn btn-primary" id="btn-add-photos">+ Add Photos</button>
+            <!-- EXTENSION POINT: Google Drive source — not yet implemented -->
+            <button class="btn" id="btn-add-drive" disabled
+              title="Google Drive import — coming soon"
+              style="opacity:0.4;cursor:not-allowed">☁ Drive</button>
+            <div class="toolbar-sep"></div>
+            <span class="seq-counter${seqOnTarget ? ' on-target' : ''}" id="seq-counter">
+              Seq: ${seqCount} <span style="opacity:0.5">/ 12–24</span>
+            </span>
+            <span class="seq-counter" id="captioned-counter" style="min-width:80px">
+              ${captionedCount} <span style="opacity:0.5">/ ${totalCount} captioned</span>
+            </span>
+            <span class="missing-alt-badge${missingAlt > 0 ? ' visible' : ''}" id="missing-alt-badge">
+              ${missingAlt} missing alt
+            </span>
+            <div class="toolbar-sep"></div>
+            <button class="btn btn-primary" id="btn-export">Export MDX</button>
+            <span id="save-status" class="save-status saved">Saved</span>
+          </div>
+
+          <div class="page-preview">
+            <div class="page-col" id="photo-list">
+
+              <div style="margin-bottom:2rem">
+                <div class="page-header-area">
+                  <div class="field-row">
+                    <div class="field-label">
+                      Summary
+                      <span class="word-count ${warnClass}" id="word-count">${wordCount}/35 words</span>
+                    </div>
+                    <textarea
+                      class="header-input" id="summary-input" rows="2"
+                      placeholder="~30-word project summary…"
+                    >${escHtml(state.summary)}</textarea>
+                  </div>
+                </div>
+              </div>
+
+              ${state.photos.length === 0 ? `
+                <div class="blank-canvas-cta">
+                  <h3>No photos yet</h3>
+                  <p>Add photos from your computer to start building the sequence.</p>
+                  <div class="add-source-row">
+                    <button class="btn btn-primary btn-lg" id="btn-add-photos-empty">+ Add photos from computer</button>
+                    <!-- EXTENSION POINT: Google Drive source — not yet implemented -->
+                    <button class="btn btn-lg" disabled
+                      title="Google Drive import — coming soon"
+                      style="opacity:0.4;cursor:not-allowed">☁ From Drive (coming soon)</button>
+                  </div>
+                </div>
+              ` : seqPhotos.length > 0 ? `
+                <div class="preview-section-label">Main sequence — ${seqCount} steps</div>
+                ${seqPhotos.map((photo, seqIdx) => renderStep(photo, seqIdx, 'main')).join('')}
+              ` : `
+                <div class="preview-section-label">No photos in main sequence yet</div>
+              `}
+
+              ${galleryPhotos.length > 0 ? `
+                <div class="preview-section-label" style="margin-top:2.5rem">Gallery — ${galleryPhotos.length} photos</div>
+                ${galleryPhotos.map((photo, i) => renderStep(photo, i, 'gallery')).join('')}
+              ` : ''}
+
+              ${unassignedPhotos.length > 0 ? `
+                <div class="preview-section-label" style="margin-top:2.5rem">Unassigned — ${unassignedPhotos.length} photos</div>
+                ${unassignedPhotos.map((photo, i) => renderStep(photo, i, 'unassigned')).join('')}
+              ` : ''}
+
+              ${cutPhotos.length > 0 ? `
+                <button class="cut-section-toggle" id="cut-toggle" type="button">
+                  ▸ Cut — ${cutPhotos.length} photos (hidden)
+                </button>
+                <div class="cut-list" id="cut-list">
+                  ${cutPhotos.map((photo, i) => renderStep(photo, i, 'cut')).join('')}
+                </div>
+              ` : ''}
+
+            </div>
+          </div>
+        `;
+
+        bindEvents();
+      }
+
+      function renderStep(photo, displayIdx, section) {
+        const masterIdx = state.photos.indexOf(photo);
+        const imgSrc = `/photos/${currentSlug}/${photo.filename}`;
+        const seqPos = state.seqOrder.indexOf(photo.filename);
+        const isInSeq = seqPos >= 0;
+        const isHero = state.heroFilename === photo.filename;
+        const destClass = `dest-${photo.destination}`;
+        const captionLen = photo.caption.length;
+        const altLen = photo.alt.length;
+        const captionWarn = captionLen > 90 ? 'warn' : '';
+        const altMissing = (photo.destination === 'main' || photo.destination === 'gallery') && !photo.alt.trim();
+        const seqFirst = isInSeq && seqPos === 0;
+        const seqLast = isInSeq && seqPos === state.seqOrder.length - 1;
+        const isPortrait = photo.orientation === 'portrait';
+
+        return `
+          <div class="step-block ${destClass}${isPortrait ? ' portrait' : ''}"
+               data-filename="${escHtml(photo.filename)}" data-masteridx="${masterIdx}" draggable="true">
+
+            <div class="step-controls">
+              <span class="master-idx">#${masterIdx + 1}</span>
+
+              <select class="dest-select ${destClass}" data-filename="${escHtml(photo.filename)}" aria-label="Destination">
+                <option value="unassigned"${photo.destination === 'unassigned' ? ' selected' : ''}>Unassigned</option>
+                <option value="main"${photo.destination === 'main' ? ' selected' : ''}>Main seq</option>
+                <option value="gallery"${photo.destination === 'gallery' ? ' selected' : ''}>Gallery</option>
+                <option value="cut"${photo.destination === 'cut' ? ' selected' : ''}>Cut</option>
+              </select>
+
+              <div class="seq-controls${isInSeq ? ' visible' : ''}">
+                <span class="seq-pos-badge">#${isInSeq ? seqPos + 1 : '—'}</span>
+                <button class="seq-btn" data-action="seq-up" data-filename="${escHtml(photo.filename)}"
+                  ${seqFirst ? 'disabled' : ''} title="Move earlier">↑</button>
+                <button class="seq-btn" data-action="seq-down" data-filename="${escHtml(photo.filename)}"
+                  ${seqLast ? 'disabled' : ''} title="Move later">↓</button>
+              </div>
+
+              <label class="hero-label" title="Set as hero image">
+                <input type="radio" name="hero-radio" value="${escHtml(photo.filename)}"${isHero ? ' checked' : ''} />
+                ${isHero ? '★ Hero' : '☆ Hero'}
+              </label>
+
+              <span class="photo-filename">${escHtml(photo.filename)}</span>
+              <span class="photo-save-indicator" id="save-ind-${masterIdx}"></span>
+              <button class="btn-delete" data-action="delete-photo" data-filename="${escHtml(photo.filename)}"
+                title="Remove from canvas (does not delete file from disk)">×</button>
+            </div>
+
+            <div class="step-image-area">
+              <img src="${imgSrc}" alt="${escHtml(photo.alt || photo.filename)}"
+                   loading="lazy"
+                   onerror="this.parentElement.innerHTML='<div class=\\'img-placeholder\\'>Image not found</div>'" />
+            </div>
+
+            <div class="step-caption-area">
+              <textarea
+                class="caption-input"
+                data-filename="${escHtml(photo.filename)}"
+                data-field="caption"
+                placeholder="Caption for this photo…"
+                maxlength="120"
+                rows="1"
+                aria-label="Caption for ${escHtml(photo.filename)}"
+              >${escHtml(photo.caption)}</textarea>
+              <div class="caption-meta">
+                <span class="caption-field-label">
+                  Caption
+                  <span class="char-count ${captionWarn}" id="cap-count-${masterIdx}">${captionLen}/90</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="alt-row">
+              <div class="alt-field-label">
+                Alt text
+                <span class="char-count" id="alt-count-${masterIdx}">${altLen}/125</span>
+              </div>
+              <textarea
+                class="alt-input"
+                data-filename="${escHtml(photo.filename)}"
+                data-field="alt"
+                placeholder="Literal description of what is visible"
+                maxlength="150"
+                rows="1"
+                aria-label="Alt text for ${escHtml(photo.filename)}"
+              >${escHtml(photo.alt)}</textarea>
+              <div class="alt-missing-warn${altMissing ? ' visible' : ''}">
+                ⚠ Alt text required for export
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // ─── Bind all events (called after innerHTML write) ─────────────────────
+      function bindEvents() {
+        document.getElementById('btn-export')?.addEventListener('click', handleExport);
+
+        // Delete photo from canvas (does NOT remove file from disk)
+        document.querySelectorAll('[data-action="delete-photo"]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const fn = btn.dataset.filename;
+            state.photos = state.photos.filter(p => p.filename !== fn);
+            state.seqOrder = state.seqOrder.filter(f => f !== fn);
+            if (state.heroFilename === fn) state.heroFilename = null;
+            markDirty();
+            renderStudio();
+          });
+        });
+
+        // Add photos buttons (toolbar + blank-canvas CTA)
+        const fileInput = document.getElementById('file-input');
+        document.getElementById('btn-add-photos')?.addEventListener('click', () => fileInput?.click());
+        document.getElementById('btn-add-photos-empty')?.addEventListener('click', () => fileInput?.click());
+
+        // Cut section toggle
+        document.getElementById('cut-toggle')?.addEventListener('click', () => {
+          const list = document.getElementById('cut-list');
+          const btn = document.getElementById('cut-toggle');
+          if (!list) return;
+          list.classList.toggle('open');
+          if (btn) btn.textContent = btn.textContent.replace(/[▸▾]/, list.classList.contains('open') ? '▾' : '▸');
+        });
+
+        // Summary
+        const summaryInput = document.getElementById('summary-input');
+        if (summaryInput) {
+          summaryInput.addEventListener('input', () => {
+            state.summary = summaryInput.value;
+            const wc = countWords(state.summary);
+            const wcEl = document.getElementById('word-count');
+            if (wcEl) { wcEl.textContent = `${wc}/35 words`; wcEl.className = `word-count${wc > 35 ? ' warn' : ''}`; }
+            markDirty();
+          });
+        }
+
+        // Destination dropdowns
+        document.querySelectorAll('.dest-select').forEach(sel => {
+          sel.addEventListener('change', () => {
+            const fn = sel.dataset.filename;
+            const newDest = sel.value;
+            const photo = state.photos.find(p => p.filename === fn);
+            if (!photo) return;
+            const oldDest = photo.destination;
+            photo.destination = newDest;
+
+            if (oldDest === 'main' && newDest !== 'main') {
+              state.seqOrder = state.seqOrder.filter(f => f !== fn);
+            }
+            if (newDest === 'main' && !state.seqOrder.includes(fn)) {
+              state.seqOrder.push(fn);
+            }
+
+            markDirty();
+            renderStudio();
+          });
+        });
+
+        // Up/down sequence buttons
+        document.querySelectorAll('[data-action="seq-up"]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const fn = btn.dataset.filename;
+            const idx = state.seqOrder.indexOf(fn);
+            if (idx <= 0) return;
+            [state.seqOrder[idx - 1], state.seqOrder[idx]] = [state.seqOrder[idx], state.seqOrder[idx - 1]];
+            markDirty();
+            renderStudio();
+          });
+        });
+        document.querySelectorAll('[data-action="seq-down"]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const fn = btn.dataset.filename;
+            const idx = state.seqOrder.indexOf(fn);
+            if (idx < 0 || idx >= state.seqOrder.length - 1) return;
+            [state.seqOrder[idx], state.seqOrder[idx + 1]] = [state.seqOrder[idx + 1], state.seqOrder[idx]];
+            markDirty();
+            renderStudio();
+          });
+        });
+
+        // Hero radio
+        document.querySelectorAll('input[name="hero-radio"]').forEach(radio => {
+          radio.addEventListener('change', () => {
+            if (radio.checked) {
+              state.heroFilename = radio.value;
+              markDirty();
+              document.querySelectorAll('.hero-label').forEach(lbl => {
+                const r = lbl.querySelector('input');
+                lbl.lastChild.textContent = r?.checked ? '★ Hero' : '☆ Hero';
+              });
+            }
+          });
+        });
+
+        // Caption / alt inputs — delegated
+        const photoList = document.getElementById('photo-list');
+        if (photoList) {
+          photoList.addEventListener('input', e => {
+            const input = e.target;
+            if (!input.dataset.filename || !input.dataset.field) return;
+            const fn = input.dataset.filename;
+            const field = input.dataset.field;
+            const photo = state.photos.find(p => p.filename === fn);
+            if (!photo) return;
+            photo[field] = input.value;
+
+            const masterIdx = state.photos.indexOf(photo);
+            if (field === 'caption') {
+              const el = document.getElementById(`cap-count-${masterIdx}`);
+              if (el) { const l = input.value.length; el.textContent = `${l}/90`; el.className = `char-count${l > 90 ? ' warn' : ''}`; }
+              updateCaptionedCounter();
+            } else if (field === 'alt') {
+              const el = document.getElementById(`alt-count-${masterIdx}`);
+              if (el) { el.textContent = `${input.value.length}/125`; }
+              const row = input.closest('.step-block');
+              const warn = row?.querySelector('.alt-missing-warn');
+              if (warn) {
+                const p = state.photos.find(p => p.filename === fn);
+                const needs = p && (p.destination === 'main' || p.destination === 'gallery');
+                warn.classList.toggle('visible', needs && !input.value.trim());
+              }
+              updateMissingAltBadge();
+            }
+
+            markDirty(fn);
+          });
+
+          // Tab: caption → alt → next caption
+          photoList.addEventListener('keydown', e => {
+            if (e.key !== 'Tab' || e.shiftKey) return;
+            const input = e.target;
+            if (!input.dataset.filename || !input.dataset.field) return;
+            if (input.dataset.field === 'caption') {
+              e.preventDefault();
+              const row = input.closest('.step-block');
+              const altInput = row?.querySelector('.alt-input');
+              if (altInput) altInput.focus();
+            } else if (input.dataset.field === 'alt') {
+              e.preventDefault();
+              const fn = input.dataset.filename;
+              const masterIdx = state.photos.findIndex(p => p.filename === fn);
+              const nextIdx = masterIdx + 1;
+              if (nextIdx < state.photos.length) {
+                const nextFn = state.photos[nextIdx].filename;
+                const nextCaption = photoList.querySelector(`[data-filename="${nextFn}"][data-field="caption"]`);
+                if (nextCaption) nextCaption.focus();
+              }
+            }
+          });
+
+          // Auto-grow textareas
+          photoList.querySelectorAll('.caption-input, .alt-input, .header-input').forEach(ta => {
+            const grow = () => { ta.style.height = ''; ta.style.height = ta.scrollHeight + 'px'; };
+            ta.addEventListener('input', grow);
+            grow();
+          });
+        }
+
+        // Drag-and-drop reorder
+        const photoList2 = document.getElementById('photo-list');
+        if (photoList2) {
+          photoList2.addEventListener('dragstart', e => {
+            const entry = e.target.closest('.step-block');
+            if (!entry) return;
+            dragSrcFn = entry.dataset.filename;
+            e.dataTransfer.effectAllowed = 'move';
+          });
+          photoList2.addEventListener('dragover', e => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const entry = e.target.closest('.step-block');
+            photoList2.querySelectorAll('.step-block').forEach(el => el.classList.remove('drag-over'));
+            if (entry && entry.dataset.filename !== dragSrcFn) entry.classList.add('drag-over');
+          });
+          photoList2.addEventListener('dragleave', e => {
+            const entry = e.target.closest('.step-block');
+            if (entry) entry.classList.remove('drag-over');
+          });
+          photoList2.addEventListener('drop', e => {
+            e.preventDefault();
+            photoList2.querySelectorAll('.step-block').forEach(el => el.classList.remove('drag-over'));
+            const entry = e.target.closest('.step-block');
+            if (!entry || !dragSrcFn || entry.dataset.filename === dragSrcFn) return;
+            const targetFn = entry.dataset.filename;
+            const srcSeq = state.seqOrder.indexOf(dragSrcFn);
+            const dstSeq = state.seqOrder.indexOf(targetFn);
+            if (srcSeq >= 0 && dstSeq >= 0) {
+              // Both in main sequence — reorder seqOrder (persists to JSON)
+              state.seqOrder.splice(srcSeq, 1);
+              state.seqOrder.splice(dstSeq, 0, dragSrcFn);
+            } else {
+              // Outside main sequence — reorder in master photos array
+              const srcIdx = state.photos.findIndex(p => p.filename === dragSrcFn);
+              const dstIdx = state.photos.findIndex(p => p.filename === targetFn);
+              if (srcIdx < 0 || dstIdx < 0) return;
+              const [moved] = state.photos.splice(srcIdx, 1);
+              state.photos.splice(dstIdx, 0, moved);
+            }
+            markDirty();
+            renderStudio();
+            dragSrcFn = null;
+          });
+          photoList2.addEventListener('dragend', () => {
+            photoList2.querySelectorAll('.step-block').forEach(el => el.classList.remove('drag-over'));
+            dragSrcFn = null;
+          });
+        }
+      }
+
+      function updateMissingAltBadge() {
+        const count = state.photos.filter(p =>
+          (p.destination === 'main' || p.destination === 'gallery') && !p.alt.trim()
+        ).length;
+        const badge = document.getElementById('missing-alt-badge');
+        if (badge) {
+          badge.textContent = `${count} missing alt`;
+          badge.classList.toggle('visible', count > 0);
+        }
+      }
+
+      function updateCaptionedCounter() {
+        const captioned = state.photos.filter(p => p.caption.trim()).length;
+        const el = document.getElementById('captioned-counter');
+        if (el) {
+          el.innerHTML = `${captioned} <span style="opacity:0.5">/ ${state.photos.length} captioned</span>`;
+        }
+      }
+
+      // ─── Save / autosave ────────────────────────────────────────────────────
+      function markDirty(filename) {
+        isDirty = true;
+        if (filename) {
+          dirtyPhotos.add(filename);
+          const masterIdx = state.photos.findIndex(p => p.filename === filename);
+          const ind = document.getElementById(`save-ind-${masterIdx}`);
+          if (ind) { ind.textContent = '● unsaved'; ind.className = 'photo-save-indicator dirty'; }
+        }
+        setSaveStatus('unsaved');
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(autoSave, 1500);
+      }
+
+      function setSaveStatus(s) {
+        for (const id of ['save-status', 'save-status-header']) {
+          const el = document.getElementById(id);
+          if (!el) continue;
+          el.className = `save-status ${s}`;
+          el.textContent = s === 'saved' ? 'Saved' : s === 'unsaved' ? '● Unsaved' : 'Saving…';
+        }
+      }
+
+      async function autoSave() {
+        if (!state || !isDirty) return;
+        setSaveStatus('saving');
+        try {
+          await apiPost(`/sidecar/${state.slug}`, state);
+          isDirty = false;
+          const saved = Array.from(dirtyPhotos);
+          dirtyPhotos.clear();
+          for (const fn of saved) {
+            const masterIdx = state.photos.findIndex(p => p.filename === fn);
+            const ind = document.getElementById(`save-ind-${masterIdx}`);
+            if (ind) {
+              ind.textContent = '✓ saved';
+              ind.className = 'photo-save-indicator saved';
+              setTimeout(() => { if (ind) ind.className = 'photo-save-indicator'; }, 2500);
+            }
+          }
+          setSaveStatus('saved');
+        } catch (e) {
+          setSaveStatus('unsaved');
+          console.error('Save failed:', e);
+        }
+      }
+
+      window.addEventListener('beforeunload', e => {
+        if (isDirty) { autoSave(); e.preventDefault(); e.returnValue = ''; }
+      });
+
+      // ─── Export ─────────────────────────────────────────────────────────────
+      async function handleExport() {
+        if (!state) return;
+        await autoSave();
+        try {
+          const r = await fetch('/api/studio/export', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slug: state.slug }),
+          });
+          const data = await r.json();
+          if (data.ok) { alert(`Exported to ${data.path}`); }
+          else { alert(`Export failed: ${data.error}`); }
+        } catch {
+          alert(`Save complete. Run:\n  node scripts/export-mdx.mjs ${state.slug}`);
+        }
+      }
+
+      // ─── Helpers ────────────────────────────────────────────────────────────
+      function countWords(s) { return s.trim() ? s.trim().split(/\s+/).length : 0; }
+
+      function escHtml(s) {
+        return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+
+      // ─── Add-project form ───────────────────────────────────────────────────
+      function slugifyName(name) {
+        return name.trim().toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '');
+      }
+
+      function showAddProjectForm() {
+        const form = document.getElementById('add-project-form');
+        const addBtn = document.getElementById('btn-add-project');
+        const input = document.getElementById('add-project-input');
+        if (!form || !addBtn || !input) return;
+        form.classList.add('open');
+        addBtn.style.display = 'none';
+        clearAddProjectError();
+        input.value = '';
+        input.focus();
+      }
+
+      function hideAddProjectForm() {
+        const form = document.getElementById('add-project-form');
+        const addBtn = document.getElementById('btn-add-project');
+        if (!form || !addBtn) return;
+        form.classList.remove('open');
+        addBtn.style.display = '';
+        clearAddProjectError();
+      }
+
+      function showAddProjectError(msg) {
+        const errEl = document.getElementById('add-project-error');
+        const input = document.getElementById('add-project-input');
+        if (!errEl || !input) return;
+        errEl.textContent = msg;
+        errEl.classList.add('visible');
+        input.classList.add('error');
+      }
+
+      function clearAddProjectError() {
+        const errEl = document.getElementById('add-project-error');
+        const input = document.getElementById('add-project-input');
+        if (errEl) { errEl.textContent = ''; errEl.classList.remove('visible'); }
+        if (input) input.classList.remove('error');
+      }
+
+      async function handleCreateProject() {
+        const input = /** @type {HTMLInputElement} */ (document.getElementById('add-project-input'));
+        if (!input) return;
+        const name = input.value.trim();
+        if (!name) { showAddProjectError('Name is required'); input.focus(); return; }
+        const slug = slugifyName(name);
+        if (!slug) { showAddProjectError('Use letters or numbers in the name'); input.focus(); return; }
+
+        const createBtn = document.getElementById('btn-create-project');
+        if (createBtn) createBtn.textContent = 'Creating…';
+        clearAddProjectError();
+
+        try {
+          const r = await fetch('/api/studio/projects', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name }),
+          });
+          const data = await r.json();
+          if (!r.ok) {
+            showAddProjectError(data.error || 'Failed to create project');
+            if (createBtn) createBtn.textContent = 'Create';
+            return;
+          }
+          hideAddProjectForm();
+          await loadProjects();
+          loadProject(data.slug);
+        } catch (e) {
+          showAddProjectError('Network error — try again');
+          if (createBtn) createBtn.textContent = 'Create';
+        }
+      }
+
+      document.getElementById('btn-add-project')?.addEventListener('click', showAddProjectForm);
+      document.getElementById('btn-cancel-project')?.addEventListener('click', hideAddProjectForm);
+      document.getElementById('btn-create-project')?.addEventListener('click', handleCreateProject);
+      document.getElementById('add-project-input')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') handleCreateProject();
+        if (e.key === 'Escape') hideAddProjectForm();
+      });
+      document.getElementById('add-project-input')?.addEventListener('input', clearAddProjectError);
+
+      // ─── Boot ───────────────────────────────────────────────────────────────
+      // File input: bind once at boot (persists across renderStudio() calls)
+      document.getElementById('file-input')?.addEventListener('change', e => {
+        const input = /** @type {HTMLInputElement} */ (e.target);
+        if (input.files?.length && currentSlug) {
+          handleAddPhotos(input.files);
+          input.value = ''; // reset so same files trigger again
+        }
+      });
+
+      loadProjects();
+    </script>
+  </body>
+</html>

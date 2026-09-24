@@ -1,0 +1,90 @@
+---
+import '@fontsource-variable/inter';
+import '@fontsource-variable/jetbrains-mono';
+import '../styles/global.css';
+
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE } from '../consts';
+
+interface Props {
+  /** Page title. Rendered as "<title> — Sean Melotti" unless it is the site name. */
+  title?: string;
+  /** Meta description + og:description. */
+  description?: string;
+  /** Path or absolute URL to the social share image. */
+  image?: string;
+  /** og:type — 'website' for shell pages, 'article' for project write-ups. */
+  type?: 'website' | 'article';
+  /** Keep the page out of search results (placeholder pages, drafts). */
+  noindex?: boolean;
+  /** Extra classes on <main>. */
+  mainClass?: string;
+}
+
+const {
+  title,
+  description = SITE.description,
+  image = SITE.ogImage,
+  type = 'website',
+  noindex = false,
+  mainClass = '',
+} = Astro.props;
+
+const pageTitle = !title || title === SITE.name ? SITE.title : `${title} — ${SITE.name}`;
+
+const canonical = new URL(Astro.url.pathname.replace(/(.)\/$/, '$1'), Astro.site);
+const socialImage = new URL(image, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical.href} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="color-scheme" content="light" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={type} />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical.href} />
+    <meta property="og:image" content={socialImage.href} />
+    <meta property="og:locale" content={SITE.locale} />
+
+    <!-- Twitter / X card metadata. These are kept deliberately despite socials
+         being switched off: they are not links, accounts or a social presence —
+         they only control how the site looks when someone texts, Slacks or
+         messages the URL to a person. Stripping them makes a shared link render
+         as a bare URL. Delete this block if that trade is ever not worth it. -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={socialImage.href} />
+
+    <slot name="head" />
+  </head>
+
+  <body class="min-h-screen flex flex-col">
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <Header />
+
+    <main id="main" class={`flex-1 ${mainClass}`.trim()}>
+      <slot />
+    </main>
+
+    <Footer />
+  </body>
+</html>
