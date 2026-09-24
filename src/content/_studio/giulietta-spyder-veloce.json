@@ -26,7 +26,7 @@
     {
       "filename": "giulietta-spyder-veloce-001.jpg",
       "caption": "Laying out the rear suspension and drive axel assembly",
-      "alt": "",
+      "alt": "SMOKETEST alt 001",
       "destination": "main",
       "orientation": "portrait"
     },
@@ -179,8 +179,8 @@
     },
     {
       "filename": "giulietta-spyder-veloce-023.jpg",
-      "caption": "",
-      "alt": "",
+      "caption": "SMOKETEST caption 023",
+      "alt": "SMOKETEST alt 023",
       "destination": "main",
       "orientation": "landscape"
     },
@@ -249,8 +249,8 @@
     },
     {
       "filename": "giulietta-spyder-veloce-033.jpg",
-      "caption": "",
-      "alt": "",
+      "caption": "SMOKETEST caption 033",
+      "alt": "SMOKETEST alt 033",
       "destination": "main",
       "orientation": "landscape"
     },
@@ -368,8 +368,8 @@
     },
     {
       "filename": "giulietta-spyder-veloce-050.jpg",
-      "caption": "",
-      "alt": "",
+      "caption": "SMOKETEST caption 050",
+      "alt": "SMOKETEST alt 050",
       "destination": "main",
       "orientation": "portrait"
     },
@@ -487,8 +487,8 @@
     },
     {
       "filename": "giulietta-spyder-veloce-067.jpg",
-      "caption": "",
-      "alt": "",
+      "caption": "SMOKETEST caption 067",
+      "alt": "SMOKETEST alt 067",
       "destination": "main",
       "orientation": "landscape"
     },
