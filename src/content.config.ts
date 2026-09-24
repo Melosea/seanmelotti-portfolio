@@ -21,7 +21,14 @@ const projects = defineCollection({
     title: z.string(),
     summary: z.string(),
     date: z.coerce.date(),
-    coverImage: z.string(),
+    /**
+     * Cover photo, in the same photo-root-relative form as hero/steps/gallery
+     * ('slug/file.jpg'). Optional: pages fall back through hero -> first step ->
+     * first gallery photo, so an entry with any photo still gets a real cover.
+     * Legacy '/photos/...' and '/placeholders/...' values still parse — the
+     * resolver rewrites the former and falls back for the latter.
+     */
+    coverImage: z.string().optional(),
     coverImageAlt: z.string().optional(),
     tags: z.array(z.string()).default([]),
     vehicle: z.string(),
@@ -48,11 +55,17 @@ const skills = defineCollection({
     title: z.string(),
     summary: z.string(),
     date: z.coerce.date(),
-    coverImage: z.string(),
+    /**
+     * Cover photo, in the same photo-root-relative form as hero/steps/gallery
+     * ('slug/file.jpg'). Optional: pages fall back through hero -> first step ->
+     * first gallery photo, so an entry with any photo still gets a real cover.
+     * Legacy '/photos/...' and '/placeholders/...' values still parse — the
+     * resolver rewrites the former and falls back for the latter.
+     */
+    coverImage: z.string().optional(),
     coverImageAlt: z.string().optional(),
     tags: z.array(z.string()).default([]),
     vehicle: z.string().optional(),
-    status: z.enum(['completed', 'in-progress', 'planned']).default('in-progress'),
     featured: z.boolean().default(false),
     draft: z.boolean().default(false),
     hero: z.object({ src: z.string(), alt: z.string() }).optional(),

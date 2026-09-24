@@ -30,3 +30,5 @@ missing_files.json
 # Cerebro caption autosave watcher runtime
 .cerebro-tools/autosave.log
 .cerebro-tools/*.pid
+.cerebro-tools/__pycache__/
+.cerebro-tools/screenshots/

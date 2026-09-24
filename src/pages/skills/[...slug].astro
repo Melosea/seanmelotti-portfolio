@@ -1,7 +1,8 @@
 ---
 import { getCollection, render, type CollectionEntry } from 'astro:content';
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { resolvePhoto, resolveCover, coverAlt, PLACEHOLDER_COVER } from '../../lib/photos';
 
 export async function getStaticPaths() {
   const skills = await getCollection('skills', ({ data }) => !data.draft);
@@ -18,15 +19,12 @@ interface Props {
 const { skill } = Astro.props;
 const { Content } = await render(skill);
 
-const allImages = import.meta.glob<{ default: ImageMetadata }>(
-  '/src/assets/photos/**/*.{jpg,jpeg,JPG,JPEG,png,PNG,webp,WEBP}',
-  { eager: true }
-);
-
-function getImg(slugSlashFile: string): ImageMetadata | null {
-  const key = `/src/assets/photos/${slugSlashFile}`;
-  return allImages[key]?.default ?? null;
-}
+/**
+ * Photo resolution is shared with every other page (and with the reference
+ * checker) so `coverImage`, `hero`, `steps` and `gallery` all accept the same
+ * path form and all get astro:assets optimisation.
+ */
+const getImg = resolvePhoto;
 
 const { hero, specStrip, steps, gallery } = skill.data;
 
@@ -57,26 +55,29 @@ for (const step of stepsWithImg) {
   }
 }
 
-const STATUS_LABEL = {
-  completed: 'Completed',
-  'in-progress': 'In Progress',
-  planned: 'Planned',
-} as const;
+/**
+ * The cover falls back through hero -> first step -> first gallery photo, so an
+ * entry with any real photo never renders a placeholder. The hero borrows it
+ * when `hero.src` itself does not resolve.
+ */
+const coverImg = resolveCover(skill.data);
+const heroImg = (hero ? getImg(hero.src) : null) ?? coverImg;
 
-const STATUS_CLASS = {
-  completed: 'status-pill-complete',
-  'in-progress': 'status-pill-progress',
-  planned: 'status-pill-planned',
-} as const;
-
-const heroImg = hero ? getImg(hero.src) : null;
+/**
+ * og:image must be a built URL string, never an ESM image object — BaseLayout
+ * resolves it against `site` to get the absolute URL crawlers need. Falls
+ * through to the site default when there is no photo, so the tag never breaks.
+ */
+const ogImage = coverImg
+  ? (await getImage({ src: coverImg, width: 1200, format: 'jpeg' })).src
+  : undefined;
 const useNewLayout = !!hero;
 ---
 
 <BaseLayout
   title={skill.data.title}
   description={skill.data.summary}
-  image={skill.data.coverImage}
+  image={ogImage}
 >
   <article>
     {useNewLayout ? (
@@ -96,7 +97,7 @@ const useNewLayout = !!hero;
               />
             ) : (
               <img
-                src={`/photos/${skill.id}/${hero!.src.split('/').pop()}`}
+                src={PLACEHOLDER_COVER}
                 alt={hero!.alt}
                 loading="eager"
                 fetchpriority="high"
@@ -107,7 +108,7 @@ const useNewLayout = !!hero;
           </div>
           <div class="hero-band">
             <div class="container-narrow">
-              <a href="/projects" class="link-accent text-sm">&larr; All projects</a>
+              <a href="/skills" class="link-accent text-sm">&larr; All skills</a>
               <p class="eyebrow mt-6">Skill &middot; Portfolio</p>
               <h1 class="mt-2 text-4xl text-ink-950">{skill.data.title}</h1>
               <p class="mt-4 text-xl text-ink-700">{skill.data.summary}</p>
@@ -115,9 +116,6 @@ const useNewLayout = !!hero;
                 <p class="hero-spec-strip">{specStrip.join(' · ')}</p>
               )}
               <div class="mt-5 flex flex-wrap items-center gap-2">
-                <span class:list={['status-pill', STATUS_CLASS[skill.data.status]]}>
-                  {STATUS_LABEL[skill.data.status]}
-                </span>
                 {skill.data.tags.map((tag) => <span class="tag">{tag}</span>)}
               </div>
             </div>
@@ -216,26 +214,33 @@ const useNewLayout = !!hero;
       <>
         <div class="border-b border-line bg-surface">
           <div class="container-narrow py-12 md:py-16">
-            <a href="/projects" class="link-accent text-sm">&larr; All projects</a>
+            <a href="/skills" class="link-accent text-sm">&larr; All skills</a>
             <p class="eyebrow mt-8">Skill &middot; Portfolio</p>
             <h1 class="mt-3 text-3xl text-ink-950 md:text-4xl">{skill.data.title}</h1>
             <p class="mt-4 text-lg text-ink-500">{skill.data.summary}</p>
             <div class="mt-6 flex flex-wrap items-center gap-2">
-              <span class:list={['status-pill', STATUS_CLASS[skill.data.status]]}>
-                {STATUS_LABEL[skill.data.status]}
-              </span>
               {skill.data.tags.map((tag) => <span class="tag">{tag}</span>)}
             </div>
           </div>
         </div>
         <div class="container-narrow py-12 md:py-16">
-          <img
-            src={skill.data.coverImage}
-            alt={skill.data.coverImageAlt ?? `Cover photo for ${skill.data.title}`}
-            width="800"
-            height="500"
-            class="w-full rounded-lg border border-line bg-surface-sunken"
-          />
+          {coverImg ? (
+            <Image
+              src={coverImg}
+              alt={coverAlt(skill.data)}
+              widths={[640, 960, 1440]}
+              sizes="(min-width: 48rem) 720px, 100vw"
+              class="w-full rounded-lg border border-line bg-surface-sunken"
+            />
+          ) : (
+            <img
+              src={PLACEHOLDER_COVER}
+              alt={coverAlt(skill.data)}
+              width="800"
+              height="500"
+              class="w-full rounded-lg border border-line bg-surface-sunken"
+            />
+          )}
           <div class="photo-column mt-10">
             <Content />
           </div>
