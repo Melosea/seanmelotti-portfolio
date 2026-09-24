@@ -441,6 +441,45 @@
       .cut-list { display: none; }
       .cut-list.open { display: flex; flex-direction: column; }
 
+      /* ── Add-project sidebar form ───────────────────────────────────────── */
+      .sidebar-footer {
+        padding: 0.5rem 0.375rem;
+        border-top: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+
+      .btn-add-project {
+        display: flex; align-items: center; justify-content: center; gap: 0.3rem;
+        width: 100%; height: 26px; border-radius: 4px;
+        border: 1px dashed var(--border); background: transparent;
+        color: var(--muted); font-size: 11px; font-family: var(--sans);
+        cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s;
+      }
+      .btn-add-project:hover { background: var(--surface2); color: var(--text); border-color: #444; }
+
+      .add-project-form {
+        display: none; flex-direction: column; gap: 0.375rem; padding: 0.25rem 0;
+      }
+      .add-project-form.open { display: flex; }
+
+      .add-project-input {
+        width: 100%; padding: 0.3rem 0.5rem;
+        background: var(--surface2); border: 1px solid var(--border);
+        border-radius: 4px; color: var(--text); font-size: 12px;
+        font-family: var(--sans); transition: border-color 0.15s;
+      }
+      .add-project-input:focus { outline: none; border-color: var(--accent); }
+      .add-project-input.error { border-color: var(--red); }
+
+      .add-project-error {
+        font-size: 10px; font-family: var(--mono); color: var(--red);
+        padding: 0 0.25rem; display: none;
+      }
+      .add-project-error.visible { display: block; }
+
+      .add-project-actions { display: flex; gap: 0.25rem; }
+      .add-project-actions .btn { flex: 1; justify-content: center; }
+
       /* ── Blank-canvas add flow ───────────────────────────────────────────── */
       .blank-canvas-cta {
         display: flex; flex-direction: column; align-items: center;
@@ -478,6 +517,24 @@
         <div class="studio-sidebar-header">Projects</div>
         <div class="project-list" id="project-list">
           <div class="loading">Loading…</div>
+        </div>
+        <div class="sidebar-footer">
+          <div class="add-project-form" id="add-project-form">
+            <input
+              type="text"
+              class="add-project-input"
+              id="add-project-input"
+              placeholder="Project name…"
+              maxlength="80"
+              autocomplete="off"
+            />
+            <div class="add-project-error" id="add-project-error"></div>
+            <div class="add-project-actions">
+              <button class="btn btn-primary" id="btn-create-project" type="button">Create</button>
+              <button class="btn" id="btn-cancel-project" type="button">Cancel</button>
+            </div>
+          </div>
+          <button class="btn-add-project" id="btn-add-project" type="button">+ Add Project</button>
         </div>
       </aside>
 
@@ -1148,6 +1205,94 @@
       function escHtml(s) {
         return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
       }
+
+      // ─── Add-project form ───────────────────────────────────────────────────
+      function slugifyName(name) {
+        return name.trim().toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '');
+      }
+
+      function showAddProjectForm() {
+        const form = document.getElementById('add-project-form');
+        const addBtn = document.getElementById('btn-add-project');
+        const input = document.getElementById('add-project-input');
+        if (!form || !addBtn || !input) return;
+        form.classList.add('open');
+        addBtn.style.display = 'none';
+        clearAddProjectError();
+        input.value = '';
+        input.focus();
+      }
+
+      function hideAddProjectForm() {
+        const form = document.getElementById('add-project-form');
+        const addBtn = document.getElementById('btn-add-project');
+        if (!form || !addBtn) return;
+        form.classList.remove('open');
+        addBtn.style.display = '';
+        clearAddProjectError();
+      }
+
+      function showAddProjectError(msg) {
+        const errEl = document.getElementById('add-project-error');
+        const input = document.getElementById('add-project-input');
+        if (!errEl || !input) return;
+        errEl.textContent = msg;
+        errEl.classList.add('visible');
+        input.classList.add('error');
+      }
+
+      function clearAddProjectError() {
+        const errEl = document.getElementById('add-project-error');
+        const input = document.getElementById('add-project-input');
+        if (errEl) { errEl.textContent = ''; errEl.classList.remove('visible'); }
+        if (input) input.classList.remove('error');
+      }
+
+      async function handleCreateProject() {
+        const input = /** @type {HTMLInputElement} */ (document.getElementById('add-project-input'));
+        if (!input) return;
+        const name = input.value.trim();
+        if (!name) { showAddProjectError('Name is required'); input.focus(); return; }
+        const slug = slugifyName(name);
+        if (!slug) { showAddProjectError('Use letters or numbers in the name'); input.focus(); return; }
+
+        const createBtn = document.getElementById('btn-create-project');
+        if (createBtn) createBtn.textContent = 'Creating…';
+        clearAddProjectError();
+
+        try {
+          const r = await fetch('/api/studio/projects', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name }),
+          });
+          const data = await r.json();
+          if (!r.ok) {
+            showAddProjectError(data.error || 'Failed to create project');
+            if (createBtn) createBtn.textContent = 'Create';
+            return;
+          }
+          hideAddProjectForm();
+          await loadProjects();
+          loadProject(data.slug);
+        } catch (e) {
+          showAddProjectError('Network error — try again');
+          if (createBtn) createBtn.textContent = 'Create';
+        }
+      }
+
+      document.getElementById('btn-add-project')?.addEventListener('click', showAddProjectForm);
+      document.getElementById('btn-cancel-project')?.addEventListener('click', hideAddProjectForm);
+      document.getElementById('btn-create-project')?.addEventListener('click', handleCreateProject);
+      document.getElementById('add-project-input')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') handleCreateProject();
+        if (e.key === 'Escape') hideAddProjectForm();
+      });
+      document.getElementById('add-project-input')?.addEventListener('input', clearAddProjectError);
 
       // ─── Boot ───────────────────────────────────────────────────────────────
       // File input: bind once at boot (persists across renderStudio() calls)

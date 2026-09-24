@@ -63,7 +63,7 @@ const studioVitePlugin = {
       // photos array), never the number of files sitting on disk. Folders
       // without a sidecar (e.g. "Portfolio Inbox") are source material, not
       // projects, and are not listed.
-      if (url.pathname === '/projects' || url.pathname === '/projects/') {
+      if ((url.pathname === '/projects' || url.pathname === '/projects/') && req.method === 'GET') {
         try {
           const files = await fsAsync.readdir(STUDIO_DIR).catch(() => []);
           const projects = [];
@@ -157,6 +157,58 @@ const studioVitePlugin = {
           res.end(JSON.stringify({ ok: true, path: `src/content/projects/${slug}.mdx` }));
         } catch (e) {
           res.writeHead(500);
+          res.end(JSON.stringify({ error: String(e) }));
+        }
+        return;
+      }
+
+      // POST /api/studio/projects — create a new blank sidecar JSON
+      if (url.pathname === '/projects' || url.pathname === '/projects/') {
+        if (req.method !== 'POST') {
+          res.writeHead(405);
+          res.end(JSON.stringify({ error: 'Method not allowed' }));
+          return;
+        }
+        let body = '';
+        for await (const chunk of req) body += chunk;
+        try {
+          const { name } = JSON.parse(body);
+          if (!name || !name.trim()) throw new Error('Project name is required');
+          const slug = name.trim().toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '');
+          if (!slug) throw new Error('Name produces an empty slug — use letters or numbers');
+          const filePath = path.join(STUDIO_DIR, `${slug}.json`);
+          // Reject duplicates
+          try {
+            await fsAsync.access(filePath);
+            res.writeHead(409);
+            res.end(JSON.stringify({ error: `Project "${slug}" already exists` }));
+            return;
+          } catch { /* file doesn't exist — good */ }
+          const today = new Date().toISOString().slice(0, 10);
+          const sidecar = {
+            slug,
+            title: name.trim(),
+            summary: '',
+            date: today,
+            tags: [],
+            vehicle: '',
+            status: 'in-progress',
+            featured: false,
+            draft: true,
+            heroFilename: null,
+            specStrip: [],
+            seqOrder: [],
+            photos: [],
+          };
+          await fsAsync.mkdir(STUDIO_DIR, { recursive: true });
+          await fsAsync.writeFile(filePath, JSON.stringify(sidecar, null, 2), 'utf-8');
+          res.end(JSON.stringify({ ok: true, slug }));
+        } catch (e) {
+          if (!res.headersSent) res.writeHead(400);
           res.end(JSON.stringify({ error: String(e) }));
         }
         return;
