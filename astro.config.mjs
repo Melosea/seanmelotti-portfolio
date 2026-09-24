@@ -159,6 +159,45 @@ const studioVitePlugin = {
         return;
       }
 
+      // POST /api/studio/upload — receive base64-encoded files, write to src/assets/photos/<slug>/
+      if (url.pathname === '/upload' && req.method === 'POST') {
+        let body = '';
+        for await (const chunk of req) body += chunk;
+        try {
+          const { slug, files } = JSON.parse(body);
+          if (!slug || !Array.isArray(files)) throw new Error('Missing slug or files');
+          const destDir = path.join(PHOTOS_DIR, slug);
+          await fsAsync.mkdir(destDir, { recursive: true });
+          const uploaded = [];
+          for (const f of files) {
+            if (!f.name || !f.data) continue;
+            // f.data is a base64 data URL: data:<mime>;base64,<data>
+            const base64 = f.data.split(',')[1];
+            if (!base64) continue;
+            const buffer = Buffer.from(base64, 'base64');
+            const ext = path.extname(f.name).toLowerCase() || '.jpg';
+            const base = path.basename(f.name, ext).replace(/[^a-zA-Z0-9._-]/g, '_');
+            // Deduplicate: append _N if file already exists
+            let filename = base + ext;
+            let counter = 1;
+            while (true) {
+              try {
+                await fsAsync.access(path.join(destDir, filename));
+                filename = `${base}_${counter}${ext}`;
+                counter++;
+              } catch { break; }
+            }
+            await fsAsync.writeFile(path.join(destDir, filename), buffer);
+            uploaded.push({ filename, originalName: f.name });
+          }
+          res.end(JSON.stringify({ ok: true, uploaded }));
+        } catch (e) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ error: String(e) }));
+        }
+        return;
+      }
+
       res.writeHead(404);
       res.end(JSON.stringify({ error: 'Unknown endpoint' }));
     });

@@ -440,6 +440,19 @@
       .cut-section-toggle:hover { color: var(--text); }
       .cut-list { display: none; }
       .cut-list.open { display: flex; flex-direction: column; }
+
+      /* ── Blank-canvas add flow ───────────────────────────────────────────── */
+      .blank-canvas-cta {
+        display: flex; flex-direction: column; align-items: center;
+        justify-content: center; gap: 1rem; padding: 4rem 2rem;
+        text-align: center; color: var(--muted);
+        background: var(--page-bg); border-radius: 8px;
+        border: 2px dashed var(--page-line); margin-bottom: 2rem;
+      }
+      .blank-canvas-cta h3 { font-size: 18px; font-weight: 500; color: var(--text); margin-bottom: 0.25rem; }
+      .blank-canvas-cta p { font-size: 13px; }
+      .btn-lg { height: 34px; padding: 0 1.25rem; font-size: 12px; }
+      .add-source-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
     </style>
   </head>
   <body>
@@ -465,6 +478,9 @@
         </div>
       </main>
     </div>
+
+    <!-- Hidden file picker — triggered by Add Photos buttons -->
+    <input type="file" id="file-input" accept="image/*" multiple hidden />
 
     <script type="module">
       // ─── State ──────────────────────────────────────────────────────────────
@@ -520,21 +536,13 @@
         studioMain.innerHTML = '<div class="loading">Loading…</div>';
         toolbarInline.style.display = '';
 
-        const { photos: photoFiles } = await apiGet(`/photos/${slug}`);
-
+        // Blank-canvas: working set is exclusively what the sidecar says.
+        // Photos are never auto-imported from disk — use "Add Photos" to add them.
         let saved = null;
         try { saved = await apiGet(`/sidecar/${slug}`); } catch {}
 
-        const masterPhotos = photoFiles.map(filename => {
-          const existing = saved?.photos?.find(p => p.filename === filename);
-          return {
-            filename,
-            caption: existing?.caption ?? '',
-            alt: existing?.alt ?? '',
-            destination: existing?.destination ?? 'unassigned',
-            orientation: existing?.orientation ?? 'landscape',
-          };
-        });
+        const savedPhotos = saved?.photos ?? [];
+        const savedSeqOrder = (saved?.seqOrder ?? []).filter(fn => savedPhotos.some(p => p.filename === fn));
 
         state = {
           ...(saved ?? {}),
@@ -543,19 +551,9 @@
           summary: saved?.summary ?? '',
           heroFilename: saved?.heroFilename ?? null,
           specStrip: saved?.specStrip ?? [],
-          photos: masterPhotos,
-          seqOrder: (saved?.seqOrder ?? []).filter(fn => masterPhotos.some(p => p.filename === fn)),
+          photos: savedPhotos,
+          seqOrder: savedSeqOrder,
         };
-
-        state.seqOrder = state.seqOrder.filter(fn => {
-          const p = state.photos.find(p => p.filename === fn);
-          return p && p.destination === 'main';
-        });
-        for (const p of state.photos) {
-          if (p.destination === 'main' && !state.seqOrder.includes(p.filename)) {
-            state.seqOrder.push(p.filename);
-          }
-        }
 
         isDirty = false;
         renderStudio();
@@ -564,6 +562,60 @@
 
       function slugToTitle(slug) {
         return slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      }
+
+      // ─── Add-photos flow ────────────────────────────────────────────────────
+      function buildFileData(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onerror = reject;
+          reader.onload = (e) => {
+            const dataUrl = e.target.result;
+            const img = new Image();
+            img.onload = () => resolve({
+              name: file.name,
+              data: dataUrl,
+              orientation: img.naturalHeight > img.naturalWidth ? 'portrait' : 'landscape',
+            });
+            img.onerror = () => resolve({ name: file.name, data: dataUrl, orientation: 'landscape' });
+            img.src = dataUrl;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function handleAddPhotos(files) {
+        if (!currentSlug || !files.length) return;
+        setSaveStatus('saving');
+        try {
+          const fileData = await Promise.all(Array.from(files).map(buildFileData));
+          const r = await fetch('/api/studio/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slug: currentSlug, files: fileData }),
+          });
+          if (!r.ok) throw new Error(await r.text());
+          const { uploaded } = await r.json();
+
+          for (const { filename, originalName } of uploaded) {
+            if (state.photos.some(p => p.filename === filename)) continue;
+            const fd = fileData.find(f => f.name === originalName);
+            state.photos.push({
+              filename,
+              caption: '',
+              alt: '',
+              destination: 'main',
+              orientation: fd?.orientation ?? 'landscape',
+            });
+            state.seqOrder.push(filename);
+          }
+
+          markDirty();
+          renderStudio();
+        } catch (e) {
+          setSaveStatus('unsaved');
+          alert(`Upload failed: ${e.message}`);
+        }
       }
 
       // ─── Render studio ──────────────────────────────────────────────────────
@@ -592,6 +644,12 @@
             <div class="toolbar-group">
               <span style="font-size:10px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">${escHtml(state.slug)}</span>
             </div>
+            <div class="toolbar-sep"></div>
+            <button class="btn btn-primary" id="btn-add-photos">+ Add Photos</button>
+            <!-- EXTENSION POINT: Google Drive source — not yet implemented -->
+            <button class="btn" id="btn-add-drive" disabled
+              title="Google Drive import — coming soon"
+              style="opacity:0.4;cursor:not-allowed">☁ Drive</button>
             <div class="toolbar-sep"></div>
             <span class="seq-counter${seqOnTarget ? ' on-target' : ''}" id="seq-counter">
               Seq: ${seqCount} <span style="opacity:0.5">/ 12–24</span>
@@ -625,7 +683,19 @@
                 </div>
               </div>
 
-              ${seqPhotos.length > 0 ? `
+              ${state.photos.length === 0 ? `
+                <div class="blank-canvas-cta">
+                  <h3>No photos yet</h3>
+                  <p>Add photos from your computer to start building the sequence.</p>
+                  <div class="add-source-row">
+                    <button class="btn btn-primary btn-lg" id="btn-add-photos-empty">+ Add photos from computer</button>
+                    <!-- EXTENSION POINT: Google Drive source — not yet implemented -->
+                    <button class="btn btn-lg" disabled
+                      title="Google Drive import — coming soon"
+                      style="opacity:0.4;cursor:not-allowed">☁ From Drive (coming soon)</button>
+                  </div>
+                </div>
+              ` : seqPhotos.length > 0 ? `
                 <div class="preview-section-label">Main sequence — ${seqCount} steps</div>
                 ${seqPhotos.map((photo, seqIdx) => renderStep(photo, seqIdx, 'main')).join('')}
               ` : `
@@ -753,6 +823,11 @@
       // ─── Bind all events (called after innerHTML write) ─────────────────────
       function bindEvents() {
         document.getElementById('btn-export')?.addEventListener('click', handleExport);
+
+        // Add photos buttons (toolbar + blank-canvas CTA)
+        const fileInput = document.getElementById('file-input');
+        document.getElementById('btn-add-photos')?.addEventListener('click', () => fileInput?.click());
+        document.getElementById('btn-add-photos-empty')?.addEventListener('click', () => fileInput?.click());
 
         // Cut section toggle
         document.getElementById('cut-toggle')?.addEventListener('click', () => {
@@ -923,11 +998,20 @@
             const entry = e.target.closest('.step-block');
             if (!entry || !dragSrcFn || entry.dataset.filename === dragSrcFn) return;
             const targetFn = entry.dataset.filename;
-            const srcIdx = state.photos.findIndex(p => p.filename === dragSrcFn);
-            const dstIdx = state.photos.findIndex(p => p.filename === targetFn);
-            if (srcIdx < 0 || dstIdx < 0) return;
-            const [moved] = state.photos.splice(srcIdx, 1);
-            state.photos.splice(dstIdx, 0, moved);
+            const srcSeq = state.seqOrder.indexOf(dragSrcFn);
+            const dstSeq = state.seqOrder.indexOf(targetFn);
+            if (srcSeq >= 0 && dstSeq >= 0) {
+              // Both in main sequence — reorder seqOrder (persists to JSON)
+              state.seqOrder.splice(srcSeq, 1);
+              state.seqOrder.splice(dstSeq, 0, dragSrcFn);
+            } else {
+              // Outside main sequence — reorder in master photos array
+              const srcIdx = state.photos.findIndex(p => p.filename === dragSrcFn);
+              const dstIdx = state.photos.findIndex(p => p.filename === targetFn);
+              if (srcIdx < 0 || dstIdx < 0) return;
+              const [moved] = state.photos.splice(srcIdx, 1);
+              state.photos.splice(dstIdx, 0, moved);
+            }
             markDirty();
             renderStudio();
             dragSrcFn = null;
@@ -1034,6 +1118,15 @@
       }
 
       // ─── Boot ───────────────────────────────────────────────────────────────
+      // File input: bind once at boot (persists across renderStudio() calls)
+      document.getElementById('file-input')?.addEventListener('change', e => {
+        const input = /** @type {HTMLInputElement} */ (e.target);
+        if (input.files?.length && currentSlug) {
+          handleAddPhotos(input.files);
+          input.value = ''; // reset so same files trigger again
+        }
+      });
+
       loadProjects();
     </script>
   </body>
