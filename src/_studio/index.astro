@@ -1336,10 +1336,10 @@ They arrive as Unassigned with no caption or alt text.`)) return;
           const ind = document.getElementById(`save-ind-${masterIdx}`);
           if (ind) { ind.textContent = '● unsaved'; ind.className = 'photo-save-indicator dirty'; }
         }
+        // Manual-save model: edits mark the doc dirty, Ctrl+S writes it.
         // A failed write stays on screen until one succeeds — an edit on top of a
         // failure is still unsaved, so do not downgrade the message.
         if (saveState !== 'error') setSaveStatus('unsaved');
-        scheduleAutoSave();
       }
 
       const SAVE_LABEL = {
