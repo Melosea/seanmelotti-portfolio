@@ -7,5 +7,7 @@
   "heroFilename": null,
   "specStrip": [],
   "seqOrder": [],
-  "photos": []
+  "photos": [],
+  "draft": true,
+  "featured": false
 }
