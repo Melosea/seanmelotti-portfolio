@@ -186,8 +186,11 @@ const studioVitePlugin = {
             const base64 = f.data.split(',')[1];
             if (!base64) continue;
             const buffer = Buffer.from(base64, 'base64');
-            const ext = path.extname(f.name).toLowerCase() || '.jpg';
-            const base = path.basename(f.name, ext).replace(/[^a-zA-Z0-9._-]/g, '_');
+            const originalExt = path.extname(f.name);
+            const ext = originalExt.toLowerCase() || '.jpg';
+            // path.basename strips exactly the string passed — use the original case so
+            // 'IMG_6512.HEIC' stripped with '.HEIC' gives 'IMG_6512', not 'IMG_6512.HEIC'.
+            const base = path.basename(f.name, originalExt).replace(/[^a-zA-Z0-9._-]/g, '_');
             // Deduplicate: append _N if file already exists
             let filename = base + ext;
             let counter = 1;
