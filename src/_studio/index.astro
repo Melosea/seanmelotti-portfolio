@@ -213,6 +213,15 @@
       /* Sticky on purpose: a failed write must stay on screen until one succeeds. */
       .save-status.error { background: var(--red-soft); color: var(--red); cursor: help; }
 
+      /* Live/Draft toggle — publish gate. Draft entries keep their sidecar and
+         MDX on disk but are filtered out of every page query, so an entry can be
+         worked on for weeks without ever appearing on the site. */
+      .draft-toggle { font-weight: 600; letter-spacing: 0.01em; min-width: 92px; }
+      .draft-toggle.is-live { background: #0d2a1d; color: #4ade80; border-color: #1c5137; }
+      .draft-toggle.is-live:hover { background: #124430; }
+      .draft-toggle.is-draft { background: var(--warn-soft); color: var(--warn); border-color: #5c4410; }
+      .draft-toggle.is-draft:hover { background: #4a3a10; }
+
       .seq-counter {
         font-size: 10px; font-family: var(--mono); padding: 2px 7px;
         border-radius: 3px; background: var(--surface2); color: var(--muted);
@@ -774,6 +783,7 @@
           title: saved?.title ?? slugToTitle(slug),
           summary: saved?.summary ?? '',
           status: saved?.status ?? 'in-progress',
+          draft: saved?.draft ?? false,
           heroFilename: saved?.heroFilename ?? null,
           specStrip: saved?.specStrip ?? [],
           photos: savedPhotos,
@@ -929,6 +939,7 @@ They arrive as Unassigned with no caption or alt text.`)) return;
               ${missingAlt} missing alt
             </span>
             <div class="toolbar-sep"></div>
+            ${draftToggleHtml()}
             <button class="btn btn-primary" id="btn-save">Save</button>
             <button class="btn btn-primary" id="btn-export">Export MDX</button>
             <span id="save-status" class="save-status ${saveState}"${saveError ? ` title="Not written to disk: ${escHtml(saveError)}. Press Ctrl+S to retry."` : ''}>${SAVE_LABEL[saveState] ?? saveState}</span>
@@ -1095,6 +1106,7 @@ They arrive as Unassigned with no caption or alt text.`)) return;
       function bindEvents() {
         document.getElementById('btn-export')?.addEventListener('click', handleExport);
         document.getElementById('btn-save')?.addEventListener('click', () => autoSave());
+        document.getElementById('btn-draft-toggle')?.addEventListener('click', toggleDraft);
 
         // Delete photo from canvas (does NOT remove file from disk)
         document.querySelectorAll('[data-action="delete-photo"]').forEach(btn => {
@@ -1340,6 +1352,45 @@ They arrive as Unassigned with no caption or alt text.`)) return;
         // A failed write stays on screen until one succeeds — an edit on top of a
         // failure is still unsaved, so do not downgrade the message.
         if (saveState !== 'error') setSaveStatus('unsaved');
+      }
+
+      // ─── Live / Draft gate ──────────────────────────────────────────────────
+      /**
+       * `state.draft` is posted verbatim to the sidecar, and export-mdx.mjs
+       * writes `draft: sidecar.draft ?? false` into the frontmatter. Every page
+       * query (`index`, `projects/`, `skills/`, and both `[...slug]` routes)
+       * filters on `!data.draft`, so a draft entry generates no route at all —
+       * not a hidden page, no page. Flipping this is the whole publish gate.
+       */
+      function draftToggleHtml() {
+        const isDraft = !!state.draft;
+        const cls = isDraft ? 'is-draft' : 'is-live';
+        const label = isDraft ? '◌ Draft' : '● Live';
+        const title = isDraft
+          ? 'Draft — hidden from the site. Click to publish.'
+          : 'Live — visible on the site. Click to unpublish back to draft.';
+        return `<button class="btn draft-toggle ${cls}" id="btn-draft-toggle" title="${title}" aria-pressed="${isDraft}">${label}</button>`;
+      }
+
+      function toggleDraft() {
+        const goingLive = !!state.draft;
+        state.draft = !state.draft;
+        const btn = document.getElementById('btn-draft-toggle');
+        if (btn) {
+          btn.classList.toggle('is-draft', !!state.draft);
+          btn.classList.toggle('is-live', !state.draft);
+          btn.textContent = state.draft ? '◌ Draft' : '● Live';
+          btn.setAttribute('aria-pressed', String(!!state.draft));
+          btn.title = state.draft
+            ? 'Draft — hidden from the site. Click to publish.'
+            : 'Live — visible on the site. Click to unpublish back to draft.';
+        }
+        isDirty = true;
+        if (saveState !== 'error') setSaveStatus('unsaved');
+        scheduleAutoSave();
+        // The sidecar is the source of truth for the site build, so going live
+        // only takes effect once the MDX is re-exported.
+        if (goingLive) console.info('[studio] now Live — re-export MDX to publish');
       }
 
       const SAVE_LABEL = {
