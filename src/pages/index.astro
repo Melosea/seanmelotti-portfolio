@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProjectCard from '../components/ProjectCard.astro';
+import { resolveCover, coverAlt, PLACEHOLDER_COVER } from '../lib/photos';
 import { SITE } from '../consts';
 
 /**
@@ -27,10 +28,8 @@ const [lead, ...rest] = featured;
 const cardProps = (project: (typeof featured)[number]) => ({
   title: project.data.title,
   summary: project.data.summary,
-  image: project.data.coverImage,
-  imageAlt:
-    project.data.coverImageAlt ??
-    `Cover photo for ${project.data.title} (${project.data.vehicle})`,
+  image: resolveCover(project.data) ?? PLACEHOLDER_COVER,
+  imageAlt: coverAlt(project.data),
   tags: project.data.tags,
   vehicle: project.data.vehicle,
   status: project.data.status,

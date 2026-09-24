@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ProjectCard from '../../components/ProjectCard.astro';
 import PageHeader from '../../components/PageHeader.astro';
+import { resolveCover, coverAlt, PLACEHOLDER_COVER } from '../../lib/photos';
 
 /**
  * The full archive: every non-draft entry, current and past, newest first.
@@ -39,11 +40,8 @@ const monthYear = new Intl.DateTimeFormat('en-US', { month: 'short', year: 'nume
                   <ProjectCard
                     title={project.data.title}
                     summary={project.data.summary}
-                    image={project.data.coverImage}
-                    imageAlt={
-                      project.data.coverImageAlt ??
-                      `Cover photo for ${project.data.title} (${project.data.vehicle})`
-                    }
+                    image={resolveCover(project.data) ?? PLACEHOLDER_COVER}
+                    imageAlt={coverAlt(project.data)}
                     tags={project.data.tags}
                     vehicle={project.data.vehicle}
                     dateLabel={monthYear.format(project.data.date)}

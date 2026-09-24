@@ -34,12 +34,11 @@ function buildFrontmatter(sidecar) {
     ? sidecar.photos?.find(p => p.filename === sidecar.heroFilename)
     : sidecar.photos?.find(p => p.isCover);
 
+  // One convention for every photo field: photo-root-relative, so the page
+  // resolver hands it to astro:assets. The old `/photos/...` form only worked
+  // against the dev-server middleware and 404'd in a production build.
   const coverPath = heroPhoto
     ? `${sidecar.slug}/${heroPhoto.filename}`
-    : `/placeholders/project-01.svg`;
-
-  const legacyCoverPath = heroPhoto
-    ? `/photos/${sidecar.slug}/${heroPhoto.filename}`
     : `/placeholders/project-01.svg`;
 
   const date = sidecar.date ?? new Date().toISOString().slice(0, 10);
@@ -48,7 +47,7 @@ function buildFrontmatter(sidecar) {
     title: sidecar.title,
     summary: sidecar.summary ?? '',
     date,
-    coverImage: legacyCoverPath,
+    coverImage: coverPath,
     coverImageAlt: heroPhoto?.alt || heroPhoto?.caption || sidecar.title,
     tags: sidecar.tags ?? [],
     vehicle: sidecar.vehicle ?? (sidecar.type === 'skill' ? 'Various' : ''),

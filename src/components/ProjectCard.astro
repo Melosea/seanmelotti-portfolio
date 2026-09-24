@@ -1,9 +1,15 @@
 ---
+import { Image } from 'astro:assets';
+
 interface Props {
   title: string;
   summary: string;
-  /** Cover image src. Placeholder SVGs today, real photos from Phase 2 on. */
-  image: string;
+  /**
+   * Cover image. Pass the resolved `ImageMetadata` (from `resolveCover`) so the
+   * card gets an optimised, responsive photo; a plain string is only for
+   * /public assets such as the placeholder SVGs.
+   */
+  image: ImageMetadata | string;
   /** Describe the project, not the file. Required so cards stay accessible. */
   imageAlt: string;
   tags?: string[];
@@ -66,15 +72,33 @@ const Wrapper = href ? 'a' : 'div';
           : 'aspect-[16/10]',
       ]}
     >
-      <img
-        src={image}
-        alt={imageAlt}
-        loading={eager ? 'eager' : 'lazy'}
-        decoding="async"
-        width="800"
-        height="500"
-        class="h-full w-full object-cover"
-      />
+      {
+        typeof image === 'string' ? (
+          <img
+            src={image}
+            alt={imageAlt}
+            loading={eager ? 'eager' : 'lazy'}
+            decoding="async"
+            width="800"
+            height="500"
+            class="h-full w-full object-cover"
+          />
+        ) : (
+          <Image
+            src={image}
+            alt={imageAlt}
+            loading={eager ? 'eager' : 'lazy'}
+            decoding="async"
+            widths={prominent ? [640, 960, 1440] : [400, 800, 1200]}
+            sizes={
+              prominent
+                ? '(min-width: 64rem) 58vw, 100vw'
+                : '(min-width: 64rem) 30vw, (min-width: 40rem) 50vw, 100vw'
+            }
+            class="h-full w-full object-cover"
+          />
+        )
+      }
       {
         status && (
           <span class:list={['status-pill', 'absolute', 'top-3', 'left-3', STATUS_CLASS[status]]}>

@@ -69,7 +69,16 @@ const studioVitePlugin = {
             const photos = (await fsAsync.readdir(path.join(PHOTOS_DIR, e.name)).catch(() => []))
               .filter(f => /\.(jpg|jpeg|png|webp)$/i.test(f) && !f.startsWith('manifest'));
             if (photos.length > 0) {
-              map.set(e.name, { slug: e.name, photoCount: photos.length, status: 'in-progress', title: e.name });
+              // diskCount is what is in the folder; canvasCount is what the Studio
+              // can actually edit. They are different numbers and the sidebar says so
+              // — the canvas is deliberately blank until photos are imported.
+              map.set(e.name, {
+                slug: e.name,
+                diskCount: photos.length,
+                canvasCount: 0,
+                status: 'in-progress',
+                title: e.name,
+              });
             }
           }
           // Overlay with sidecar data; also creates entries for projects with no photos yet
@@ -80,10 +89,11 @@ const studioVitePlugin = {
             const slug = file.replace(/\.json$/, '');
             let sidecar = {};
             try { sidecar = JSON.parse(await fsAsync.readFile(path.join(STUDIO_DIR, file), 'utf-8')); } catch {}
-            const existing = map.get(slug) ?? { slug, photoCount: 0 };
+            const existing = map.get(slug) ?? { slug, diskCount: 0 };
             map.set(slug, {
               ...existing,
               slug,
+              canvasCount: sidecar.photos?.length ?? 0,
               status: sidecar.status ?? 'in-progress',
               title: sidecar.title ?? slug,
             });
@@ -158,11 +168,18 @@ const studioVitePlugin = {
           const { slug } = JSON.parse(body);
           if (!slug) throw new Error('Missing slug');
           const { execFileSync } = await import('node:child_process');
-          const outPath = path.join(ROOT, 'src', 'content', 'projects', `${slug}.mdx`);
           execFileSync('node', [path.join(ROOT, 'scripts', 'export-mdx.mjs'), slug], {
             cwd: ROOT, stdio: 'inherit',
           });
-          res.end(JSON.stringify({ ok: true, path: `src/content/projects/${slug}.mdx` }));
+          // The exporter routes skills to src/content/skills — report where the
+          // file actually landed rather than assuming it was a project.
+          /** @type {{ type?: string, contentType?: string }} */
+          let sidecar = {};
+          try {
+            sidecar = JSON.parse(await fsAsync.readFile(path.join(STUDIO_DIR, `${slug}.json`), 'utf-8'));
+          } catch {}
+          const collection = sidecar.type === 'skill' || sidecar.contentType === 'skill' ? 'skills' : 'projects';
+          res.end(JSON.stringify({ ok: true, path: `src/content/${collection}/${slug}.mdx` }));
         } catch (e) {
           res.writeHead(500);
           res.end(JSON.stringify({ error: String(e) }));
@@ -286,5 +303,11 @@ export default defineConfig({
   integrations: [mdx(), react(), studioDevIntegration],
   vite: {
     plugins: [tailwindcss(), studioVitePlugin],
+    server: {
+      watch: {
+        // Sidecar saves from the Studio must NOT trigger a dev-server reload
+        ignored: ['**/src/content/_studio/**'],
+      },
+    },
   },
 });
