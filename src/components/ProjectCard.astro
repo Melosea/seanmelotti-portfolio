@@ -11,7 +11,7 @@ interface Props {
   vehicle?: string;
   /** Pre-formatted date (e.g. "Aug 2026"), appended to the eyebrow line. */
   dateLabel?: string;
-  status?: 'complete' | 'in-progress' | 'planned';
+  status?: 'completed' | 'in-progress' | 'planned';
   /** Destination for the card link. A card without one renders as a plain article. */
   href?: string;
   /** Larger cover + title, used for the lead card in the featured grid. */
@@ -35,13 +35,13 @@ const {
 } = Astro.props;
 
 const STATUS_LABEL = {
-  complete: 'Complete',
-  'in-progress': 'In progress',
+  completed: 'Completed',
+  'in-progress': 'In Progress',
   planned: 'Planned',
 } as const;
 
 const STATUS_CLASS = {
-  complete: 'status-pill-complete',
+  completed: 'status-pill-complete',
   'in-progress': 'status-pill-progress',
   planned: 'status-pill-planned',
 } as const;
