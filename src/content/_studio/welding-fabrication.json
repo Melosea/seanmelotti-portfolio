@@ -1,1 +1,22 @@
-{"slug":"welding-fabrication","title":"Welding & Fabrication Projects","summary":"Test summary","heroFilename":null,"specStrip":[],"seqOrder":["test-weld-002.jpg","test-weld-001.jpg","test-weld-003.jpg"],"photos":[{"filename":"test-weld-001.jpg","caption":"First test weld","alt":"A test weld joint","destination":"main","orientation":"landscape"},{"filename":"test-weld-002.jpg","caption":"Second test weld","alt":"Another test weld","destination":"main","orientation":"landscape"},{"filename":"test-weld-003.jpg","caption":"Third test weld","alt":"Third weld photo","destination":"main","orientation":"landscape"}]}
+{
+  "slug": "welding-fabrication",
+  "type": "skill",
+  "title": "Welding & Fabrication Projects",
+  "summary": "MIG, TIG and stick welding across structural repairs, custom fabrications and chassis work — demonstrating range across material types and joint configurations.",
+  "date": "2024-09-01",
+  "tags": [
+    "Welding",
+    "Fabrication",
+    "MIG",
+    "TIG",
+    "Sheet Metal"
+  ],
+  "vehicle": "Various",
+  "status": "complete",
+  "featured": false,
+  "draft": false,
+  "heroFilename": null,
+  "seqOrder": [],
+  "specStrip": [],
+  "photos": []
+}
