@@ -453,6 +453,16 @@
       .blank-canvas-cta p { font-size: 13px; }
       .btn-lg { height: 34px; padding: 0 1.25rem; font-size: 12px; }
       .add-source-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+
+      /* ── Delete-from-canvas button ───────────────────────────────────────── */
+      .btn-delete {
+        width: 22px; height: 22px; padding: 0; flex-shrink: 0; margin-left: auto;
+        border: 1px solid #4d1a1a; background: var(--red-soft);
+        color: var(--red); border-radius: 3px; font-size: 14px; line-height: 1;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: background 0.15s;
+      }
+      .btn-delete:hover { background: #5a1c1c; }
     </style>
   </head>
   <body>
@@ -527,11 +537,19 @@
           btn.addEventListener('click', () => loadProject(p.slug));
           projectList.appendChild(btn);
         }
+
+        // Auto-restore last-selected project from URL param (survives Vite HMR reloads)
+        const urlSlug = new URLSearchParams(location.search).get('project');
+        if (urlSlug && projects.some(p => p.slug === urlSlug)) {
+          loadProject(urlSlug);
+        }
       }
 
       // ─── Load project ───────────────────────────────────────────────────────
       async function loadProject(slug) {
         currentSlug = slug;
+        // Persist selection in URL so Vite HMR page-reloads don't bounce user to project-select
+        history.replaceState({}, '', `?project=${encodeURIComponent(slug)}`);
         document.querySelectorAll('.project-btn').forEach(b => b.classList.toggle('active', b.dataset.slug === slug));
         studioMain.innerHTML = '<div class="loading">Loading…</div>';
         toolbarInline.style.display = '';
@@ -772,6 +790,8 @@
 
               <span class="photo-filename">${escHtml(photo.filename)}</span>
               <span class="photo-save-indicator" id="save-ind-${masterIdx}"></span>
+              <button class="btn-delete" data-action="delete-photo" data-filename="${escHtml(photo.filename)}"
+                title="Remove from canvas (does not delete file from disk)">×</button>
             </div>
 
             <div class="step-image-area">
@@ -823,6 +843,18 @@
       // ─── Bind all events (called after innerHTML write) ─────────────────────
       function bindEvents() {
         document.getElementById('btn-export')?.addEventListener('click', handleExport);
+
+        // Delete photo from canvas (does NOT remove file from disk)
+        document.querySelectorAll('[data-action="delete-photo"]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const fn = btn.dataset.filename;
+            state.photos = state.photos.filter(p => p.filename !== fn);
+            state.seqOrder = state.seqOrder.filter(f => f !== fn);
+            if (state.heroFilename === fn) state.heroFilename = null;
+            markDirty();
+            renderStudio();
+          });
+        });
 
         // Add photos buttons (toolbar + blank-canvas CTA)
         const fileInput = document.getElementById('file-input');
