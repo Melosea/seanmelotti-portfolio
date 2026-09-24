@@ -58,26 +58,37 @@ const studioVitePlugin = {
       res.setHeader('Content-Type', 'application/json');
       const url = new URL(req.url || '/', 'http://localhost');
 
-      // GET /api/studio/projects — list photo folders
+      // GET /api/studio/projects — list projects from sidecar files (source of truth) + photo folders
       if (url.pathname === '/projects' || url.pathname === '/projects/') {
         try {
-          const entries = await fsAsync.readdir(PHOTOS_DIR, { withFileTypes: true });
-          const projects = [];
-          for (const e of entries) {
+          // Build map slug → entry; seed from photo directories first
+          const map = new Map();
+          const dirEntries = await fsAsync.readdir(PHOTOS_DIR, { withFileTypes: true }).catch(() => []);
+          for (const e of dirEntries) {
             if (!e.isDirectory()) continue;
-            const slug = e.name;
-            const manifestPath = path.join(PHOTOS_DIR, slug, 'manifest.json');
-            let manifest = null;
-            try {
-              manifest = JSON.parse(await fsAsync.readFile(manifestPath, 'utf-8'));
-            } catch {/* manifest missing — include folder anyway */}
-            const photos = (await fsAsync.readdir(path.join(PHOTOS_DIR, slug)).catch(() => []))
-              .filter((f) => /\.(jpg|jpeg|png|webp)$/i.test(f) && !f.startsWith('manifest'))
-              .sort();
-            if (photos.length === 0) continue;
-            projects.push({ slug, photoCount: photos.length, manifest });
+            const photos = (await fsAsync.readdir(path.join(PHOTOS_DIR, e.name)).catch(() => []))
+              .filter(f => /\.(jpg|jpeg|png|webp)$/i.test(f) && !f.startsWith('manifest'));
+            if (photos.length > 0) {
+              map.set(e.name, { slug: e.name, photoCount: photos.length, status: 'in-progress', title: e.name });
+            }
           }
-          res.end(JSON.stringify({ projects }));
+          // Overlay with sidecar data; also creates entries for projects with no photos yet
+          await fsAsync.mkdir(STUDIO_DIR, { recursive: true });
+          const sidecars = (await fsAsync.readdir(STUDIO_DIR).catch(() => []))
+            .filter(f => f.endsWith('.json'));
+          for (const file of sidecars) {
+            const slug = file.replace(/\.json$/, '');
+            let sidecar = {};
+            try { sidecar = JSON.parse(await fsAsync.readFile(path.join(STUDIO_DIR, file), 'utf-8')); } catch {}
+            const existing = map.get(slug) ?? { slug, photoCount: 0 };
+            map.set(slug, {
+              ...existing,
+              slug,
+              status: sidecar.status ?? 'in-progress',
+              title: sidecar.title ?? slug,
+            });
+          }
+          res.end(JSON.stringify({ projects: Array.from(map.values()) }));
         } catch (e) {
           res.writeHead(500);
           res.end(JSON.stringify({ error: String(e) }));
@@ -191,6 +202,68 @@ const studioVitePlugin = {
             uploaded.push({ filename, originalName: f.name });
           }
           res.end(JSON.stringify({ ok: true, uploaded }));
+        } catch (e) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ error: String(e) }));
+        }
+        return;
+      }
+
+      // POST /api/studio/create-project — create new project sidecar + photo folder
+      if (url.pathname === '/create-project' && req.method === 'POST') {
+        let body = '';
+        for await (const chunk of req) body += chunk;
+        try {
+          const { name } = JSON.parse(body);
+          if (!name?.trim()) throw new Error('Missing name');
+          const slug = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          if (!slug) throw new Error('Invalid name — could not generate slug');
+          const filePath = path.join(STUDIO_DIR, `${slug}.json`);
+          try {
+            await fsAsync.access(filePath);
+            throw new Error(`Project "${slug}" already exists`);
+          } catch (e) {
+            if (String(e).includes('already exists')) throw e;
+            // access threw ENOENT — good, file doesn't exist
+          }
+          const sidecar = {
+            slug,
+            title: name.trim(),
+            summary: '',
+            status: 'in-progress',
+            heroFilename: null,
+            specStrip: [],
+            seqOrder: [],
+            photos: [],
+          };
+          await fsAsync.mkdir(STUDIO_DIR, { recursive: true });
+          await fsAsync.writeFile(filePath, JSON.stringify(sidecar, null, 2), 'utf-8');
+          await fsAsync.mkdir(path.join(PHOTOS_DIR, slug), { recursive: true });
+          res.end(JSON.stringify({ ok: true, slug, title: name.trim() }));
+        } catch (e) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ error: String(e) }));
+        }
+        return;
+      }
+
+      // POST /api/studio/set-status — update status field only (sidebar status dropdown)
+      if (url.pathname === '/set-status' && req.method === 'POST') {
+        let body = '';
+        for await (const chunk of req) body += chunk;
+        try {
+          const { slug, status } = JSON.parse(body);
+          if (!slug || !['in-progress', 'completed'].includes(status)) {
+            throw new Error('Missing or invalid slug/status. Valid: "in-progress", "completed"');
+          }
+          const filePath = path.join(STUDIO_DIR, `${slug}.json`);
+          let sidecar = {};
+          try { sidecar = JSON.parse(await fsAsync.readFile(filePath, 'utf-8')); } catch {}
+          sidecar.status = status;
+          sidecar.slug = sidecar.slug ?? slug;
+          await fsAsync.mkdir(STUDIO_DIR, { recursive: true });
+          await fsAsync.writeFile(filePath, JSON.stringify(sidecar, null, 2), 'utf-8');
+          res.end(JSON.stringify({ ok: true }));
         } catch (e) {
           res.writeHead(400);
           res.end(JSON.stringify({ error: String(e) }));

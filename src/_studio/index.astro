@@ -102,11 +102,35 @@
         padding: 0.5rem 0.75rem; border-radius: 5px;
         border: 1px solid transparent; background: transparent;
         color: var(--text); cursor: pointer; font-size: 12px;
-        font-family: var(--sans); transition: background 0.15s; margin-bottom: 2px;
+        font-family: var(--sans); transition: background 0.15s; margin-bottom: 0;
       }
       .project-btn:hover { background: var(--surface2); }
       .project-btn.active { background: var(--accent-soft); border-color: var(--accent); color: #c7d3fa; }
       .project-btn .count { float: right; font-family: var(--mono); font-size: 10px; color: var(--muted); }
+
+      .project-row { display: flex; align-items: center; gap: 0.25rem; margin-bottom: 2px; }
+      .project-row .project-btn { flex: 1; min-width: 0; }
+
+      .project-status {
+        flex-shrink: 0; height: 22px; padding: 0 4px;
+        font-size: 9px; font-family: var(--mono); letter-spacing: 0.04em;
+        border-radius: 3px; border: 1px solid var(--border); background: var(--surface2);
+        color: var(--muted); cursor: pointer; appearance: none; -webkit-appearance: none;
+      }
+      .project-status:focus { outline: none; border-color: var(--accent); }
+      .project-status.status-completed { border-color: #1f5c30; color: #4ade80; background: #0d2a1d; }
+
+      .sidebar-footer {
+        padding: 0.375rem; border-top: 1px solid var(--border); flex-shrink: 0;
+      }
+      .btn-add-project {
+        display: block; width: 100%; text-align: center;
+        padding: 0.375rem 0.625rem; border-radius: 5px;
+        border: 1px dashed var(--border); background: transparent;
+        color: var(--muted); cursor: pointer; font-size: 11px;
+        font-family: var(--sans); transition: all 0.15s;
+      }
+      .btn-add-project:hover { background: var(--surface2); color: var(--text); border-color: #444; }
 
       /* ── Main scrollable area ───────────────────────────────────────────── */
       .studio-main { overflow-y: auto; display: flex; flex-direction: column; background: #111214; }
@@ -479,6 +503,9 @@
         <div class="project-list" id="project-list">
           <div class="loading">Loading…</div>
         </div>
+        <div class="sidebar-footer">
+          <button class="btn-add-project" id="btn-add-project">+ New Project</button>
+        </div>
       </aside>
 
       <main class="studio-main" id="studio-main">
@@ -526,22 +553,56 @@
         const { projects } = await apiGet('/projects');
         projectList.innerHTML = '';
         if (!projects.length) {
-          projectList.innerHTML = '<div class="loading">No photo folders found.</div>';
+          projectList.innerHTML = '<div class="loading">No projects yet.</div>';
           return;
         }
         for (const p of projects) {
+          const row = document.createElement('div');
+          row.className = 'project-row';
+
           const btn = document.createElement('button');
           btn.className = 'project-btn';
           btn.dataset.slug = p.slug;
           btn.innerHTML = `${p.slug} <span class="count">${p.photoCount}</span>`;
           btn.addEventListener('click', () => loadProject(p.slug));
-          projectList.appendChild(btn);
+
+          const sel = document.createElement('select');
+          const normalStatus = p.status === 'complete' ? 'completed' : (p.status ?? 'in-progress');
+          sel.className = `project-status${normalStatus === 'completed' ? ' status-completed' : ''}`;
+          sel.dataset.slug = p.slug;
+          sel.title = 'Project status';
+          sel.innerHTML = `
+            <option value="in-progress"${normalStatus === 'in-progress' ? ' selected' : ''}>WIP</option>
+            <option value="completed"${normalStatus === 'completed' ? ' selected' : ''}>Done</option>
+          `;
+          sel.addEventListener('change', () => handleStatusChange(p.slug, sel.value, sel));
+
+          row.appendChild(btn);
+          row.appendChild(sel);
+          projectList.appendChild(row);
         }
 
         // Auto-restore last-selected project from URL param (survives Vite HMR reloads)
         const urlSlug = new URLSearchParams(location.search).get('project');
         if (urlSlug && projects.some(p => p.slug === urlSlug)) {
           loadProject(urlSlug);
+        }
+      }
+
+      // ─── Status change ──────────────────────────────────────────────────────
+      async function handleStatusChange(slug, status, selectEl) {
+        try {
+          const r = await fetch('/api/studio/set-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slug, status }),
+          });
+          if (!r.ok) throw new Error((await r.json()).error ?? await r.text());
+          selectEl.className = `project-status${status === 'completed' ? ' status-completed' : ''}`;
+          // Keep in-memory state in sync if this is the loaded project
+          if (state && state.slug === slug) state.status = status;
+        } catch (e) {
+          alert(`Failed to update status: ${e.message}`);
         }
       }
 
@@ -567,6 +628,7 @@
           slug,
           title: saved?.title ?? slugToTitle(slug),
           summary: saved?.summary ?? '',
+          status: saved?.status ?? 'in-progress',
           heroFilename: saved?.heroFilename ?? null,
           specStrip: saved?.specStrip ?? [],
           photos: savedPhotos,
@@ -1156,6 +1218,25 @@
         if (input.files?.length && currentSlug) {
           handleAddPhotos(input.files);
           input.value = ''; // reset so same files trigger again
+        }
+      });
+
+      // Add Project button
+      document.getElementById('btn-add-project')?.addEventListener('click', async () => {
+        const name = prompt('Project name:');
+        if (!name?.trim()) return;
+        try {
+          const r = await fetch('/api/studio/create-project', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name.trim() }),
+          });
+          const data = await r.json();
+          if (!r.ok) { alert(`Error: ${data.error}`); return; }
+          await loadProjects();
+          loadProject(data.slug);
+        } catch (e) {
+          alert(`Failed to create project: ${e.message}`);
         }
       });
 
