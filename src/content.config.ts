@@ -66,7 +66,6 @@ const skills = defineCollection({
     coverImageAlt: z.string().optional(),
     tags: z.array(z.string()).default([]),
     vehicle: z.string().optional(),
-    status: z.enum(['completed', 'in-progress', 'planned']).default('in-progress'),
     featured: z.boolean().default(false),
     draft: z.boolean().default(false),
     hero: z.object({ src: z.string(), alt: z.string() }).optional(),

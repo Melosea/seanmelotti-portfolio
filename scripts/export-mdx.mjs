@@ -51,10 +51,13 @@ function buildFrontmatter(sidecar) {
     coverImageAlt: heroPhoto?.alt || heroPhoto?.caption || sidecar.title,
     tags: sidecar.tags ?? [],
     vehicle: sidecar.vehicle ?? (sidecar.type === 'skill' ? 'Various' : ''),
-    status: sidecar.status ?? 'complete',
     featured: sidecar.featured ?? false,
     draft: sidecar.draft ?? false,
   };
+
+  // Skills are a capability showcase, not a dated build log: no status pill,
+  // so the field is written for projects only.
+  if (sidecar.type !== 'skill') base.status = sidecar.status ?? 'complete';
 
   if (sidecar.type === 'skill') {
     base.contentType = 'skill';

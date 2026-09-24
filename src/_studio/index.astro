@@ -695,19 +695,23 @@
             + `<span class="count" title="${canvasCount} photo(s) on the canvas">${canvasCount}</span>`;
           btn.addEventListener('click', () => loadProject(p.slug));
 
-          const sel = document.createElement('select');
-          const normalStatus = p.status === 'complete' ? 'completed' : (p.status ?? 'in-progress');
-          sel.className = `project-status${normalStatus === 'completed' ? ' status-completed' : ''}`;
-          sel.dataset.slug = p.slug;
-          sel.title = 'Project status';
-          sel.innerHTML = `
-            <option value="in-progress"${normalStatus === 'in-progress' ? ' selected' : ''}>WIP</option>
-            <option value="completed"${normalStatus === 'completed' ? ' selected' : ''}>Done</option>
-          `;
-          sel.addEventListener('change', () => handleStatusChange(p.slug, sel.value, sel));
-
           row.appendChild(btn);
-          row.appendChild(sel);
+
+          // Skills are a display of a skillset, not a dated build: WIP/Done is
+          // meaningless there, so the status control is projects-only.
+          if (p.type !== 'skill') {
+            const sel = document.createElement('select');
+            const normalStatus = p.status === 'complete' ? 'completed' : (p.status ?? 'in-progress');
+            sel.className = `project-status${normalStatus === 'completed' ? ' status-completed' : ''}`;
+            sel.dataset.slug = p.slug;
+            sel.title = 'Project status';
+            sel.innerHTML = `
+              <option value="in-progress"${normalStatus === 'in-progress' ? ' selected' : ''}>WIP</option>
+              <option value="completed"${normalStatus === 'completed' ? ' selected' : ''}>Done</option>
+            `;
+            sel.addEventListener('change', () => handleStatusChange(p.slug, sel.value, sel));
+            row.appendChild(sel);
+          }
           container.appendChild(row);
         }
       }

@@ -46,7 +46,6 @@ const monthYear = new Intl.DateTimeFormat('en-US', { month: 'short', year: 'nume
                     tags={skill.data.tags}
                     vehicle={skill.data.vehicle}
                     dateLabel={monthYear.format(skill.data.date)}
-                    status={skill.data.status}
                     href={`/skills/${skill.id}`}
                     eager={index < 3}
                   />

@@ -31,3 +31,4 @@ missing_files.json
 .cerebro-tools/autosave.log
 .cerebro-tools/*.pid
 .cerebro-tools/__pycache__/
+.cerebro-tools/screenshots/

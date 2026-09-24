@@ -55,18 +55,6 @@ for (const step of stepsWithImg) {
   }
 }
 
-const STATUS_LABEL = {
-  completed: 'Completed',
-  'in-progress': 'In Progress',
-  planned: 'Planned',
-} as const;
-
-const STATUS_CLASS = {
-  completed: 'status-pill-complete',
-  'in-progress': 'status-pill-progress',
-  planned: 'status-pill-planned',
-} as const;
-
 /**
  * The cover falls back through hero -> first step -> first gallery photo, so an
  * entry with any real photo never renders a placeholder. The hero borrows it
@@ -128,9 +116,6 @@ const useNewLayout = !!hero;
                 <p class="hero-spec-strip">{specStrip.join(' · ')}</p>
               )}
               <div class="mt-5 flex flex-wrap items-center gap-2">
-                <span class:list={['status-pill', STATUS_CLASS[skill.data.status]]}>
-                  {STATUS_LABEL[skill.data.status]}
-                </span>
                 {skill.data.tags.map((tag) => <span class="tag">{tag}</span>)}
               </div>
             </div>
@@ -234,9 +219,6 @@ const useNewLayout = !!hero;
             <h1 class="mt-3 text-3xl text-ink-950 md:text-4xl">{skill.data.title}</h1>
             <p class="mt-4 text-lg text-ink-500">{skill.data.summary}</p>
             <div class="mt-6 flex flex-wrap items-center gap-2">
-              <span class:list={['status-pill', STATUS_CLASS[skill.data.status]]}>
-                {STATUS_LABEL[skill.data.status]}
-              </span>
               {skill.data.tags.map((tag) => <span class="tag">{tag}</span>)}
             </div>
           </div>
