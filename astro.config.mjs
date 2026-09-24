@@ -58,25 +58,28 @@ const studioVitePlugin = {
       res.setHeader('Content-Type', 'application/json');
       const url = new URL(req.url || '/', 'http://localhost');
 
-      // GET /api/studio/projects — list photo folders
+      // GET /api/studio/projects — list projects from studio sidecars.
+      // Blank-canvas doctrine: the picker count is the CANVAS count (sidecar
+      // photos array), never the number of files sitting on disk. Folders
+      // without a sidecar (e.g. "Portfolio Inbox") are source material, not
+      // projects, and are not listed.
       if (url.pathname === '/projects' || url.pathname === '/projects/') {
         try {
-          const entries = await fsAsync.readdir(PHOTOS_DIR, { withFileTypes: true });
+          const files = await fsAsync.readdir(STUDIO_DIR).catch(() => []);
           const projects = [];
-          for (const e of entries) {
-            if (!e.isDirectory()) continue;
-            const slug = e.name;
-            const manifestPath = path.join(PHOTOS_DIR, slug, 'manifest.json');
-            let manifest = null;
+          for (const f of files) {
+            if (!f.endsWith('.json')) continue;
             try {
-              manifest = JSON.parse(await fsAsync.readFile(manifestPath, 'utf-8'));
-            } catch {/* manifest missing — include folder anyway */}
-            const photos = (await fsAsync.readdir(path.join(PHOTOS_DIR, slug)).catch(() => []))
-              .filter((f) => /\.(jpg|jpeg|png|webp)$/i.test(f) && !f.startsWith('manifest'))
-              .sort();
-            if (photos.length === 0) continue;
-            projects.push({ slug, photoCount: photos.length, manifest });
+              const sidecar = JSON.parse(await fsAsync.readFile(path.join(STUDIO_DIR, f), 'utf-8'));
+              const slug = sidecar.slug || f.replace(/\.json$/, '');
+              projects.push({
+                slug,
+                photoCount: Array.isArray(sidecar.photos) ? sidecar.photos.length : 0,
+                manifest: null,
+              });
+            } catch { /* unreadable sidecar — skip */ }
           }
+          projects.sort((a, b) => a.slug.localeCompare(b.slug));
           res.end(JSON.stringify({ projects }));
         } catch (e) {
           res.writeHead(500);
