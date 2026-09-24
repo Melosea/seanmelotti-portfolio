@@ -78,6 +78,8 @@ const studioVitePlugin = {
                 canvasCount: 0,
                 status: 'in-progress',
                 title: e.name,
+                // A bare photo folder has no sidecar to say otherwise.
+                type: 'project',
               });
             }
           }
@@ -87,6 +89,7 @@ const studioVitePlugin = {
             .filter(f => f.endsWith('.json'));
           for (const file of sidecars) {
             const slug = file.replace(/\.json$/, '');
+            /** @type {{ photos?: unknown[], status?: string, title?: string, type?: string, contentType?: string }} */
             let sidecar = {};
             try { sidecar = JSON.parse(await fsAsync.readFile(path.join(STUDIO_DIR, file), 'utf-8')); } catch {}
             const existing = map.get(slug) ?? { slug, diskCount: 0 };
@@ -96,6 +99,8 @@ const studioVitePlugin = {
               canvasCount: sidecar.photos?.length ?? 0,
               status: sidecar.status ?? 'in-progress',
               title: sidecar.title ?? slug,
+              // Same test the exporter uses. Untyped entries are projects.
+              type: sidecar.type === 'skill' || sidecar.contentType === 'skill' ? 'skill' : 'project',
             });
           }
           res.end(JSON.stringify({ projects: Array.from(map.values()) }));
@@ -229,25 +234,32 @@ const studioVitePlugin = {
         return;
       }
 
-      // POST /api/studio/create-project — create new project sidecar + photo folder
+      // POST /api/studio/create-project — create new project or skill sidecar + photo folder
       if (url.pathname === '/create-project' && req.method === 'POST') {
         let body = '';
         for await (const chunk of req) body += chunk;
         try {
-          const { name } = JSON.parse(body);
+          const { name, type } = JSON.parse(body);
           if (!name?.trim()) throw new Error('Missing name');
+          // `type` is optional so older callers that only send a name keep working.
+          const entryType = type ?? 'project';
+          if (!['project', 'skill'].includes(entryType)) {
+            throw new Error('Invalid type. Valid: "project", "skill"');
+          }
           const slug = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
           if (!slug) throw new Error('Invalid name — could not generate slug');
           const filePath = path.join(STUDIO_DIR, `${slug}.json`);
           try {
             await fsAsync.access(filePath);
-            throw new Error(`Project "${slug}" already exists`);
+            throw new Error(`Entry "${slug}" already exists`);
           } catch (e) {
             if (String(e).includes('already exists')) throw e;
             // access threw ENOENT — good, file doesn't exist
           }
           const sidecar = {
             slug,
+            // The exporter reads `type` to choose src/content/skills vs projects.
+            type: entryType,
             title: name.trim(),
             summary: '',
             status: 'in-progress',
@@ -259,7 +271,7 @@ const studioVitePlugin = {
           await fsAsync.mkdir(STUDIO_DIR, { recursive: true });
           await fsAsync.writeFile(filePath, JSON.stringify(sidecar, null, 2), 'utf-8');
           await fsAsync.mkdir(path.join(PHOTOS_DIR, slug), { recursive: true });
-          res.end(JSON.stringify({ ok: true, slug, title: name.trim() }));
+          res.end(JSON.stringify({ ok: true, slug, title: name.trim(), type: entryType }));
         } catch (e) {
           res.writeHead(400);
           res.end(JSON.stringify({ error: String(e) }));
@@ -277,6 +289,7 @@ const studioVitePlugin = {
             throw new Error('Missing or invalid slug/status. Valid: "in-progress", "completed"');
           }
           const filePath = path.join(STUDIO_DIR, `${slug}.json`);
+          /** @type {{ status?: string, slug?: string }} */
           let sidecar = {};
           try { sidecar = JSON.parse(await fsAsync.readFile(filePath, 'utf-8')); } catch {}
           sidecar.status = status;

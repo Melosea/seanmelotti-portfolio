@@ -97,6 +97,16 @@
 
       .project-list { flex: 1; overflow-y: auto; padding: 0.375rem; }
 
+      /* Group divider inside the list — Projects vs Skills. Quieter than the
+         sidebar header above it so the hierarchy reads correctly. */
+      .project-group-header {
+        padding: 0.5rem 0.75rem 0.25rem;
+        font-size: 9px; font-family: var(--mono);
+        text-transform: uppercase; letter-spacing: 0.08em;
+        color: var(--muted); opacity: 0.8;
+      }
+      .project-group + .project-group .project-group-header { margin-top: 0.5rem; }
+
       .project-btn {
         display: block; width: 100%; text-align: left;
         padding: 0.5rem 0.75rem; border-radius: 5px;
@@ -135,6 +145,46 @@
       }
       .btn-add-project:hover { background: var(--surface2); color: var(--text); border-color: #444; }
 
+      /* ── New-entry dialog ───────────────────────────────────────────────── */
+      .modal-backdrop {
+        position: fixed; inset: 0; z-index: 100;
+        background: rgba(0,0,0,0.6);
+        display: flex; align-items: center; justify-content: center;
+      }
+      .modal-backdrop[hidden] { display: none; }
+      .modal {
+        width: 340px; background: var(--surface);
+        border: 1px solid var(--border); border-radius: 8px;
+        padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;
+      }
+      .modal-title { font-size: 13px; font-weight: 600; }
+      .modal-label {
+        font-size: 10px; font-family: var(--mono); text-transform: uppercase;
+        letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.3rem;
+      }
+      .modal-input {
+        width: 100%; height: 28px; padding: 0 0.5rem;
+        background: var(--surface2); border: 1px solid var(--border);
+        border-radius: 4px; color: var(--text);
+        font-size: 12px; font-family: var(--sans);
+      }
+      .modal-input:focus { outline: none; border-color: var(--accent); }
+      .segmented { display: flex; gap: 0; }
+      .segmented button {
+        flex: 1; height: 28px; font-size: 11px; font-family: var(--sans);
+        background: var(--surface2); border: 1px solid var(--border);
+        color: var(--muted); cursor: pointer; transition: all 0.15s;
+      }
+      .segmented button:first-child { border-radius: 4px 0 0 4px; }
+      .segmented button:last-child { border-radius: 0 4px 4px 0; border-left: none; }
+      .segmented button:hover { color: var(--text); }
+      .segmented button[aria-pressed="true"] {
+        background: var(--accent-soft); border-color: var(--accent); color: #c7d3fa;
+      }
+      .modal-hint { font-size: 10px; color: var(--muted); line-height: 1.4; }
+      .modal-error { font-size: 11px; color: var(--red); }
+      .modal-actions { display: flex; justify-content: flex-end; gap: 0.375rem; }
+
       /* ── Main scrollable area ───────────────────────────────────────────── */
       .studio-main { overflow-y: auto; display: flex; flex-direction: column; background: #111214; }
 
@@ -169,6 +219,8 @@
       .save-status.saved { background: #0d2a1d; color: #4ade80; }
       .save-status.unsaved { background: var(--warn-soft); color: var(--warn); }
       .save-status.saving { background: #1e2a3a; color: #60a5fa; }
+      /* Sticky on purpose: a failed write must stay on screen until one succeeds. */
+      .save-status.error { background: var(--red-soft); color: var(--red); cursor: help; }
 
       .seq-counter {
         font-size: 10px; font-family: var(--mono); padding: 2px 7px;
@@ -502,12 +554,12 @@
       </header>
 
       <aside class="studio-sidebar">
-        <div class="studio-sidebar-header">Projects</div>
+        <div class="studio-sidebar-header">Library</div>
         <div class="project-list" id="project-list">
           <div class="loading">Loading…</div>
         </div>
         <div class="sidebar-footer">
-          <button class="btn-add-project" id="btn-add-project">+ New Project</button>
+          <button class="btn-add-project" id="btn-add-project">+ New Entry</button>
         </div>
       </aside>
 
@@ -522,11 +574,44 @@
     <!-- Hidden file picker — triggered by Add Photos buttons -->
     <input type="file" id="file-input" accept="image/*" multiple hidden />
 
+    <!-- New-entry dialog. Replaces window.prompt so the collection can be chosen. -->
+    <div class="modal-backdrop" id="new-entry-modal" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="new-entry-title">
+        <div class="modal-title" id="new-entry-title">New entry</div>
+        <div>
+          <div class="modal-label">Name</div>
+          <input class="modal-input" id="new-entry-name" placeholder="e.g. Metal Shaping" autocomplete="off" />
+        </div>
+        <div>
+          <div class="modal-label">Collection</div>
+          <div class="segmented" id="new-entry-type">
+            <button type="button" data-type="project" aria-pressed="true">Project</button>
+            <button type="button" data-type="skill" aria-pressed="false">Skill</button>
+          </div>
+          <p class="modal-hint" id="new-entry-hint">Exports to src/content/projects/ &rarr; /projects/&lt;slug&gt;</p>
+        </div>
+        <p class="modal-error" id="new-entry-error" hidden></p>
+        <div class="modal-actions">
+          <button class="btn" id="new-entry-cancel">Cancel</button>
+          <button class="btn btn-primary" id="new-entry-create">Create</button>
+        </div>
+      </div>
+    </div>
+
     <script type="module">
       // ─── State ──────────────────────────────────────────────────────────────
       let currentSlug = null;
       let state = null;
       let isDirty = false;
+      /**
+       * What the badge is allowed to say: 'saved' | 'unsaved' | 'saving' | 'error'.
+       * Held here rather than read off the DOM so a re-render of the toolbar cannot
+       * quietly resurrect a stale "Saved" after a write that actually failed.
+       */
+      let saveState = 'saved';
+      let saveError = null;
+      /** Debounce handle for the autosave that follows an edit. */
+      let autoSaveTimer = null;
       let dirtyPhotos = new Set();
       let dragSrcFn = null;
       /**
@@ -562,10 +647,39 @@
         const { projects } = await apiGet('/projects');
         projectList.innerHTML = '';
         if (!projects.length) {
-          projectList.innerHTML = '<div class="loading">No projects yet.</div>';
+          projectList.innerHTML = '<div class="loading">Nothing here yet.</div>';
           return;
         }
-        for (const p of projects) {
+
+        // Projects and skills are two collections on disk, so the sidebar shows
+        // them as two groups. An entry with no `type` is a project — the same
+        // default the exporter uses.
+        const groups = [
+          { label: 'Projects', entries: projects.filter(p => (p.type ?? 'project') !== 'skill') },
+          { label: 'Skills', entries: projects.filter(p => p.type === 'skill') },
+        ].filter(g => g.entries.length > 0);
+
+        for (const group of groups) {
+          const section = document.createElement('div');
+          section.className = 'project-group';
+          const heading = document.createElement('div');
+          heading.className = 'project-group-header';
+          heading.textContent = `${group.label} (${group.entries.length})`;
+          section.appendChild(heading);
+          for (const p of group.entries) renderProjectRow(p, section);
+          projectList.appendChild(section);
+        }
+
+        // Auto-restore last-selected entry from URL param (survives Vite HMR reloads)
+        const urlSlug = new URLSearchParams(location.search).get('project');
+        if (urlSlug && projects.some(p => p.slug === urlSlug)) {
+          loadProject(urlSlug);
+        }
+      }
+
+      /** One sidebar row: select button + status dropdown. */
+      function renderProjectRow(p, container) {
+        {
           const row = document.createElement('div');
           row.className = 'project-row';
 
@@ -594,13 +708,7 @@
 
           row.appendChild(btn);
           row.appendChild(sel);
-          projectList.appendChild(row);
-        }
-
-        // Auto-restore last-selected project from URL param (survives Vite HMR reloads)
-        const urlSlug = new URLSearchParams(location.search).get('project');
-        if (urlSlug && projects.some(p => p.slug === urlSlug)) {
-          loadProject(urlSlug);
+          container.appendChild(row);
         }
       }
 
@@ -659,6 +767,7 @@
         };
 
         isDirty = false;
+        if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
         renderStudio();
         setSaveStatus('saved');
       }
@@ -808,7 +917,7 @@ They arrive as Unassigned with no caption or alt text.`)) return;
             <div class="toolbar-sep"></div>
             <button class="btn btn-primary" id="btn-save">Save</button>
             <button class="btn btn-primary" id="btn-export">Export MDX</button>
-            <span id="save-status" class="save-status ${isDirty ? 'unsaved' : 'saved'}">${isDirty ? '&#9679; Unsaved' : 'Saved'}</span>
+            <span id="save-status" class="save-status ${saveState}"${saveError ? ` title="Not written to disk: ${escHtml(saveError)}. Press Ctrl+S to retry."` : ''}>${SAVE_LABEL[saveState] ?? saveState}</span>
           </div>
 
           <div class="page-preview">
@@ -1213,23 +1322,48 @@ They arrive as Unassigned with no caption or alt text.`)) return;
           const ind = document.getElementById(`save-ind-${masterIdx}`);
           if (ind) { ind.textContent = '● unsaved'; ind.className = 'photo-save-indicator dirty'; }
         }
-        setSaveStatus('unsaved');
+        // A failed write stays on screen until one succeeds — an edit on top of a
+        // failure is still unsaved, so do not downgrade the message.
+        if (saveState !== 'error') setSaveStatus('unsaved');
+        scheduleAutoSave();
       }
 
-      function setSaveStatus(s) {
+      const SAVE_LABEL = {
+        saved: 'Saved',
+        unsaved: '● Unsaved changes',
+        saving: 'Saving…',
+        error: '⚠ Save failed',
+      };
+
+      function setSaveStatus(s, error) {
+        saveState = s;
+        saveError = s === 'error' ? (error ?? 'Unknown error') : null;
         for (const id of ['save-status', 'save-status-header']) {
           const el = document.getElementById(id);
           if (!el) continue;
           el.className = `save-status ${s}`;
-          el.textContent = s === 'saved' ? 'Saved' : s === 'unsaved' ? '● Unsaved' : 'Saving…';
+          el.textContent = SAVE_LABEL[s] ?? s;
+          if (saveError) el.title = `Not written to disk: ${saveError}. Press Ctrl+S to retry.`;
+          else el.removeAttribute('title');
         }
       }
 
+      /** Persist shortly after an edit settles, so "Saved" means saved. */
+      function scheduleAutoSave() {
+        if (autoSaveTimer) clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(() => { autoSaveTimer = null; autoSave(); }, 1200);
+      }
+
+      /** @returns {Promise<boolean>} true only when the sidecar is on disk. */
       async function autoSave() {
-        if (!state || !isDirty) return;
+        if (!state) return false;
+        if (!isDirty) return saveState !== 'error';
+        if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
         setSaveStatus('saving');
         try {
-          await apiPost(`/sidecar/${state.slug}`, state);
+          const result = await apiPost(`/sidecar/${state.slug}`, state);
+          // The endpoint answers {ok:true}. Anything else is not a confirmed write.
+          if (!result?.ok) throw new Error(`Unexpected response: ${JSON.stringify(result)}`);
           isDirty = false;
           const saved = Array.from(dirtyPhotos);
           dirtyPhotos.clear();
@@ -1243,9 +1377,13 @@ They arrive as Unassigned with no caption or alt text.`)) return;
             }
           }
           setSaveStatus('saved');
+          return true;
         } catch (e) {
-          setSaveStatus('unsaved');
+          // Never swallowed and never downgraded to a plain "unsaved": the edits
+          // are still only in this tab, and the badge has to keep saying so.
+          setSaveStatus('error', e?.message ?? String(e));
           console.error('Save failed:', e);
+          return false;
         }
       }
 
@@ -1264,7 +1402,11 @@ They arrive as Unassigned with no caption or alt text.`)) return;
       // ─── Export ─────────────────────────────────────────────────────────────
       async function handleExport() {
         if (!state) return;
-        await autoSave();
+        const persisted = await autoSave();
+        if (!persisted) {
+          alert(`Not exported — the save failed (${saveError}).\nThe exporter reads the sidecar from disk, so it would publish stale content.`);
+          return;
+        }
         try {
           const r = await fetch('/api/studio/export', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1295,23 +1437,86 @@ They arrive as Unassigned with no caption or alt text.`)) return;
         }
       });
 
-      // Add Project button
-      document.getElementById('btn-add-project')?.addEventListener('click', async () => {
-        const name = prompt('Project name:');
-        if (!name?.trim()) return;
+      // ─── New-entry dialog ───────────────────────────────────────────────────
+      // A project and a skill are the same editor over two collections, so the
+      // only thing the dialog asks beyond the name is which one this is.
+      const newEntryModal = document.getElementById('new-entry-modal');
+      const newEntryName = document.getElementById('new-entry-name');
+      const newEntryHint = document.getElementById('new-entry-hint');
+      const newEntryErrorEl = document.getElementById('new-entry-error');
+      const typeButtons = Array.from(document.querySelectorAll('#new-entry-type button'));
+      let newEntryType = 'project';
+
+      const TYPE_HINT = {
+        project: 'Exports to src/content/projects/ &rarr; /projects/&lt;slug&gt;',
+        skill: 'Exports to src/content/skills/ &rarr; /skills/&lt;slug&gt;',
+      };
+
+      function setNewEntryType(type) {
+        newEntryType = type;
+        for (const b of typeButtons) {
+          b.setAttribute('aria-pressed', String(b.dataset.type === type));
+        }
+        newEntryHint.innerHTML = TYPE_HINT[type];
+      }
+
+      function showNewEntryError(msg) {
+        newEntryErrorEl.textContent = msg;
+        newEntryErrorEl.hidden = !msg;
+      }
+
+      function openNewEntry() {
+        newEntryName.value = '';
+        setNewEntryType('project');
+        showNewEntryError('');
+        newEntryModal.hidden = false;
+        newEntryName.focus();
+      }
+
+      function closeNewEntry() {
+        newEntryModal.hidden = true;
+      }
+
+      async function submitNewEntry() {
+        const name = newEntryName.value.trim();
+        if (!name) { showNewEntryError('Give it a name first.'); newEntryName.focus(); return; }
+        const createBtn = document.getElementById('new-entry-create');
+        createBtn.disabled = true;
+        createBtn.textContent = 'Creating…';
         try {
           const r = await fetch('/api/studio/create-project', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: name.trim() }),
+            body: JSON.stringify({ name, type: newEntryType }),
           });
           const data = await r.json();
-          if (!r.ok) { alert(`Error: ${data.error}`); return; }
+          if (!r.ok) { showNewEntryError(data.error ?? 'Could not create it.'); return; }
+          closeNewEntry();
           await loadProjects();
           loadProject(data.slug);
         } catch (e) {
-          alert(`Failed to create project: ${e.message}`);
+          showNewEntryError(`Failed to create: ${e.message}`);
+        } finally {
+          createBtn.disabled = false;
+          createBtn.textContent = 'Create';
         }
+      }
+
+      document.getElementById('btn-add-project')?.addEventListener('click', openNewEntry);
+      document.getElementById('new-entry-cancel')?.addEventListener('click', closeNewEntry);
+      document.getElementById('new-entry-create')?.addEventListener('click', submitNewEntry);
+      for (const b of typeButtons) {
+        b.addEventListener('click', () => setNewEntryType(b.dataset.type));
+      }
+      newEntryName?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); submitNewEntry(); }
+      });
+      newEntryModal?.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { e.preventDefault(); closeNewEntry(); }
+      });
+      // Click-off closes, but only on the backdrop itself.
+      newEntryModal?.addEventListener('click', e => {
+        if (e.target === newEntryModal) closeNewEntry();
       });
 
       loadProjects();

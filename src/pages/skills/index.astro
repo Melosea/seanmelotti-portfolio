@@ -1,0 +1,72 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import { resolveCover, coverAlt, PLACEHOLDER_COVER } from '../../lib/photos';
+
+/**
+ * Capability pages, newest first. Same shape as the projects archive — a skill
+ * is a portfolio piece grouped by technique rather than by vehicle, so it gets
+ * the same card and the same cover resolution.
+ */
+const skills = (await getCollection('skills', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+
+const monthYear = new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric' });
+---
+
+<BaseLayout
+  title="Skills"
+  description="What Sean Melotti can do, shown through the work — welding and fabrication, metal shaping, 3D modeling, additive manufacturing and finishing."
+>
+  <PageHeader
+    eyebrow="Capabilities"
+    title="Skills"
+    lede="Grouped by technique rather than by project — the same work, sorted by what it demonstrates."
+  />
+
+  <section class="section">
+    <div class="container-page">
+      {
+        skills.length > 0 ? (
+          <>
+            <p class="eyebrow">
+              {skills.length} {skills.length === 1 ? 'skill' : 'skills'}
+            </p>
+            <ul class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {skills.map((skill, index) => (
+                <li class="flex">
+                  <ProjectCard
+                    title={skill.data.title}
+                    summary={skill.data.summary}
+                    image={resolveCover(skill.data) ?? PLACEHOLDER_COVER}
+                    imageAlt={coverAlt(skill.data)}
+                    tags={skill.data.tags}
+                    vehicle={skill.data.vehicle}
+                    dateLabel={monthYear.format(skill.data.date)}
+                    status={skill.data.status}
+                    href={`/skills/${skill.id}`}
+                    eager={index < 3}
+                  />
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <div class="rounded-lg border border-dashed border-line-strong bg-surface px-6 py-16 text-center">
+            <p class="eyebrow">Nothing here yet</p>
+            <p class="mx-auto mt-3 max-w-sm text-ink-500">
+              Capability pages are on the way. In the meantime the project archive shows the
+              same work, grouped by build.
+            </p>
+            <a href="/projects" class="btn btn-secondary mt-6">
+              Browse projects
+            </a>
+          </div>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>

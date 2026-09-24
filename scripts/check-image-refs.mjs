@@ -10,9 +10,10 @@
  *   2. the file exists on disk,
  *   3. the extension is one the page glob actually matches.
  *
- * It also rejects an entry whose every reference is a placeholder — that page
- * builds fine but shows no real photo, which is the failure this whole change
- * exists to prevent.
+ * An entry with no real photo yet is reported as a WARNING, not an error: that
+ * is what a freshly-created Studio entry looks like before its photos are added,
+ * and the build must not block Sean mid-authoring. Pass --strict to promote
+ * those warnings to failures (use it for a pre-launch sweep, not for prebuild).
  *
  * With --sidecars it closes the Studio loop too: every non-cut photo in every
  * studio sidecar must resolve, so an export can only ever emit good paths.
@@ -20,6 +21,7 @@
  * Usage:
  *   node scripts/check-image-refs.mjs
  *   node scripts/check-image-refs.mjs --sidecars
+ *   node scripts/check-image-refs.mjs --strict
  *
  * Exit 0 = every reference resolves. Exit 1 = at least one is broken.
  */
@@ -45,7 +47,9 @@ function readFrontmatter(file) {
   return m ? parseYaml(m[1]) : null;
 }
 
+const STRICT = process.argv.includes('--strict');
 const failures = [];
+const warnings = [];
 let resolved = 0;
 let placeholders = 0;
 
@@ -119,7 +123,9 @@ for (const dir of CONTENT_DIRS) {
 
     const refs = photoRefs(data);
     if (refs.length === 0) {
-      failures.push(rel + ': no photo references at all — the page would render bare.');
+      (STRICT ? failures : warnings).push(
+        rel + ': no photo references at all — the page renders bare. Add photos in the Studio.'
+      );
       continue;
     }
 
@@ -128,8 +134,10 @@ for (const dir of CONTENT_DIRS) {
       if (checkRef(rel, field, src) === true) realPhotos++;
     }
     if (realPhotos === 0) {
-      failures.push(
-        rel + ': no reference resolves to a real photo — the page would render placeholders only.'
+      // Not broken — a placeholder cover is a real, existing asset. It just means
+      // this entry has not had its photos added yet.
+      (STRICT ? failures : warnings).push(
+        rel + ': no real photo yet — the card and hero fall back to the placeholder.'
       );
     }
   }
@@ -144,6 +152,11 @@ if (process.argv.includes('--sidecars') && fs.existsSync(STUDIO_DIR)) {
       checkRef('_studio/' + file, 'photos[' + photo.filename + ']', slug + '/' + photo.filename);
     }
   }
+}
+
+if (warnings.length) {
+  console.warn('PAGES WITH NO REAL PHOTO YET (' + warnings.length + '):');
+  for (const w of warnings) console.warn('  ! ' + w);
 }
 
 if (failures.length) {
@@ -162,5 +175,7 @@ console.log(
     resolved +
     ' photos | ' +
     placeholders +
-    ' placeholders.'
+    ' placeholders' +
+    (warnings.length ? ' | ' + warnings.length + ' page(s) awaiting photos' : '') +
+    '.'
 );
