@@ -6,6 +6,7 @@ import react from '@astrojs/react';
 import fs from 'node:fs';
 import fsAsync from 'node:fs/promises';
 import path from 'node:path';
+import { localDateStamp } from './src/lib/local-date.mjs';
 
 /** Inject /studio route in dev only — excluded from production build. */
 const studioDevIntegration = {
@@ -205,7 +206,7 @@ const studioVitePlugin = {
             res.end(JSON.stringify({ error: `Project "${slug}" already exists` }));
             return;
           } catch { /* file doesn't exist — good */ }
-          const today = new Date().toISOString().slice(0, 10);
+          const today = localDateStamp();
           const sidecar = {
             slug,
             title: name.trim(),

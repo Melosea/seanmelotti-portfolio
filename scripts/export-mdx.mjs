@@ -9,12 +9,14 @@
  *
  * The exported MDX validates against the extended Phase 2 schema:
  *   hero, specStrip, steps, gallery — all optional, Phase 1 entries still validate.
- * Idempotent: re-running overwrites cleanly.
+ * Idempotent: re-running overwrites cleanly. A sidecar missing `date` gets one
+ * backfilled on first export so the date never churns on subsequent runs.
  */
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { localDateStamp } from '../src/lib/local-date.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
@@ -41,7 +43,9 @@ function buildFrontmatter(sidecar) {
     ? `${sidecar.slug}/${heroPhoto.filename}`
     : `/placeholders/project-01.svg`;
 
-  const date = sidecar.date ?? new Date().toISOString().slice(0, 10);
+  // A dateless sidecar is backfilled by exportSlug() before we get here, so
+  // this fallback is a last resort only (e.g. buildMdx called directly).
+  const date = sidecar.date ?? localDateStamp();
 
   const base = {
     title: sidecar.title,
@@ -202,6 +206,20 @@ function buildMdx(sidecar) {
 
 async function exportSlug(slug) {
   const sidecar = await loadSidecar(slug);
+
+  // Sidecars created before the date field existed have no `date`. Without
+  // this backfill the frontmatter fallback re-stamps "today" on EVERY export,
+  // so the MDX date silently churns on every autosave and shows up as a dirty
+  // file forever. Persist the stamp once; from then on the export is stable.
+  if (!sidecar.date) {
+    sidecar.date = localDateStamp();
+    await fs.writeFile(
+      path.join(STUDIO_DIR, `${slug}.json`),
+      JSON.stringify(sidecar),
+      'utf-8',
+    );
+    console.log(`  backfilled missing sidecar date: ${sidecar.date}`);
+  }
 
   const isSkill = sidecar.type === 'skill' || sidecar.contentType === 'skill';
   const outDir = isSkill ? SKILLS_DIR : PROJECTS_DIR;
