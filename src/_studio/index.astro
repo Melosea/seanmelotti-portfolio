@@ -596,6 +596,61 @@
       .page-field-input:focus { outline: none; border-color: var(--accent); }
       .page-field-grid-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 0.5rem; }
       .page-field-input[readonly] { opacity: 0.6; cursor: not-allowed; }
+      /* ── Publish button & status ─────────────────────────────────────────── */
+      .btn-publish {
+        background: #0d2a1d; border-color: #1c5137; color: #4ade80; font-weight: 600;
+      }
+      .btn-publish:hover { background: #124430; border-color: #2a7a4f; }
+      .btn-publish:disabled { opacity: 0.5; cursor: not-allowed; }
+
+      .publish-count-badge {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 16px; height: 14px; padding: 0 3px; margin-left: 4px;
+        background: #4ade80; color: #062414; border-radius: 6px;
+        font-size: 9px; font-family: var(--mono); font-weight: 700; line-height: 1;
+        vertical-align: middle;
+      }
+
+      .publish-inline-status {
+        font-size: 10px; font-family: var(--mono); padding: 2px 7px;
+        border-radius: 3px; white-space: nowrap;
+      }
+      .publish-inline-status.pushing { background: #1e2a3a; color: #60a5fa; }
+      .publish-inline-status.success { background: #0d2a1d; color: #4ade80; }
+      .publish-inline-status.error   { background: var(--red-soft); color: var(--red); }
+
+      /* ── Publish confirm modal extras ───────────────────────────────────── */
+      .publish-file-list {
+        max-height: 180px; overflow-y: auto; list-style: none;
+        background: var(--surface2); border: 1px solid var(--border);
+        border-radius: 4px; padding: 0.375rem 0.5rem; margin: 0;
+      }
+      .publish-file-list li {
+        display: flex; gap: 0.375rem; align-items: baseline;
+        padding: 2px 0; font-size: 11px; font-family: var(--mono); color: var(--text);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .publish-file-list .file-xy {
+        flex-shrink: 0; width: 14px; text-align: center;
+        font-size: 9px; color: var(--muted);
+      }
+      .publish-branch-line {
+        font-family: var(--mono); font-size: 11px; color: #c7d3fa;
+        background: var(--accent-soft); border: 1px solid var(--accent);
+        border-radius: 3px; padding: 2px 6px; display: inline-block;
+      }
+      .publish-msg-input {
+        width: 100%; height: 28px; padding: 0 0.5rem;
+        background: var(--surface2); border: 1px solid var(--border);
+        border-radius: 4px; color: var(--text);
+        font-size: 12px; font-family: var(--sans);
+      }
+      .publish-msg-input:focus { outline: none; border-color: var(--accent); }
+      .publish-warn {
+        font-size: 10px; font-family: var(--mono); padding: 4px 8px;
+        background: #2a1f00; border: 1px solid #5c4410; border-radius: 3px;
+        color: #fbbf24;
+      }
     </style>
   </head>
   <body>
@@ -604,6 +659,13 @@
         <h1>Caption Studio</h1>
         <div id="toolbar-inline" style="display:none" class="toolbar-group">
           <span id="save-status-header" class="save-status saved">Saved</span>
+        </div>
+        <div class="header-actions">
+          <span id="publish-inline-status" class="publish-inline-status" hidden></span>
+          <button class="btn btn-publish" id="btn-publish" type="button"
+            title="Publish staged content files to GitHub">
+            ↑ Publish to GitHub<span class="publish-count-badge" id="publish-count-badge" hidden>0</span>
+          </button>
         </div>
       </header>
 
@@ -648,6 +710,38 @@
         <div class="modal-actions">
           <button class="btn" id="new-entry-cancel">Cancel</button>
           <button class="btn btn-primary" id="new-entry-create">Create</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Publish confirm modal -->
+    <div class="modal-backdrop" id="publish-modal" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="publish-modal-title" style="width:420px">
+        <div class="modal-title" id="publish-modal-title">↑ Publish to GitHub</div>
+        <div>
+          <div class="modal-label">Branch</div>
+          <span class="publish-branch-line" id="publish-modal-branch">—</span>
+        </div>
+        <div>
+          <div class="modal-label">Files to commit
+            <span style="margin-left:4px;opacity:0.7" id="publish-modal-file-count">(0)</span>
+          </div>
+          <ul class="publish-file-list" id="publish-modal-file-list">
+            <li style="color:var(--muted)">No changes in allowed paths.</li>
+          </ul>
+        </div>
+        <div id="publish-behind-warn" class="publish-warn" hidden>
+          ⚠ Remote has commits you don't have locally (behind). Push may be rejected — pull first.
+        </div>
+        <div>
+          <div class="modal-label">Commit message (leave blank for timestamp)</div>
+          <input class="publish-msg-input" id="publish-modal-msg"
+            placeholder="Studio publish <ISO timestamp>" autocomplete="off" />
+        </div>
+        <p class="modal-error" id="publish-modal-error" hidden></p>
+        <div class="modal-actions">
+          <button class="btn" id="publish-modal-cancel">Cancel</button>
+          <button class="btn btn-publish" id="publish-modal-confirm">↑ Push to GitHub</button>
         </div>
       </div>
     </div>
@@ -1916,7 +2010,119 @@ They arrive as Unassigned with no caption or alt text.`)) return;
         if (e.target === newEntryModal) closeNewEntry();
       });
 
+      // ─── Publish to GitHub ──────────────────────────────────────────────────
+      /** Last-fetched status payload from GET /api/studio/publish/status */
+      let publishStatusData = null;
+
+      async function refreshPublishStatus() {
+        try {
+          publishStatusData = await apiGet('/publish/status');
+        } catch {
+          publishStatusData = null;
+        }
+        const badge = document.getElementById('publish-count-badge');
+        if (!badge) return;
+        const count = publishStatusData?.count ?? 0;
+        badge.textContent = String(count);
+        badge.hidden = count === 0;
+      }
+
+      function openPublishModal() {
+        const s = publishStatusData;
+        if (!s) return;
+        const modal = document.getElementById('publish-modal');
+        const branchEl = document.getElementById('publish-modal-branch');
+        const fileList = document.getElementById('publish-modal-file-list');
+        const fileCount = document.getElementById('publish-modal-file-count');
+        const behindWarn = document.getElementById('publish-behind-warn');
+        const errorEl = document.getElementById('publish-modal-error');
+        const msgInput = document.getElementById('publish-modal-msg');
+        const confirmBtn = document.getElementById('publish-modal-confirm');
+
+        if (branchEl) branchEl.textContent = s.branch || '—';
+        if (fileCount) fileCount.textContent = `(${s.count ?? 0})`;
+        if (behindWarn) behindWarn.hidden = !(s.behind > 0);
+        if (errorEl) { errorEl.hidden = true; errorEl.textContent = ''; }
+        if (msgInput) msgInput.value = '';
+        if (confirmBtn) { confirmBtn.disabled = s.count === 0; confirmBtn.textContent = '↑ Push to GitHub'; }
+
+        if (fileList) {
+          if (!s.pending?.length) {
+            fileList.innerHTML = '<li style="color:var(--muted)">No changes in allowed paths.</li>';
+          } else {
+            fileList.innerHTML = s.pending.map(f =>
+              `<li><span class="file-xy">${escHtml(f.status)}</span>${escHtml(f.path)}</li>`
+            ).join('');
+          }
+        }
+
+        if (modal) modal.hidden = false;
+      }
+
+      function closePublishModal() {
+        const modal = document.getElementById('publish-modal');
+        if (modal) modal.hidden = true;
+      }
+
+      async function handlePublishConfirm() {
+        const msgInput = document.getElementById('publish-modal-msg');
+        const confirmBtn = document.getElementById('publish-modal-confirm');
+        const errorEl = document.getElementById('publish-modal-error');
+        const statusEl = document.getElementById('publish-inline-status');
+
+        const message = msgInput?.value.trim() || '';
+        if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = '↑ Pushing…'; }
+        if (errorEl) { errorEl.hidden = true; }
+        if (statusEl) { statusEl.className = 'publish-inline-status pushing'; statusEl.textContent = 'Pushing…'; statusEl.hidden = false; }
+
+        try {
+          const r = await fetch('/api/studio/publish', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message, dry_run: false }),
+          });
+          const result = await r.json();
+
+          if (result.ok) {
+            closePublishModal();
+            if (statusEl) {
+              statusEl.className = 'publish-inline-status success';
+              statusEl.textContent = `✓ Pushed ${result.sha}`;
+              statusEl.hidden = false;
+              setTimeout(() => { statusEl.hidden = true; }, 10000);
+            }
+            await refreshPublishStatus();
+          } else {
+            if (errorEl) { errorEl.textContent = result.error || 'Publish failed'; errorEl.hidden = false; }
+            if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = '↑ Push to GitHub'; }
+            if (statusEl) {
+              statusEl.className = 'publish-inline-status error';
+              statusEl.textContent = '⚠ Push failed';
+              statusEl.hidden = false;
+              setTimeout(() => { statusEl.hidden = true; }, 8000);
+            }
+          }
+        } catch (e) {
+          if (errorEl) { errorEl.textContent = e.message || 'Unexpected error'; errorEl.hidden = false; }
+          if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = '↑ Push to GitHub'; }
+          if (statusEl) { statusEl.className = 'publish-inline-status error'; statusEl.textContent = '⚠ Error'; statusEl.hidden = false; }
+        }
+      }
+
+      document.getElementById('btn-publish')?.addEventListener('click', async () => {
+        // Always fetch fresh status before opening modal.
+        await refreshPublishStatus();
+        openPublishModal();
+      });
+      document.getElementById('publish-modal-cancel')?.addEventListener('click', closePublishModal);
+      document.getElementById('publish-modal-confirm')?.addEventListener('click', handlePublishConfirm);
+      document.getElementById('publish-modal')?.addEventListener('click', e => {
+        if (e.target === document.getElementById('publish-modal')) closePublishModal();
+      });
+
       loadProjects();
+      // Populate the badge at boot so the count is visible without clicking.
+      refreshPublishStatus();
     </script>
   </body>
 </html>
