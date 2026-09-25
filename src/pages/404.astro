@@ -1,5 +1,8 @@
----
+﻿---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import notFoundContent from '../content/pages/404.json';
+
+const { eyebrow, heading, body } = notFoundContent;
 ---
 
 <BaseLayout
@@ -9,10 +12,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 >
   <section class="section">
     <div class="container-narrow py-10 text-center md:py-16">
-      <p class="eyebrow">Error 404</p>
-      <h1 class="mt-4 text-4xl text-ink-950 md:text-5xl">Page not found</h1>
+      <p class="eyebrow">{eyebrow}</p>
+      <h1 class="mt-4 text-4xl text-ink-950 md:text-5xl">{heading}</h1>
       <p class="mx-auto mt-4 max-w-md text-lg text-ink-500">
-        That link is a dead end. The project log is still where you left it.
+        {body}
       </p>
       <div class="mt-8 flex flex-wrap justify-center gap-3">
         <a href="/" class="btn btn-primary">Back home</a>

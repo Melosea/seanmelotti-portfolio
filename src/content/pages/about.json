@@ -1,0 +1,32 @@
+{
+  "lede": "Restoration, fabrication and 3D work — documented from teardown to the last torque check.",
+  "intro": [
+    "I restore and build mechanical things — assemblies brought back to spec, metal formed and welded to fit, and parts modelled in CAD and printed when nothing off the shelf will do the job.",
+    "Every project here is documented end to end: what came in, what it needed, how it was measured, and where it ended up. The write-up is as much of the work as the photos are."
+  ],
+  "disciplines": [
+    {
+      "name": "Mechanical Restoration",
+      "description": "Teardown, inspection and rebuild of worn assemblies — measured on the way apart so it goes back together to a spec that holds up in use."
+    },
+    {
+      "name": "Fabrication",
+      "description": "Metalwork made to fit: panels formed on the bench, mounts and brackets cut and welded, repair sections let into original structure."
+    },
+    {
+      "name": "3D Modeling",
+      "description": "CAD models of the parts that have to be replaced, adapted or made from nothing — measured first, drawn to fit the car it is going in."
+    },
+    {
+      "name": "Additive Manufacturing",
+      "description": "Printed parts, patterns and fixtures — replacements for trim nobody stocks any more, and the tooling that makes the rest of the job easier."
+    }
+  ],
+  "facts": [
+    { "label": "Based in", "value": null },
+    { "label": "Working since", "value": null },
+    { "label": "Shop setup", "value": null },
+    { "label": "Open to", "value": null }
+  ],
+  "closingHeading": "The work says more than this page does."
+}
