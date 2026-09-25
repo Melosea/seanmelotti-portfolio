@@ -6,6 +6,7 @@ import react from '@astrojs/react';
 import fs from 'node:fs';
 import fsAsync from 'node:fs/promises';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { localDateStamp } from './src/lib/local-date.mjs';
 
 /** Inject /studio route in dev only — excluded from production build. */
@@ -344,6 +345,101 @@ const studioVitePlugin = {
         } catch (e) {
           res.writeHead(400);
           res.end(JSON.stringify({ error: String(e) }));
+        }
+        return;
+      }
+
+      // ── Publish endpoints ────────────────────────────────────────────────
+      // Allowed publish paths — only content, assets/photos, and public.
+      // The _studio sidecar files live under src/content/ and ARE included;
+      // they are source-of-truth for the build.
+      const PUBLISH_ALLOWED = ['src/content/', 'src/assets/photos/', 'public/'];
+
+      function parsePublishStatus(raw) {
+        return raw.split('\n')
+          .filter(line => line.length >= 4)
+          .map(line => {
+            const xy = line.slice(0, 2).trim();
+            let fp = line.slice(3);
+            if (fp.includes(' -> ')) fp = fp.split(' -> ')[1]; // rename: take dest
+            if (fp.startsWith('"') && fp.endsWith('"')) fp = fp.slice(1, -1); // quoted path
+            return { status: xy, path: fp.trim() };
+          })
+          .filter(({ path: fp }) => PUBLISH_ALLOWED.some(prefix => fp.startsWith(prefix)));
+      }
+
+      // GET /api/studio/publish/status
+      if (url.pathname === '/publish/status' && req.method === 'GET') {
+        try {
+          const branch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: ROOT, encoding: 'utf-8' }).trim();
+          const raw = execFileSync('git', ['status', '--porcelain'], { cwd: ROOT, encoding: 'utf-8' });
+          const pending = parsePublishStatus(raw);
+          let ahead = 0, behind = 0;
+          try {
+            behind = parseInt(execFileSync('git', ['rev-list', '--count', 'HEAD..@{upstream}'], { cwd: ROOT, encoding: 'utf-8', stdio: 'pipe' }).trim()) || 0;
+            ahead = parseInt(execFileSync('git', ['rev-list', '--count', '@{upstream}..HEAD'], { cwd: ROOT, encoding: 'utf-8', stdio: 'pipe' }).trim()) || 0;
+          } catch { /* no upstream configured — leave 0/0 */ }
+          res.end(JSON.stringify({ branch, pending, count: pending.length, ahead, behind }));
+        } catch (e) {
+          res.writeHead(500);
+          res.end(JSON.stringify({ error: String(e) }));
+        }
+        return;
+      }
+
+      // POST /api/studio/publish
+      if (url.pathname === '/publish' && req.method === 'POST') {
+        let body = '';
+        for await (const chunk of req) body += chunk;
+        try {
+          const { message, dry_run } = JSON.parse(body);
+
+          const branch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: ROOT, encoding: 'utf-8' }).trim();
+          if (branch === 'HEAD') {
+            res.end(JSON.stringify({ ok: false, error: 'Detached HEAD — not on a branch. Cannot push.' }));
+            return;
+          }
+
+          const raw = execFileSync('git', ['status', '--porcelain'], { cwd: ROOT, encoding: 'utf-8' });
+          const filesToStage = parsePublishStatus(raw);
+          if (!filesToStage.length) {
+            res.end(JSON.stringify({ ok: false, error: 'Nothing to publish — no changes in the allowed paths (src/content/, src/assets/photos/, public/).' }));
+            return;
+          }
+
+          const staged = filesToStage.map(f => f.path);
+
+          if (dry_run) {
+            res.end(JSON.stringify({ ok: true, staged, committed: false, pushed: false, sha: null, dry_run: true }));
+            return;
+          }
+
+          // Stage files only within allowed paths — never stage anything else.
+          for (const { status, path: fp } of filesToStage) {
+            if (status === 'D' || status.startsWith('D')) {
+              execFileSync('git', ['rm', '--cached', '--ignore-unmatch', '--', fp], { cwd: ROOT, stdio: 'pipe' });
+            } else {
+              execFileSync('git', ['add', '--', fp], { cwd: ROOT, stdio: 'pipe' });
+            }
+          }
+
+          const commitMsg = (message && message.trim()) || `Studio publish ${new Date().toISOString()}`;
+          execFileSync('git', ['commit', '-m', commitMsg], { cwd: ROOT, stdio: 'pipe' });
+
+          const sha = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: ROOT, encoding: 'utf-8' }).trim();
+
+          try {
+            execFileSync('git', ['push', 'origin', `HEAD:${branch}`], { cwd: ROOT, stdio: 'pipe' });
+            res.end(JSON.stringify({ ok: true, staged, committed: true, pushed: true, sha }));
+          } catch (pushErr) {
+            const stderr = pushErr.stderr ? pushErr.stderr.toString().trim() : '';
+            const errMsg = stderr || pushErr.message || 'Push rejected by remote';
+            // Commit succeeded but push failed — report partial state honestly.
+            res.end(JSON.stringify({ ok: false, error: errMsg, staged, committed: true, pushed: false, sha }));
+          }
+        } catch (e) {
+          if (!res.headersSent) res.writeHead(500);
+          res.end(JSON.stringify({ ok: false, error: String(e) }));
         }
         return;
       }
