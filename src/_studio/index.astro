@@ -133,6 +133,22 @@
       .project-status:focus { outline: none; border-color: var(--accent); }
       .project-status.status-completed { border-color: #1f5c30; color: #4ade80; background: #0d2a1d; }
 
+      /* At-a-glance publish state, leftmost in the row so the whole list reads
+         as one scannable strip. Deliberately the same glyphs and colours as the
+         editor's .draft-toggle — the badge and the toggle must never need to be
+         reconciled by eye. Display-only: the toggle stays the single write path. */
+      .project-draft {
+        flex-shrink: 0; width: 13px; text-align: center;
+        font-size: 10px; line-height: 1; font-family: var(--mono);
+        cursor: help; user-select: none;
+      }
+      .project-draft.is-live { color: #4ade80; }
+      /* NOT var(--warn) — that token (#7a4705) is the dark-on-light value the
+         toggle pairs with --warn-soft. On the dark sidebar it is near-invisible.
+         This is its on-dark counterpart, the same way the toggle uses #4ade80
+         on dark rather than the dark --green token. */
+      .project-draft.is-draft { color: #fbbf24; }
+
       .sidebar-footer {
         padding: 0.375rem; border-top: 1px solid var(--border); flex-shrink: 0;
       }
@@ -701,6 +717,18 @@
         {
           const row = document.createElement('div');
           row.className = 'project-row';
+
+          // Publish state first, so scanning the column answers "what's live?"
+          // without opening anything. `draft` comes from the sidecar via the
+          // list endpoint; a sidecar with no draft key is Live (exporter default).
+          const dot = document.createElement('span');
+          dot.className = `project-draft ${p.draft ? 'is-draft' : 'is-live'}`;
+          dot.dataset.slug = p.slug;
+          dot.textContent = p.draft ? '◌' : '●';
+          dot.title = p.draft
+            ? `${p.slug} — Draft, hidden from the site`
+            : `${p.slug} — Live on the site`;
+          row.appendChild(dot);
 
           const btn = document.createElement('button');
           btn.className = 'project-btn';
@@ -1372,6 +1400,19 @@ They arrive as Unassigned with no caption or alt text.`)) return;
         return `<button class="btn draft-toggle ${cls}" id="btn-draft-toggle" title="${title}" aria-pressed="${isDraft}">${label}</button>`;
       }
 
+      /** Repaint one sidebar badge. No-op when that row is not rendered. */
+      function syncDraftBadge(slug, isDraft) {
+        if (!slug) return;
+        const dot = projectList?.querySelector(`.project-draft[data-slug="${CSS.escape(slug)}"]`);
+        if (!dot) return;
+        dot.classList.toggle('is-draft', !!isDraft);
+        dot.classList.toggle('is-live', !isDraft);
+        dot.textContent = isDraft ? '◌' : '●';
+        dot.title = isDraft
+          ? `${slug} — Draft, hidden from the site`
+          : `${slug} — Live on the site`;
+      }
+
       function toggleDraft() {
         const goingLive = !!state.draft;
         state.draft = !state.draft;
@@ -1385,6 +1426,9 @@ They arrive as Unassigned with no caption or alt text.`)) return;
             ? 'Draft — hidden from the site. Click to publish.'
             : 'Live — visible on the site. Click to unpublish back to draft.';
         }
+        // Mirror the flip onto the sidebar badge immediately — the list must
+        // never disagree with the entry that is open in front of you.
+        syncDraftBadge(currentSlug, state.draft);
         isDirty = true;
         if (saveState !== 'error') setSaveStatus('unsaved');
         scheduleAutoSave();
