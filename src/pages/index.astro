@@ -1,20 +1,16 @@
----
+﻿---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import { resolveCover, coverAlt, PLACEHOLDER_COVER } from '../lib/photos';
 import { SITE } from '../consts';
 
-/**
- * Sean's positioning statement, verbatim. Non-breaking spaces glue each
- * separator to the word before it so a stray hyphen never starts a line when
- * the statement wraps on a narrow screen.
- */
-const POSITIONING =
-  'Mechanical Restoration - Fabrication - 3D Modeling and Additive Manufacturing';
+import homeContent from '../content/pages/home.json';
+
+const { positioning: POSITIONING, tagline, ctaText, ctaSubtext } = homeContent;
 
 /**
- * The homepage shows the `featured` subset only — /projects is the full
+ * The homepage shows the `featured` subset only â€” /projects is the full
  * archive. Newest first, capped at three so the grid layout holds.
  */
 const featured = (
@@ -38,7 +34,7 @@ const cardProps = (project: (typeof featured)[number]) => ({
 ---
 
 <BaseLayout title={SITE.name} description={SITE.description}>
-  <!-- Hero — deliberately compact so the project grid reaches the first viewport. -->
+  <!-- Hero â€” deliberately compact so the project grid reaches the first viewport. -->
   <section class="relative overflow-hidden border-b border-line">
     <div class="grid-hairline absolute inset-0 opacity-70" aria-hidden="true"></div>
     <div
@@ -53,7 +49,7 @@ const cardProps = (project: (typeof featured)[number]) => ({
       <h1 class="mt-4 max-w-3xl text-4xl text-ink-950 md:text-5xl">Sean Melotti</h1>
 
       <p class="mt-4 max-w-xl text-base text-ink-500 md:text-lg">
-        Documented end to end — from teardown to the last torque check.
+        {tagline}
       </p>
 
       <div class="mt-6 flex flex-wrap items-center gap-3">
@@ -63,7 +59,7 @@ const cardProps = (project: (typeof featured)[number]) => ({
     </div>
   </section>
 
-  <!-- Featured projects — the primary thing to interact with on this page. -->
+  <!-- Featured projects â€” the primary thing to interact with on this page. -->
   <section class="pt-8 pb-14 md:pt-12 md:pb-20" aria-labelledby="featured-projects">
     <div class="container-page">
       <div class="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
@@ -96,12 +92,12 @@ const cardProps = (project: (typeof featured)[number]) => ({
     </div>
   </section>
 
-  <!-- Closing CTA — one warm contact bubble, nothing else. -->
+  <!-- Closing CTA â€” one warm contact bubble, nothing else. -->
   <section class="border-t border-line bg-surface">
     <div class="container-page py-14 md:py-16">
       <div class="flex flex-col items-center gap-5 text-center">
         <a href="/contact" class="cta-bubble">
-          Let&rsquo;s have a conversation
+          {ctaText}
           <svg
             class="h-4 w-4"
             viewBox="0 0 16 16"
@@ -115,7 +111,7 @@ const cardProps = (project: (typeof featured)[number]) => ({
             <path d="M3 8h9.5M9 4.5 12.5 8 9 11.5"></path>
           </svg>
         </a>
-        <p class="text-sm text-ink-400">Email goes straight to me.</p>
+        <p class="text-sm text-ink-400">{ctaSubtext}</p>
       </div>
     </div>
   </section>

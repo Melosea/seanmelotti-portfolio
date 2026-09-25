@@ -1,4 +1,4 @@
-// @ts-check
+﻿// @ts-check
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import tailwindcss from '@tailwindcss/vite';
@@ -41,6 +41,7 @@ const studioVitePlugin = {
     const ROOT = process.cwd();
     const PHOTOS_DIR = path.join(ROOT, 'src', 'assets', 'photos');
     const STUDIO_DIR = path.join(ROOT, 'src', 'content', '_studio');
+    const PAGES_DIR = path.join(ROOT, 'src', 'content', 'pages');
 
     // Serve photos at /photos/*
     server.middlewares.use('/photos', (req, res, next) => {
@@ -348,6 +349,43 @@ const studioVitePlugin = {
         return;
       }
 
+      // GET /api/studio/page-content/:page — read page content JSON
+      // POST /api/studio/page-content/:page — write page content JSON
+      const pageContentMatch = url.pathname.match(/^\/page-content\/([a-z0-9-]+)$/);
+      if (pageContentMatch) {
+        const page = pageContentMatch[1];
+        const allowedPages = ['home', 'about', 'contact', '404'];
+        if (!allowedPages.includes(page)) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ error: `Unknown page: ${page}` }));
+          return;
+        }
+        const filePath = path.join(PAGES_DIR, `${page}.json`);
+        if (req.method === 'GET') {
+          try {
+            const data = await fsAsync.readFile(filePath, 'utf-8');
+            res.end(data);
+          } catch {
+            res.writeHead(404);
+            res.end(JSON.stringify({ error: 'Page content not found' }));
+          }
+          return;
+        }
+        if (req.method === 'POST') {
+          let body = '';
+          for await (const chunk of req) body += chunk;
+          try {
+            JSON.parse(body); // validate JSON
+            await fsAsync.mkdir(PAGES_DIR, { recursive: true });
+            await fsAsync.writeFile(filePath, body, 'utf-8');
+            res.end(JSON.stringify({ ok: true }));
+          } catch (e) {
+            res.writeHead(400);
+            res.end(JSON.stringify({ error: String(e) }));
+          }
+          return;
+        }
+      }
       res.writeHead(404);
       res.end(JSON.stringify({ error: 'Unknown endpoint' }));
     });

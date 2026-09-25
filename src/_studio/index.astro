@@ -1,4 +1,4 @@
----
+﻿---
 // Caption Studio — dev only. Injected by astro.config.mjs only when command === 'dev'.
 // This file is NOT in src/pages/ and is never emitted in production builds.
 ---
@@ -577,6 +577,25 @@
         cursor: pointer; transition: background 0.15s;
       }
       .btn-delete:hover { background: #5a1c1c; }
+
+      /* ── Page editor ─────────────────────────────────────────────────────── */
+      .page-array-item {
+        margin-bottom: 0.875rem;
+        padding: 0.75rem;
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        background: var(--surface);
+      }
+      .page-field-input {
+        width: 100%; padding: 0.5rem 0.625rem;
+        background: var(--surface2); border: 1px solid var(--border);
+        border-radius: 5px; color: var(--text); font-size: 14px;
+        font-family: var(--sans); line-height: 1.5;
+        resize: none; transition: border-color 0.15s;
+      }
+      .page-field-input:focus { outline: none; border-color: var(--accent); }
+      .page-field-grid-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 0.5rem; }
+      .page-field-input[readonly] { opacity: 0.6; cursor: not-allowed; }
     </style>
   </head>
   <body>
@@ -637,6 +656,8 @@
       // ─── State ──────────────────────────────────────────────────────────────
       let currentSlug = null;
       let state = null;
+      let currentPage = null;
+      let pageState = null;
       let isDirty = false;
       /**
        * What the badge is allowed to say: 'saved' | 'unsaved' | 'saving' | 'error'.
@@ -677,6 +698,207 @@
         return r.json();
       }
 
+      // ─── Page editor ─────────────────────────────────────────────────────────
+      const PAGE_SCHEMAS = {
+        home: [
+          { key: 'positioning', label: 'Positioning line', hint: 'Main tagline shown above the hero heading' },
+          { key: 'tagline', label: 'Hero tagline', hint: 'Sentence under the name in the hero section' },
+          { key: 'ctaText', label: 'CTA button text', hint: 'Text in the call-to-action bubble' },
+          { key: 'ctaSubtext', label: 'CTA sub-text', hint: 'Small line below the CTA bubble' },
+        ],
+        about: [
+          { key: 'lede', label: 'Page lede', hint: 'Subtitle shown in the page header' },
+          { key: 'intro', label: 'Intro paragraphs', type: 'paragraphs', hint: 'Separate paragraphs with a blank line' },
+          { key: 'disciplines', label: 'Disciplines', type: 'object-array', fields: ['name', 'description'] },
+          { key: 'facts', label: 'Facts', type: 'nullable-array', fields: ['label', 'value'], hint: 'Leave value blank to hide that fact' },
+          { key: 'closingHeading', label: 'Closing section heading' },
+        ],
+        contact: [
+          { key: 'heading', label: 'Page heading' },
+          { key: 'lede', label: 'Page lede' },
+          { key: 'contactMethods', label: 'Contact methods', type: 'object-array', fields: ['label', 'href', 'value'] },
+          { key: 'footerNote', label: 'Footer note' },
+        ],
+        '404': [
+          { key: 'eyebrow', label: 'Error eyebrow', hint: 'Small text above the heading' },
+          { key: 'heading', label: 'Page heading' },
+          { key: 'body', label: 'Body text' },
+        ],
+      };
+
+      const PAGE_LABELS = { home: 'Home /', about: 'About', contact: 'Contact', '404': '404' };
+
+      async function loadPage(pageId) {
+        // Flush pending changes before switching
+        if (isDirty) {
+          if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
+          await autoSave();
+        } else if (autoSaveTimer) {
+          clearTimeout(autoSaveTimer);
+          autoSaveTimer = null;
+        }
+        currentSlug = null;
+        currentPage = pageId;
+        // Update URL
+        history.replaceState({}, '', `?page=${encodeURIComponent(pageId)}`);
+        // Highlight active sidebar button
+        document.querySelectorAll('.project-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.page-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.page === pageId);
+        });
+        studioMain.innerHTML = '<div class="loading">Loading\u2026</div>';
+        toolbarInline.style.display = '';
+        try {
+          const r = await fetch(`/api/studio/page-content/${pageId}`);
+          if (!r.ok) throw new Error(await r.text());
+          pageState = await r.json();
+        } catch (e) {
+          studioMain.innerHTML = `<div class="empty-state"><h2>Load failed</h2><p>${escHtml(e.message)}</p></div>`;
+          return;
+        }
+        isDirty = false;
+        renderPageEditor();
+        setSaveStatus('saved');
+      }
+
+      function renderPageField(field, value) {
+        const { key, label, type, hint, fields } = field;
+        const hintHtml = hint ? `<span style="font-size:9px;color:var(--muted);font-weight:400;margin-left:0.375rem">${escHtml(hint)}</span>` : '';
+        if (type === 'paragraphs') {
+          const text = Array.isArray(value) ? value.join('\n\n') : (value ?? '');
+          return `<div class="field-row">
+            <div class="field-label">${escHtml(label)}${hintHtml}</div>
+            <textarea class="header-input page-field-input" data-page-key="${escHtml(key)}" data-page-type="paragraphs" rows="5">${escHtml(text)}</textarea>
+          </div>`;
+        }
+        if (type === 'object-array') {
+          const items = Array.isArray(value) ? value : [];
+          const itemsHtml = items.map((item, i) => {
+            const flds = fields.map(f => `<div class="field-row" style="margin-bottom:0.5rem">
+              <div class="field-label">${escHtml(f)}</div>
+              <textarea class="header-input page-field-input" data-page-key="${escHtml(key)}" data-page-idx="${i}" data-page-field="${escHtml(f)}" rows="1">${escHtml(item[f] ?? '')}</textarea>
+            </div>`).join('');
+            return `<div class="page-array-item">${flds}</div>`;
+          }).join('');
+          return `<div class="field-row">
+            <div class="field-label">${escHtml(label)}</div>
+            <div>${itemsHtml}</div>
+          </div>`;
+        }
+        if (type === 'nullable-array') {
+          const items = Array.isArray(value) ? value : [];
+          const itemsHtml = items.map((item, i) => {
+            return `<div class="page-field-grid-2" style="margin-bottom:0.5rem">
+              <div>
+                <div class="field-label">${escHtml(fields[0])}</div>
+                <input class="page-field-input" type="text" style="height:2.25rem;display:block" readonly
+                  data-page-key="${escHtml(key)}" data-page-idx="${i}" data-page-field="${escHtml(fields[0])}"
+                  value="${escHtml(item[fields[0]] ?? '')}" />
+              </div>
+              <div>
+                <div class="field-label">${escHtml(fields[1])}</div>
+                <input class="page-field-input" type="text" style="height:2.25rem;display:block"
+                  data-page-key="${escHtml(key)}" data-page-idx="${i}" data-page-field="${escHtml(fields[1])}"
+                  value="${escHtml(item[fields[1]] ?? '')}"
+                  placeholder="(leave blank to hide)" />
+              </div>
+            </div>`;
+          }).join('');
+          return `<div class="field-row">
+            <div class="field-label">${escHtml(label)}${hintHtml}</div>
+            <div>${itemsHtml}</div>
+          </div>`;
+        }
+        // Default: simple textarea
+        return `<div class="field-row">
+          <div class="field-label">${escHtml(label)}${hintHtml}</div>
+          <textarea class="header-input page-field-input" data-page-key="${escHtml(key)}" rows="1">${escHtml(String(value ?? ''))}</textarea>
+        </div>`;
+      }
+
+      function renderPageEditor() {
+        if (!currentPage || !pageState) return;
+        emptyState.style.display = 'none';
+        const schema = PAGE_SCHEMAS[currentPage] ?? [];
+        const pageLabel = PAGE_LABELS[currentPage] ?? currentPage;
+        const fieldsHtml = schema.map(field => renderPageField(field, pageState[field.key])).join('');
+        studioMain.innerHTML = `
+          <div class="toolbar">
+            <div class="toolbar-group">
+              <span style="font-size:10px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">
+                Page: ${escHtml(pageLabel)}
+              </span>
+            </div>
+            <div class="toolbar-sep"></div>
+            <button class="btn btn-primary" id="page-save-btn">Save</button>
+            <span id="save-status" class="save-status ${saveState}">${SAVE_LABEL[saveState] ?? saveState}</span>
+          </div>
+          <div class="page-preview">
+            <div class="page-col" id="page-field-list">
+              <div class="preview-section-label">${escHtml(pageLabel)} page</div>
+              <div class="page-header-area">
+                ${fieldsHtml}
+              </div>
+            </div>
+          </div>
+        `;
+        bindPageEvents();
+      }
+
+      function bindPageEvents() {
+        document.getElementById('page-save-btn')?.addEventListener('click', () => autoSave());
+        const list = document.getElementById('page-field-list');
+        if (!list) return;
+        list.addEventListener('input', e => {
+          const input = e.target;
+          if (!input.dataset.pageKey) return;
+          const key = input.dataset.pageKey;
+          const type = input.dataset.pageType;
+          const idxStr = input.dataset.pageIdx;
+          const field = input.dataset.pageField;
+          if (type === 'paragraphs') {
+            pageState[key] = input.value.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
+          } else if (idxStr !== undefined && field) {
+            const idx = parseInt(idxStr, 10);
+            if (!Array.isArray(pageState[key])) pageState[key] = [];
+            if (!pageState[key][idx]) pageState[key][idx] = {};
+            const v = input.value.trim();
+            pageState[key][idx][field] = v === '' && input.placeholder ? null : input.value;
+          } else {
+            pageState[key] = input.value;
+          }
+          markDirty();
+        });
+        list.querySelectorAll('.page-field-input').forEach(ta => {
+          if (ta.tagName !== 'TEXTAREA') return;
+          const grow = () => { ta.style.height = ''; ta.style.height = ta.scrollHeight + 'px'; };
+          ta.addEventListener('input', grow);
+          grow();
+        });
+      }
+
+      async function savePageContent() {
+        if (!currentPage || !pageState) return false;
+        if (!isDirty) return saveState !== 'error';
+        if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
+        setSaveStatus('saving');
+        try {
+          const r = await fetch(`/api/studio/page-content/${currentPage}`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(pageState, null, 2),
+          });
+          if (!r.ok) throw new Error(await r.text());
+          const result = await r.json();
+          if (!result?.ok) throw new Error(`Unexpected response: ${JSON.stringify(result)}`);
+          isDirty = false;
+          setSaveStatus('saved');
+          return true;
+        } catch (e) {
+          setSaveStatus('error', e?.message ?? String(e));
+          console.error('Page save failed:', e);
+          return false;
+        }
+      }
       // ─── Load projects list ─────────────────────────────────────────────────
       async function loadProjects() {
         const { projects } = await apiGet('/projects');
@@ -705,10 +927,40 @@
           projectList.appendChild(section);
         }
 
+        // Pages group — static site pages whose text content is editable from Studio
+        {
+          const pagesSection = document.createElement('div');
+          pagesSection.className = 'project-group';
+          const pagesHeading = document.createElement('div');
+          pagesHeading.className = 'project-group-header';
+          pagesHeading.textContent = 'Pages (4)';
+          pagesSection.appendChild(pagesHeading);
+          const PAGES = [
+            { id: 'home', label: 'Home /' },
+            { id: 'about', label: 'About' },
+            { id: 'contact', label: 'Contact' },
+            { id: '404', label: '404' },
+          ];
+          for (const p of PAGES) {
+            const row = document.createElement('div');
+            row.className = 'project-row';
+            const btn = document.createElement('button');
+            btn.className = 'project-btn page-btn';
+            btn.dataset.page = p.id;
+            btn.textContent = p.label;
+            btn.addEventListener('click', () => loadPage(p.id));
+            row.appendChild(btn);
+            pagesSection.appendChild(row);
+          }
+          projectList.appendChild(pagesSection);
+        }
         // Auto-restore last-selected entry from URL param (survives Vite HMR reloads)
         const urlSlug = new URLSearchParams(location.search).get('project');
+        const urlPage = new URLSearchParams(location.search).get('page');
         if (urlSlug && projects.some(p => p.slug === urlSlug)) {
           loadProject(urlSlug);
+        } else if (urlPage && ['home','about','contact','404'].includes(urlPage)) {
+          loadPage(urlPage);
         }
       }
 
@@ -782,6 +1034,15 @@
 
       // ─── Load project ───────────────────────────────────────────────────────
       async function loadProject(slug) {
+        // Bug 1 fix: flush dirty state before switching away so badges stay in sync with disk
+        if (isDirty) {
+          if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
+          await autoSave();
+        } else if (autoSaveTimer) {
+          clearTimeout(autoSaveTimer);
+          autoSaveTimer = null;
+        }
+        currentPage = null;
         currentSlug = slug;
         // Persist selection in URL so Vite HMR page-reloads don't bounce user to project-select
         history.replaceState({}, '', `?project=${encodeURIComponent(slug)}`);
@@ -1431,10 +1692,36 @@ They arrive as Unassigned with no caption or alt text.`)) return;
         syncDraftBadge(currentSlug, state.draft);
         isDirty = true;
         if (saveState !== 'error') setSaveStatus('unsaved');
-        scheduleAutoSave();
-        // The sidecar is the source of truth for the site build, so going live
-        // only takes effect once the MDX is re-exported.
-        if (goingLive) console.info('[studio] now Live — re-export MDX to publish');
+        if (goingLive) {
+          // Bug 2 fix: going Draft—Live saves in-memory state to disk first,
+          // then exports MDX — prevents publishing blank/stale content.
+          publishLive();
+        } else {
+          scheduleAutoSave();
+        }
+      }
+
+      async function publishLive() {
+        const persisted = await autoSave();
+        if (!persisted) {
+          alert(`Cannot publish — save failed (${saveError}). Fix the error and try again.`);
+          return;
+        }
+        try {
+          setSaveStatus('saving');
+          const r = await fetch('/api/studio/export', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slug: state.slug }),
+          });
+          const data = await r.json();
+          setSaveStatus('saved');
+          if (!data.ok) {
+            alert(`Saved as Live but MDX export failed: ${data.error}`);
+          }
+        } catch (e) {
+          setSaveStatus('saved');
+          console.warn('[studio] publishLive: export step failed:', e.message);
+        }
       }
 
       const SAVE_LABEL = {
@@ -1465,6 +1752,7 @@ They arrive as Unassigned with no caption or alt text.`)) return;
 
       /** @returns {Promise<boolean>} true only when the sidecar is on disk. */
       async function autoSave() {
+        if (currentPage) return savePageContent();
         if (!state) return false;
         if (!isDirty) return saveState !== 'error';
         if (autoSaveTimer) { clearTimeout(autoSaveTimer); autoSaveTimer = null; }
