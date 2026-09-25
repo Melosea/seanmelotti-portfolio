@@ -1893,6 +1893,17 @@ They arrive as Unassigned with no caption or alt text.`)) return;
       // ─── Export ─────────────────────────────────────────────────────────────
       async function handleExport() {
         if (!state) return;
+        // Warn if any photos are unassigned — they will NOT appear in the exported MDX
+        const unassigned = state.photos.filter(p => p.destination === 'unassigned');
+        if (unassigned.length > 0) {
+          const names = unassigned.map(p => p.filename).join(', ');
+          const ok = confirm(`${unassigned.length} photo(s) are unassigned and will NOT be included in the MDX:
+
+${names}
+
+Assign them to Main sequence, Gallery, or Cut first, or click OK to export anyway.`);
+          if (!ok) return;
+        }
         const persisted = await autoSave();
         if (!persisted) {
           alert(`Not exported — the save failed (${saveError}).\nThe exporter reads the sidecar from disk, so it would publish stale content.`);
@@ -2110,6 +2121,19 @@ They arrive as Unassigned with no caption or alt text.`)) return;
       }
 
       document.getElementById('btn-publish')?.addEventListener('click', async () => {
+        // Warn if the active project has unassigned photos that would be silently dropped
+        if (state) {
+          const unassigned = state.photos.filter(p => p.destination === 'unassigned');
+          if (unassigned.length > 0) {
+            const names = unassigned.map(p => p.filename).join(', ');
+            const ok = confirm(`⚠ ${unassigned.length} photo(s) in "${state.slug}" are unassigned and will NOT appear on the site after publish:
+
+${names}
+
+Click OK to publish anyway, or Cancel to assign them first.`);
+            if (!ok) return;
+          }
+        }
         // Always fetch fresh status before opening modal.
         await refreshPublishStatus();
         openPublishModal();

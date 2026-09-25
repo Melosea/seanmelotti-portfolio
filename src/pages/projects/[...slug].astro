@@ -231,32 +231,25 @@ const useNewLayout = !!hero;
           </div>
         )}
 
-        {/* ── Gallery overflow ── */}
+        {/* ── Gallery — always-visible grid ── */}
         {gallery && gallery.length > 0 && (
           <div class="gallery-section">
-            <details>
-              <summary>
-                <svg class="inline-block" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M2 5l6 6 6-6"/>
-                </svg>
-                Full gallery — {gallery.length} photos
-              </summary>
-              <div class="gallery-grid">
-                {gallery.map((item) => {
-                  const img = getImg(item.src);
-                  return img ? (
-                    <Image
-                      src={img}
-                      alt={item.alt}
-                      loading="lazy"
-                      decoding="async"
-                      widths={[400, 800]}
-                      sizes="(min-width: 72rem) 260px, 50vw"
-                    />
-                  ) : null;
-                })}
-              </div>
-            </details>
+            <p class="gallery-heading">Full gallery</p>
+            <div class="gallery-grid">
+              {gallery.map((item) => {
+                const img = getImg(item.src);
+                return img ? (
+                  <Image
+                    src={img}
+                    alt={item.alt}
+                    loading="lazy"
+                    decoding="async"
+                    widths={[400, 800]}
+                    sizes="(min-width: 72rem) 260px, 50vw"
+                  />
+                ) : null;
+              })}
+            </div>
           </div>
         )}
 
