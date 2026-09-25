@@ -72,7 +72,7 @@ const studioVitePlugin = {
           const projects = [];
           for (const f of files) {
             try {
-              /** @type {{ slug?: string, photos?: unknown[], status?: string, title?: string, type?: string, contentType?: string }} */
+              /** @type {{ slug?: string, photos?: unknown[], status?: string, title?: string, type?: string, contentType?: string, draft?: boolean }} */
               const sidecar = JSON.parse(await fsAsync.readFile(path.join(STUDIO_DIR, f), 'utf-8'));
               const slug = sidecar.slug || f.replace(/.json$/, '');
               // Only read disk for slugs that already have a sidecar — never discover folders.
@@ -84,6 +84,10 @@ const studioVitePlugin = {
                 status: sidecar.status ?? 'in-progress',
                 // Same test the exporter uses. Untyped entries are projects.
                 type: sidecar.type === 'skill' || sidecar.contentType === 'skill' ? 'skill' : 'project',
+                // Publish gate, using the exporter's exact default (`draft ?? false`):
+                // a sidecar with no `draft` key is Live. Sent on the list payload so
+                // the sidebar can show live/draft without opening every entry.
+                draft: sidecar.draft === true,
                 canvasCount: Array.isArray(sidecar.photos) ? sidecar.photos.length : 0,
                 diskCount,
                 manifest: null,
