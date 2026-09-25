@@ -73,8 +73,10 @@ function buildFrontmatter(sidecar) {
 
   if (hasV2) {
     // Hero
-    if (heroPhoto && heroPhoto.alt) {
-      base.hero = { src: coverPath, alt: heroPhoto.alt };
+    if (heroPhoto) {
+      // alt falls back to caption, then title — never drop the hero for missing alt.
+      const heroAlt = heroPhoto.alt?.trim() || heroPhoto.caption?.trim() || sidecar.title;
+      base.hero = { src: coverPath, alt: heroAlt };
     }
 
     // Spec strip
