@@ -816,34 +816,27 @@
     max-width: var(--seq-caption-measure);
   }
 
-  /* --- Gallery disclosure (Phase 2) -------------------------------------- */
+  /* --- Gallery grid (always visible, Phase 2) --------------------------- */
   .gallery-section {
     max-width: var(--container-max);
     margin-inline: auto;
     padding-inline: var(--container-gutter);
+    padding-top: var(--seq-gap);
     padding-bottom: var(--seq-gap);
+    border-top: 1px solid var(--color-line);
   }
 
-  .gallery-section summary {
-    cursor: pointer;
+  .gallery-heading {
     font-family: var(--font-mono);
     font-size: var(--text-sm);
     color: var(--color-ink-500);
-    padding-block: 1rem;
-    border-top: 1px solid var(--color-line);
-    list-style: none;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    margin-bottom: 1rem;
   }
-
-  .gallery-section summary::-webkit-details-marker { display: none; }
 
   .gallery-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
     gap: 0.75rem;
-    padding-top: 1rem;
   }
 
   .gallery-grid img {
