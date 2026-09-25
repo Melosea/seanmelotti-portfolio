@@ -1,13 +1,1 @@
-{
-  "slug": "engine-building",
-  "type": "skill",
-  "title": "Engine Building",
-  "summary": "",
-  "status": "completed",
-  "heroFilename": null,
-  "specStrip": [],
-  "seqOrder": [],
-  "photos": [],
-  "draft": true,
-  "featured": false
-}
+{"slug":"engine-building","type":"skill","title":"Engine Building","summary":"","status":"completed","heroFilename":null,"specStrip":[],"seqOrder":[],"photos":[],"draft":false,"featured":false}
