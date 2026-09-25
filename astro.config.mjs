@@ -269,7 +269,27 @@ const studioVitePlugin = {
                 counter++;
               } catch { break; }
             }
-            await fsAsync.writeFile(path.join(destDir, filename), buffer);
+            if (ext === '.heic' || ext === '.heif') {
+              // Browsers can't render HEIC and the Cloudflare Pages build has no
+              // decoder — keep the original as *-orig.HEIC and hand the canvas a
+              // web-safe JPEG derivative (same convention as welding-fabrication).
+              const sharp = (await import('sharp')).default;
+              const stem = path.basename(filename, ext);
+              await fsAsync.writeFile(path.join(destDir, `${stem}-orig.HEIC`), buffer);
+              let jpgName = `${stem}.jpg`;
+              let jc = 1;
+              while (true) {
+                try {
+                  await fsAsync.access(path.join(destDir, jpgName));
+                  jpgName = `${stem}_${jc}.jpg`;
+                  jc++;
+                } catch { break; }
+              }
+              await sharp(buffer).rotate().jpeg({ quality: 88, mozjpeg: true }).toFile(path.join(destDir, jpgName));
+              filename = jpgName;
+            } else {
+              await fsAsync.writeFile(path.join(destDir, filename), buffer);
+            }
             uploaded.push({ filename, originalName: f.name });
           }
           res.end(JSON.stringify({ ok: true, uploaded }));
@@ -431,6 +451,17 @@ const studioVitePlugin = {
         for await (const chunk of req) body += chunk;
         try {
           const { message, dry_run } = JSON.parse(body);
+
+          // Canvas is source of truth: regenerate every MDX from its sidecar so
+          // committed pages always match what Studio shows. Idempotent; abort
+          // the publish rather than push a page that doesn't match the canvas.
+          try {
+            execFileSync('node', [path.join(ROOT, 'scripts', 'export-mdx.mjs'), '--all'], { cwd: ROOT, stdio: 'pipe' });
+          } catch (exportErr) {
+            const detail = exportErr.stderr ? exportErr.stderr.toString().trim() : String(exportErr.message || exportErr);
+            res.end(JSON.stringify({ ok: false, error: `MDX export failed — publish aborted: ${detail}` }));
+            return;
+          }
 
           const branch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: ROOT, encoding: 'utf-8' }).trim();
           if (branch === 'HEAD') {

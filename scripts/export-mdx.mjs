@@ -82,20 +82,22 @@ function buildFrontmatter(sidecar) {
       base.specStrip = sidecar.specStrip;
     }
 
-    // Steps — only photos in seqOrder, only with alt text
+    // Steps — every photo in seqOrder. Canvas is source of truth: a missing
+    // alt falls back to caption/title instead of silently dropping the photo.
     const steps = [];
-    let skipped = 0;
+    let backfilled = 0;
     for (const fn of sidecar.seqOrder) {
       const photo = sidecar.photos?.find(p => p.filename === fn);
       if (!photo) continue;
-      if (!photo.alt?.trim()) {
-        console.warn(`  SKIP step ${fn} — missing alt text`);
-        skipped++;
-        continue;
+      let alt = photo.alt?.trim();
+      if (!alt) {
+        alt = photo.caption?.trim() || sidecar.title;
+        console.warn(`  step ${fn}: missing alt — using fallback`);
+        backfilled++;
       }
       steps.push({
         src: `${sidecar.slug}/${fn}`,
-        alt: photo.alt,
+        alt,
         caption: photo.caption ?? '',
         ...(photo.chapter ? { chapter: photo.chapter } : {}),
         ...(photo.orientation && photo.orientation !== 'landscape' ? { orientation: photo.orientation } : {}),
@@ -103,18 +105,16 @@ function buildFrontmatter(sidecar) {
       });
     }
     if (steps.length > 0) base.steps = steps;
-    if (skipped > 0) console.warn(`  ${skipped} step(s) skipped due to missing alt text`);
+    if (backfilled > 0) console.warn(`  ${backfilled} step(s) used fallback alt text`);
 
-    // Gallery — photos with destination='gallery' and alt text
+    // Gallery — photos with destination='gallery'. Same fallback rule: never drop.
     const gallery = [];
-    let gallerySkipped = 0;
     for (const photo of (sidecar.photos ?? [])) {
       if (photo.destination !== 'gallery') continue;
-      if (!photo.alt?.trim()) { gallerySkipped++; continue; }
-      gallery.push({ src: `${sidecar.slug}/${photo.filename}`, alt: photo.alt });
+      const alt = photo.alt?.trim() || photo.caption?.trim() || sidecar.title;
+      gallery.push({ src: `${sidecar.slug}/${photo.filename}`, alt });
     }
     if (gallery.length > 0) base.gallery = gallery;
-    if (gallerySkipped > 0) console.warn(`  ${gallerySkipped} gallery photo(s) skipped (missing alt)`);
   }
 
   return base;
