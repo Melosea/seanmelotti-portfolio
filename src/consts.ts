@@ -39,7 +39,8 @@ export type ContactMethod = {
 /** Sean's direct contact details. Rendered in the footer and on /contact. */
 export const CONTACT_METHODS: ContactMethod[] = [
   { label: 'Email', href: 'mailto:seancmelotti@gmail.com', value: 'seancmelotti@gmail.com' },
-  { label: 'Phone', href: 'tel:+14434808889', value: '443-480-8889' },
+  // Phone intentionally removed for now (2026-09-24). Restore by uncommenting:
+  // { label: 'Phone', href: 'tel:+14434808889', value: '443-480-8889' },
 ];
 
 export type SocialLink = {
