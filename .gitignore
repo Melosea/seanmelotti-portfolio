@@ -27,8 +27,16 @@ pnpm-debug.log*
 src/assets/photos/Portfolio*/
 missing_files.json
 
-# Cerebro caption autosave watcher runtime
+# Cerebro agent runtime (scripts + durable notes ARE tracked; runtime output is not)
 .cerebro-tools/autosave.log
 .cerebro-tools/*.pid
 .cerebro-tools/__pycache__/
 .cerebro-tools/screenshots/
+.cerebro-tools/mission-records/
+# Transient agent handoff docs (build->QA). Durable notes like FUTURE-WORK.md stay tracked.
+.cerebro-tools/READY-FOR-QA.md
+.cerebro-tools/QA-REPORT.md
+
+# Dev server logs (agent-launched astro dev)
+.dev-server.log
+.dev-server-err.log

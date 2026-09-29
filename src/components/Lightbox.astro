@@ -1,0 +1,208 @@
+﻿---
+// Click-to-enlarge lightbox for sequence and gallery images.
+// Degrades gracefully: with JS disabled, images remain visible and functional.
+---
+
+<div
+  id="lb-overlay"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Image viewer"
+  aria-hidden="true"
+  class="lb-overlay"
+>
+  <button id="lb-close" class="lb-close" aria-label="Close image viewer" type="button">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+         stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+      <path d="M4 4l12 12M16 4L4 16"/>
+    </svg>
+  </button>
+  <div class="lb-frame" id="lb-frame">
+    <img id="lb-img" src="" alt="" class="lb-img" />
+  </div>
+</div>
+
+<style>
+  .lb-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    background: rgba(10, 11, 13, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease;
+  }
+
+  .lb-overlay.lb-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .lb-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.18s ease;
+    z-index: 1;
+  }
+
+  .lb-close:hover {
+    background: rgba(255, 255, 255, 0.24);
+  }
+
+  .lb-close:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+
+  .lb-frame {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: min(90vw, 1400px);
+    max-height: calc(100vh - 3rem);
+  }
+
+  .lb-img {
+    display: block;
+    max-width: 100%;
+    max-height: calc(100vh - 3rem);
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 4px;
+    cursor: default;
+  }
+
+  /* Applied via JS to the button wrapper around each trigger image. */
+  :global(.lb-trigger) {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: zoom-in;
+    line-height: 0;
+  }
+
+  :global(.lb-trigger:focus-visible) {
+    outline: 2px solid var(--color-accent, #2f56d9);
+    outline-offset: 3px;
+    border-radius: var(--radius-md, 0.5rem);
+  }
+
+  :global(.lb-trigger img) {
+    cursor: zoom-in;
+  }
+</style>
+
+<script>
+  const overlay = document.getElementById('lb-overlay') as HTMLElement | null;
+  const lbImg = document.getElementById('lb-img') as HTMLImageElement | null;
+  const closeBtn = document.getElementById('lb-close') as HTMLButtonElement | null;
+
+  if (!overlay || !lbImg || !closeBtn) throw new Error('Lightbox: missing DOM elements');
+
+  let triggerEl: HTMLElement | null = null;
+
+  function getLargestSrc(img: HTMLImageElement): string {
+    const srcset = img.srcset;
+    if (srcset) {
+      let bestSrc = img.src;
+      let bestW = 0;
+      for (const entry of srcset.split(',').map((s) => s.trim()).filter(Boolean)) {
+        const [url, w] = entry.split(/\s+/);
+        const width = parseInt(w) || 0;
+        if (width > bestW) {
+          bestW = width;
+          bestSrc = url;
+        }
+      }
+      return bestSrc;
+    }
+    return img.src;
+  }
+
+  function openLightbox(img: HTMLImageElement, trigger: HTMLElement) {
+    triggerEl = trigger;
+    lbImg.src = getLargestSrc(img);
+    lbImg.alt = img.alt;
+    overlay.removeAttribute('aria-hidden');
+    overlay.classList.add('lb-open');
+    document.body.style.overflow = 'hidden';
+    closeBtn.focus();
+  }
+
+  function closeLightbox() {
+    overlay.classList.remove('lb-open');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    lbImg.src = '';
+    if (triggerEl) {
+      (triggerEl as HTMLElement).focus();
+      triggerEl = null;
+    }
+  }
+
+  // Wrap each sequence / gallery image in a keyboard-reachable button trigger.
+  document.querySelectorAll<HTMLImageElement>('.seq-figure img, .gallery-grid img').forEach((img) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'lb-trigger';
+    btn.setAttribute('aria-label', `Enlarge: ${img.alt || 'image'}`);
+    img.parentNode!.insertBefore(btn, img);
+    btn.appendChild(img);
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openLightbox(img, btn);
+    });
+  });
+
+  // Backdrop click (the overlay background, not the image or close button).
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay || e.target === document.getElementById('lb-frame')) {
+      closeLightbox();
+    }
+  });
+
+  closeBtn.addEventListener('click', closeLightbox);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay.classList.contains('lb-open')) {
+      closeLightbox();
+    }
+  });
+
+  // Focus trap: Tab cycles within the overlay while it is open.
+  overlay.addEventListener('keydown', (e) => {
+    if (!overlay.classList.contains('lb-open') || e.key !== 'Tab') return;
+    const focusable = Array.from(
+      overlay.querySelectorAll<HTMLElement>('button, [tabindex]:not([tabindex="-1"])')
+    ).filter((el) => !el.hasAttribute('disabled'));
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  });
+</script>
+
