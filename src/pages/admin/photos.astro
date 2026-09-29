@@ -1,0 +1,1104 @@
+---
+// /admin/photos — Companion photo editor for Sveltia CMS.
+// Static page; all logic is client-side JS with a dual write path:
+//   DEV  (localhost): uses existing /api/studio/* middleware endpoints
+//   PROD (Cloudflare Pages): uses GitHub API with the Sveltia OAuth token
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Photo Editor — seanmelotti.com</title>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --bg: #0a0b0d;
+        --surface: #141518;
+        --surface2: #1e2024;
+        --border: #2a2c32;
+        --text: #e8eaed;
+        --muted: #7c838e;
+        --accent: #2f56d9;
+        --accent-soft: #1a2d6e;
+        --red-soft: #3d1a1a;
+        --red: #f87171;
+        --warn: #7a4705;
+        --warn-soft: #fdf3e4;
+        --sans: "Inter Variable","Inter",system-ui,sans-serif;
+        --mono: "JetBrains Mono Variable","JetBrains Mono",monospace;
+        --header-h: 2.75rem;
+        --sidebar-w: 240px;
+      }
+
+      html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; }
+
+      .layout {
+        display: grid;
+        grid-template-rows: var(--header-h) 1fr;
+        grid-template-columns: var(--sidebar-w) 1fr;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      /* ── Header ── */
+      .app-header {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0 1rem;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+      .app-header h1 { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+      .app-header a { font-size: 11px; color: var(--muted); text-decoration: none; }
+      .app-header a:hover { color: var(--text); }
+      .header-sep { width: 1px; height: 16px; background: var(--border); }
+      .env-badge {
+        font-size: 9px; font-family: var(--mono); padding: 1px 6px;
+        border-radius: 3px; letter-spacing: 0.05em;
+      }
+      .env-badge.dev { background: #0d2a1d; color: #4ade80; border: 1px solid #1f5c30; }
+      .env-badge.prod { background: var(--accent-soft); color: #c7d3fa; border: 1px solid var(--accent); }
+      #token-status {
+        margin-left: auto; font-size: 10px; font-family: var(--mono);
+        padding: 2px 8px; border-radius: 3px;
+      }
+      #token-status.ok { background: #0d2a1d; color: #4ade80; }
+      #token-status.warn { background: var(--red-soft); color: var(--red); }
+
+      /* ── Sidebar ── */
+      .sidebar {
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .sidebar-header {
+        padding: 0.75rem 1rem 0.625rem;
+        border-bottom: 1px solid var(--border);
+        font-size: 10px; font-family: var(--mono);
+        text-transform: uppercase; letter-spacing: 0.08em;
+        color: var(--muted); flex-shrink: 0;
+      }
+      .slug-list { flex: 1; overflow-y: auto; padding: 0.375rem; }
+      .slug-group-header {
+        padding: 0.5rem 0.75rem 0.25rem;
+        font-size: 9px; font-family: var(--mono);
+        text-transform: uppercase; letter-spacing: 0.08em;
+        color: var(--muted); opacity: 0.8;
+      }
+      .slug-btn {
+        display: block; width: 100%; text-align: left;
+        padding: 0.5rem 0.75rem; border-radius: 5px;
+        border: 1px solid transparent; background: transparent;
+        color: var(--text); cursor: pointer; font-size: 12px;
+        font-family: var(--sans); transition: background 0.15s; margin-bottom: 1px;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .slug-btn:hover { background: var(--surface2); }
+      .slug-btn.active { background: var(--accent-soft); border-color: var(--accent); color: #c7d3fa; }
+      .slug-btn .slug-sub { display: block; font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 1px; }
+      .slug-btn.active .slug-sub { color: #8ba0f7; }
+
+      /* ── Main area ── */
+      .main-area { background: #111214; overflow-y: auto; display: flex; flex-direction: column; }
+
+      /* ── Auth notice ── */
+      .auth-notice {
+        flex: 1; display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: 1rem; padding: 3rem; text-align: center;
+      }
+      .auth-notice h2 { font-size: 18px; font-weight: 500; color: var(--text); }
+      .auth-notice p { font-size: 13px; color: var(--muted); max-width: 420px; line-height: 1.6; }
+      .auth-notice a { color: #c7d3fa; }
+
+      /* ── Empty state ── */
+      .empty-state {
+        flex: 1; display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: 0.75rem; color: var(--muted); font-size: 13px;
+        padding: 3rem; text-align: center;
+      }
+      .empty-state h2 { font-size: 18px; color: var(--text); font-weight: 500; }
+
+      /* ── Toolbar ── */
+      .toolbar {
+        display: flex; align-items: center; gap: 0.625rem;
+        padding: 0.5rem 1rem;
+        background: var(--surface); border-bottom: 1px solid var(--border);
+        flex-shrink: 0; flex-wrap: wrap; position: sticky; top: 0; z-index: 20;
+      }
+      .toolbar-title { font-size: 12px; font-weight: 600; color: var(--text); }
+      .toolbar-slug { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+      .toolbar-count { font-size: 10px; font-family: var(--mono); padding: 2px 7px; border-radius: 3px; background: var(--surface2); color: var(--muted); }
+
+      /* ── Photo grid ── */
+      .photo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1rem;
+        padding: 1.5rem;
+      }
+      .photo-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: border-color 0.15s;
+      }
+      .photo-card:hover { border-color: #444; }
+      .photo-card-thumb {
+        aspect-ratio: 3 / 2;
+        background: #0d0e10;
+        overflow: hidden;
+        position: relative;
+      }
+      .photo-card-thumb img {
+        width: 100%; height: 100%; object-fit: cover; display: block;
+      }
+      .photo-card-thumb .orig-badge {
+        position: absolute; top: 4px; right: 4px;
+        font-size: 8px; font-family: var(--mono);
+        padding: 1px 4px; border-radius: 2px;
+        background: var(--accent-soft); color: #c7d3fa;
+        border: 1px solid var(--accent);
+      }
+      .photo-card-footer {
+        padding: 0.375rem 0.5rem;
+        display: flex; align-items: center; gap: 0.375rem;
+        border-top: 1px solid var(--border);
+        background: var(--surface2);
+      }
+      .photo-card-name {
+        flex: 1; font-family: var(--mono); font-size: 9px;
+        color: var(--muted); white-space: nowrap;
+        overflow: hidden; text-overflow: ellipsis; min-width: 0;
+      }
+      .btn-edit-photo {
+        width: 22px; height: 22px; padding: 0; flex-shrink: 0;
+        border: 1px solid var(--border); background: var(--surface);
+        color: var(--muted); border-radius: 3px; font-size: 11px;
+        line-height: 1; display: flex; align-items: center;
+        justify-content: center; cursor: pointer; transition: background 0.15s;
+      }
+      .btn-edit-photo:hover { background: #2a2d34; color: var(--text); }
+
+      /* ── Buttons ── */
+      .btn {
+        display: inline-flex; align-items: center; gap: 0.3rem;
+        height: 26px; padding: 0 0.625rem; border-radius: 4px;
+        border: 1px solid var(--border); background: var(--surface2);
+        color: var(--text); font-size: 11px; font-family: var(--sans);
+        font-weight: 500; cursor: pointer; white-space: nowrap;
+        transition: background 0.15s, border-color 0.15s;
+      }
+      .btn:hover { background: #2a2d34; border-color: #444; }
+      .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+      .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+      .btn-primary:hover { background: #2545b4; border-color: #2545b4; }
+      .btn-pe-revert { background: var(--red-soft); border-color: #4d1a1a; color: var(--red); }
+      .btn-pe-revert:hover { background: #5a1c1c; }
+
+      /* ── Photo editor modal ── */
+      .photo-editor-modal { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; }
+      .photo-editor-modal[hidden] { display: none; }
+      .photo-editor-inner { width: 92vw; max-width: 1140px; height: 90vh; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; }
+      .photo-editor-header { display: flex; align-items: center; gap: 0.625rem; padding: 0.5rem 1rem; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+      .photo-editor-title { font-size: 12px; font-weight: 600; color: var(--text); }
+      .photo-editor-filename { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+      .pe-original-badge { font-size: 9px; font-family: var(--mono); padding: 1px 6px; border-radius: 3px; background: var(--accent-soft); color: #c7d3fa; }
+      .photo-editor-body { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+      .photo-editor-canvas-area { flex: 1; display: flex; align-items: center; justify-content: center; background: #0d0e10; overflow: hidden; position: relative; }
+      .photo-editor-canvas-wrap { position: relative; display: inline-block; line-height: 0; }
+      #pe-canvas { display: block; max-width: calc(92vw - 240px); max-height: calc(90vh - 80px); width: auto; height: auto; }
+      #pe-crop-canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair; }
+      .photo-editor-controls { width: 220px; flex-shrink: 0; background: var(--surface2); border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+      .pe-section { padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+      .pe-section-label { font-size: 9px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.5rem; }
+      .pe-btn-row { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+      .pe-btn { height: 24px; padding: 0 0.5rem; border-radius: 4px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 11px; font-family: var(--sans); cursor: pointer; transition: background 0.15s; white-space: nowrap; }
+      .pe-btn:hover { background: #2a2d34; border-color: #444; }
+      .pe-slider-row { margin-bottom: 0.5rem; }
+      .pe-slider-row:last-child { margin-bottom: 0; }
+      .pe-slider-label { display: flex; justify-content: space-between; align-items: center; font-size: 10px; font-family: var(--mono); color: var(--muted); margin-bottom: 0.2rem; }
+      .pe-slider-val { color: var(--text); }
+      .pe-slider { width: 100%; height: 4px; appearance: none; -webkit-appearance: none; background: var(--border); border-radius: 2px; cursor: pointer; outline: none; }
+      .pe-slider::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+      .pe-slider::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); border: none; cursor: pointer; }
+      .pe-footer { display: flex; gap: 0.375rem; padding: 0.625rem 0.75rem; border-top: 1px solid var(--border); flex-shrink: 0; margin-top: auto; }
+      .pe-footer .btn { flex: 1; justify-content: center; font-size: 11px; }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <!-- Header -->
+      <header class="app-header">
+        <h1>Photo Editor</h1>
+        <div class="header-sep"></div>
+        <a href="/admin">← Sveltia CMS</a>
+        <span class="env-badge" id="env-badge">…</span>
+        <span id="token-status"></span>
+      </header>
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-header">Projects &amp; Skills</div>
+        <div class="slug-list" id="slug-list">
+          <div class="empty-state" style="flex:none;padding:1rem">
+            <span style="color:var(--muted);font-size:12px">Loading…</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <main class="main-area" id="main-area">
+        <div class="empty-state" id="empty-state">
+          <h2>Select a project</h2>
+          <p>Pick a project or skill from the sidebar to see its photos.</p>
+        </div>
+      </main>
+    </div>
+
+    <!-- Photo editor modal (identical structure to _studio) -->
+    <div class="photo-editor-modal" id="photo-editor-modal" hidden>
+      <div class="photo-editor-inner">
+        <div class="photo-editor-header">
+          <span class="photo-editor-title">Edit Photo</span>
+          <span class="photo-editor-filename" id="pe-filename"></span>
+          <span class="pe-original-badge" id="pe-original-badge" hidden>Original saved</span>
+          <div style="margin-left:auto;display:flex;gap:0.375rem;align-items:center">
+            <span id="pe-status" style="font-size:10px;font-family:var(--mono);color:var(--muted)"></span>
+            <button class="btn" id="pe-cancel">Cancel</button>
+          </div>
+        </div>
+        <div class="photo-editor-body">
+          <div class="photo-editor-canvas-area">
+            <div class="photo-editor-canvas-wrap" id="pe-canvas-wrap">
+              <canvas id="pe-canvas"></canvas>
+              <canvas id="pe-crop-canvas"></canvas>
+            </div>
+          </div>
+          <div class="photo-editor-controls">
+            <div class="pe-section">
+              <div class="pe-section-label">Crop</div>
+              <div class="pe-btn-row">
+                <button class="pe-btn" id="pe-reset-crop">Reset crop</button>
+              </div>
+            </div>
+            <div class="pe-section">
+              <div class="pe-section-label">Rotate &amp; Flip</div>
+              <div class="pe-btn-row">
+                <button class="pe-btn" id="pe-rot-ccw" title="Rotate 90° counter-clockwise">↺ CCW</button>
+                <button class="pe-btn" id="pe-rot-cw" title="Rotate 90° clockwise">↻ CW</button>
+                <button class="pe-btn" id="pe-flip-h" title="Flip horizontal">⇔ H</button>
+                <button class="pe-btn" id="pe-flip-v" title="Flip vertical">⇕ V</button>
+              </div>
+            </div>
+            <div class="pe-section">
+              <div class="pe-section-label">Adjustments</div>
+              <div class="pe-slider-row">
+                <div class="pe-slider-label">Brightness <span class="pe-slider-val" id="pe-bright-val">1.0</span></div>
+                <input class="pe-slider" type="range" id="pe-bright" min="0.1" max="2.0" step="0.05" value="1.0" />
+              </div>
+              <div class="pe-slider-row">
+                <div class="pe-slider-label">Contrast <span class="pe-slider-val" id="pe-contrast-val">1.0</span></div>
+                <input class="pe-slider" type="range" id="pe-contrast" min="0.1" max="2.0" step="0.05" value="1.0" />
+              </div>
+              <div class="pe-slider-row">
+                <div class="pe-slider-label">Saturation <span class="pe-slider-val" id="pe-sat-val">1.0</span></div>
+                <input class="pe-slider" type="range" id="pe-sat" min="0.0" max="3.0" step="0.05" value="1.0" />
+              </div>
+            </div>
+            <div class="pe-footer">
+              <button class="btn btn-pe-revert" id="pe-revert" hidden title="Restore the saved original">↩ Revert</button>
+              <button class="btn btn-primary" id="pe-save">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      // ─── Environment detection ───────────────────────────────────────────────
+      const IS_DEV = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+      const REPO = 'Melosea/seanmelotti-portfolio';
+      const BRANCH = 'main';
+
+      // Show env badge
+      const envBadge = document.getElementById('env-badge');
+      if (envBadge) {
+        envBadge.textContent = IS_DEV ? 'DEV' : 'PROD';
+        envBadge.classList.add(IS_DEV ? 'dev' : 'prod');
+      }
+
+      // ─── GitHub token (prod only) ────────────────────────────────────────────
+      // Sveltia CMS stores auth in localStorage. Try all known key patterns.
+      function getSveltiaToken() {
+        const candidates = [
+          'sveltia-cms',
+          'sveltia-cms.auth',
+          'sveltia-cms.auth.github',
+          'sveltia_cms',
+          'netlify-cms-user',
+        ];
+        for (const key of candidates) {
+          try {
+            const raw = localStorage.getItem(key);
+            if (!raw) continue;
+            if (raw.startsWith('gh')) return raw; // bare token string
+            const val = JSON.parse(raw);
+            if (typeof val?.token === 'string' && val.token.startsWith('gh')) return val.token;
+            if (typeof val?.user?.token === 'string') return val.user.token;
+            if (typeof val?.auth?.token === 'string') return val.auth.token;
+          } catch {}
+        }
+        // Scan all keys for anything sveltia-related containing a gh token
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (!key) continue;
+          if (!key.toLowerCase().includes('sveltia') && !key.toLowerCase().includes('cms')) continue;
+          try {
+            const raw = localStorage.getItem(key);
+            if (!raw) continue;
+            const m = raw.match(/"token"\s*:\s*"(gh[A-Za-z0-9_]+)"/);
+            if (m) return m[1];
+            const obj = JSON.parse(raw);
+            if (typeof obj?.token === 'string' && obj.token.startsWith('gh')) return obj.token;
+          } catch {}
+        }
+        return null;
+      }
+
+      let ghToken = IS_DEV ? null : getSveltiaToken();
+
+      function updateTokenStatus() {
+        const el = document.getElementById('token-status');
+        if (!el) return;
+        if (IS_DEV) {
+          el.textContent = '';
+          return;
+        }
+        if (ghToken) {
+          el.textContent = 'GitHub token found';
+          el.className = 'ok';
+        } else {
+          el.textContent = 'No GitHub token — log in to Sveltia first';
+          el.className = 'warn';
+        }
+      }
+      updateTokenStatus();
+
+      // ─── API abstraction ─────────────────────────────────────────────────────
+
+      // DEV: middleware endpoints
+      const devApi = {
+        async listSlugs() {
+          const r = await fetch('/api/studio/content-slugs');
+          if (!r.ok) throw new Error(await r.text());
+          return r.json(); // { slugs: [{slug, type, title}] }
+        },
+        async listPhotos(slug) {
+          const r = await fetch(`/api/studio/photos/${encodeURIComponent(slug)}`);
+          if (!r.ok) throw new Error(await r.text());
+          const data = await r.json();
+          return data.photos.map(filename => ({ filename, url: `/photos/${slug}/${filename}`, hasOriginal: false }));
+        },
+        async hasOriginal(slug, filename) {
+          const r = await fetch(`/api/studio/has-original?slug=${encodeURIComponent(slug)}&filename=${encodeURIComponent(filename)}`);
+          const data = await r.json();
+          return data.exists === true;
+        },
+        async savePhoto(slug, filename, dataUrl) {
+          const r = await fetch('/api/studio/save-edited-photo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slug, filename, dataUrl }),
+          });
+          const data = await r.json();
+          if (!data.ok) throw new Error(data.error || 'Save failed');
+          return data;
+        },
+        async revertPhoto(slug, filename) {
+          const r = await fetch('/api/studio/revert-photo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slug, filename }),
+          });
+          const data = await r.json();
+          if (!data.ok) throw new Error(data.error || 'Revert failed');
+          return data;
+        },
+      };
+
+      // PROD: GitHub API
+      const ghApi = {
+        async listSlugs() {
+          const tok = ghToken;
+          if (!tok) throw new Error('no-token');
+          const headers = { Authorization: `token ${tok}`, Accept: 'application/vnd.github.v3+json' };
+          const results = [];
+          for (const type of ['projects', 'skills']) {
+            const r = await fetch(`https://api.github.com/repos/${REPO}/contents/src/content/${type}?ref=${BRANCH}`, { headers });
+            if (!r.ok) throw new Error(`GitHub API error: ${r.status}`);
+            const files = await r.json();
+            for (const f of files) {
+              if (!f.name.endsWith('.mdx') && !f.name.endsWith('.md')) continue;
+              const slug = f.name.replace(/\.(mdx|md)$/, '');
+              results.push({ slug, type: type === 'skills' ? 'skill' : 'project', title: slug });
+            }
+          }
+          results.sort((a, b) => a.slug.localeCompare(b.slug));
+          return { slugs: results };
+        },
+        async listPhotos(slug) {
+          const tok = ghToken;
+          if (!tok) throw new Error('no-token');
+          const headers = { Authorization: `token ${tok}`, Accept: 'application/vnd.github.v3+json' };
+          const r = await fetch(`https://api.github.com/repos/${REPO}/contents/src/assets/photos/${encodeURIComponent(slug)}?ref=${BRANCH}`, { headers });
+          if (r.status === 404) return [];
+          if (!r.ok) throw new Error(`GitHub API error: ${r.status}`);
+          const files = await r.json();
+          const photos = [];
+          for (const f of files) {
+            if (!/\.(jpg|jpeg|png|webp)$/i.test(f.name)) continue;
+            // Check for original (best-effort — don't fail if .originals missing)
+            let hasOriginal = false;
+            try {
+              const or = await fetch(`https://api.github.com/repos/${REPO}/contents/src/assets/photos/${encodeURIComponent(slug)}/.originals/${encodeURIComponent(f.name)}?ref=${BRANCH}`, { headers });
+              hasOriginal = or.ok;
+            } catch {}
+            photos.push({ filename: f.name, url: f.download_url, sha: f.sha, hasOriginal });
+          }
+          photos.sort((a, b) => a.filename.localeCompare(b.filename));
+          return photos;
+        },
+        async hasOriginal(slug, filename) {
+          const tok = ghToken;
+          if (!tok) return false;
+          const headers = { Authorization: `token ${tok}`, Accept: 'application/vnd.github.v3+json' };
+          try {
+            const r = await fetch(`https://api.github.com/repos/${REPO}/contents/src/assets/photos/${encodeURIComponent(slug)}/.originals/${encodeURIComponent(filename)}?ref=${BRANCH}`, { headers });
+            return r.ok;
+          } catch { return false; }
+        },
+        async savePhoto(slug, filename, dataUrl) {
+          const tok = ghToken;
+          if (!tok) throw new Error('no-token');
+          const headers = { Authorization: `token ${tok}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' };
+          const basePath = `src/assets/photos/${slug}`;
+          const filePath = `${basePath}/${filename}`;
+          const originalsPath = `${basePath}/.originals/${filename}`;
+
+          // Get current file sha (needed for PUT)
+          const curR = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}?ref=${BRANCH}`, { headers: { Authorization: `token ${tok}`, Accept: 'application/vnd.github.v3+json' } });
+          if (!curR.ok) throw new Error(`Could not fetch current file: ${curR.status}`);
+          const curFile = await curR.json();
+          const currentSha = curFile.sha;
+          const currentContent = curFile.content; // base64, may be chunked
+
+          // Preserve original on first edit (check .originals/)
+          const origR = await fetch(`https://api.github.com/repos/${REPO}/contents/${originalsPath}?ref=${BRANCH}`, { headers: { Authorization: `token ${tok}`, Accept: 'application/vnd.github.v3+json' } });
+          if (!origR.ok) {
+            // Original doesn't exist yet — create it from current file content
+            const origContent = currentContent.replace(/\n/g, ''); // clean chunked base64
+            await fetch(`https://api.github.com/repos/${REPO}/contents/${originalsPath}`, {
+              method: 'PUT',
+              headers,
+              body: JSON.stringify({
+                message: `Photo editor: preserve original ${filename} for ${slug}`,
+                content: origContent,
+                branch: BRANCH,
+              }),
+            });
+          }
+
+          // Extract base64 content from data URL
+          const b64 = dataUrl.replace(/^data:image\/[^;]+;base64,/, '');
+
+          // Write edited file
+          const putR = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify({
+              message: `Photo editor: save edited ${filename} for ${slug}`,
+              content: b64,
+              sha: currentSha,
+              branch: BRANCH,
+            }),
+          });
+          if (!putR.ok) {
+            const err = await putR.json().catch(() => ({}));
+            throw new Error(err.message || `GitHub PUT failed: ${putR.status}`);
+          }
+          return { ok: true, hasOriginal: true };
+        },
+        async revertPhoto(slug, filename) {
+          const tok = ghToken;
+          if (!tok) throw new Error('no-token');
+          const headers = { Authorization: `token ${tok}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' };
+          const filePath = `src/assets/photos/${slug}/${filename}`;
+          const originalsPath = `src/assets/photos/${slug}/.originals/${filename}`;
+
+          // Get original file
+          const origR = await fetch(`https://api.github.com/repos/${REPO}/contents/${originalsPath}?ref=${BRANCH}`, { headers: { Authorization: `token ${tok}`, Accept: 'application/vnd.github.v3+json' } });
+          if (!origR.ok) throw new Error('No original found for this photo');
+          const origFile = await origR.json();
+          const origContent = origFile.content.replace(/\n/g, '');
+
+          // Get current file sha
+          const curR = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}?ref=${BRANCH}`, { headers: { Authorization: `token ${tok}`, Accept: 'application/vnd.github.v3+json' } });
+          if (!curR.ok) throw new Error(`Could not fetch current file: ${curR.status}`);
+          const curFile = await curR.json();
+
+          // Write original content back to main file
+          const putR = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify({
+              message: `Photo editor: revert ${filename} to original for ${slug}`,
+              content: origContent,
+              sha: curFile.sha,
+              branch: BRANCH,
+            }),
+          });
+          if (!putR.ok) {
+            const err = await putR.json().catch(() => ({}));
+            throw new Error(err.message || `GitHub PUT failed: ${putR.status}`);
+          }
+          return { ok: true };
+        },
+      };
+
+      const api = IS_DEV ? devApi : ghApi;
+
+      // ─── App state ───────────────────────────────────────────────────────────
+      let currentSlug = null;
+      let currentPhotos = []; // [{filename, url, hasOriginal}]
+
+      // ─── Slug list ───────────────────────────────────────────────────────────
+      async function loadSlugs() {
+        const slugList = document.getElementById('slug-list');
+        if (!slugList) return;
+        try {
+          const { slugs } = await api.listSlugs();
+          slugList.innerHTML = '';
+          const projects = slugs.filter(s => s.type === 'project');
+          const skills = slugs.filter(s => s.type === 'skill');
+          for (const [label, items] of [['Projects', projects], ['Skills', skills]]) {
+            if (!items.length) continue;
+            const hdr = document.createElement('div');
+            hdr.className = 'slug-group-header';
+            hdr.textContent = label;
+            slugList.appendChild(hdr);
+            for (const item of items) {
+              const btn = document.createElement('button');
+              btn.className = 'slug-btn';
+              btn.innerHTML = `${escHtml(item.title)}<span class="slug-sub">${escHtml(item.slug)}</span>`;
+              btn.addEventListener('click', () => selectSlug(item.slug, btn));
+              slugList.appendChild(btn);
+            }
+          }
+          if (!slugs.length) {
+            slugList.innerHTML = '<div style="padding:1rem;font-size:12px;color:var(--muted)">No projects found</div>';
+          }
+        } catch (e) {
+          const msg = e.message === 'no-token'
+            ? 'Log in to Sveltia CMS at <a href="/admin">/admin</a> first, then return here.'
+            : `Error loading slugs: ${escHtml(e.message)}`;
+          slugList.innerHTML = `<div style="padding:1rem;font-size:12px;color:var(--red)">${msg}</div>`;
+        }
+      }
+
+      async function selectSlug(slug, btnEl) {
+        // Update active state
+        document.querySelectorAll('.slug-btn').forEach(b => b.classList.remove('active'));
+        if (btnEl) btnEl.classList.add('active');
+        currentSlug = slug;
+        renderMain({ loading: true, slug });
+        try {
+          currentPhotos = await api.listPhotos(slug);
+          renderMain({ slug, photos: currentPhotos });
+        } catch (e) {
+          renderMain({ slug, error: e.message });
+        }
+      }
+
+      // ─── Main area rendering ─────────────────────────────────────────────────
+      function renderMain({ loading, slug, photos, error }) {
+        const main = document.getElementById('main-area');
+        if (!main) return;
+        if (loading) {
+          main.innerHTML = `
+            <div class="toolbar">
+              <span class="toolbar-title">${escHtml(slug)}</span>
+              <span class="toolbar-count">Loading…</span>
+            </div>
+            <div class="empty-state"><p style="color:var(--muted)">Loading photos…</p></div>`;
+          return;
+        }
+        if (error) {
+          main.innerHTML = `
+            <div class="toolbar"><span class="toolbar-title">${escHtml(slug)}</span></div>
+            <div class="empty-state"><p style="color:var(--red)">${escHtml(error)}</p></div>`;
+          return;
+        }
+        if (!photos || !photos.length) {
+          main.innerHTML = `
+            <div class="toolbar">
+              <span class="toolbar-title">${escHtml(slug)}</span>
+              <span class="toolbar-count">0 photos</span>
+            </div>
+            <div class="empty-state"><h2>No photos</h2><p>No images found in <code>src/assets/photos/${escHtml(slug)}/</code>.</p></div>`;
+          return;
+        }
+        const toolbar = `
+          <div class="toolbar">
+            <span class="toolbar-title">${escHtml(slug)}</span>
+            <span class="toolbar-count">${photos.length} photo${photos.length !== 1 ? 's' : ''}</span>
+          </div>`;
+        const cards = photos.map(p => `
+          <div class="photo-card" data-filename="${escHtml(p.filename)}">
+            <div class="photo-card-thumb">
+              <img src="${escHtml(p.url)}?_nc=${Date.now()}" alt="${escHtml(p.filename)}" loading="lazy" />
+              ${p.hasOriginal ? '<span class="orig-badge">Original saved</span>' : ''}
+            </div>
+            <div class="photo-card-footer">
+              <span class="photo-card-name">${escHtml(p.filename)}</span>
+              <button class="btn-edit-photo" data-filename="${escHtml(p.filename)}" title="Edit photo">✏</button>
+            </div>
+          </div>`).join('');
+        main.innerHTML = toolbar + `<div class="photo-grid">${cards}</div>`;
+        main.querySelectorAll('.btn-edit-photo').forEach(btn => {
+          btn.addEventListener('click', () => openPhotoEditor(btn.dataset.filename));
+        });
+      }
+
+      function escHtml(s) {
+        return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+
+      // ─── Photo editor (ported from _studio/index.astro) ─────────────────────
+
+      const peState = {
+        filename: null,
+        slug: null,
+        img: null,
+        rotation: 0,
+        flipH: false,
+        flipV: false,
+        brightness: 1.0,
+        contrast: 1.0,
+        saturation: 1.0,
+        crop: { x: 0, y: 0, w: 0, h: 0 },
+        hasOriginal: false,
+      };
+
+      let peDrag = null;
+
+      function peDisplaySize(img, rotation) {
+        const sw = img.naturalWidth, sh = img.naturalHeight;
+        return (rotation % 180 === 0) ? { w: sw, h: sh } : { w: sh, h: sw };
+      }
+
+      function peRenderPreview() {
+        const { img, rotation, flipH, flipV, brightness, contrast, saturation } = peState;
+        if (!img) return;
+        const canvas = document.getElementById('pe-canvas');
+        if (!canvas) return;
+        const sw = img.naturalWidth, sh = img.naturalHeight;
+        const { w: cw, h: ch } = peDisplaySize(img, rotation);
+        canvas.width = cw;
+        canvas.height = ch;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, cw, ch);
+        ctx.filter = `brightness(${brightness}) contrast(${contrast}) saturate(${saturation})`;
+        ctx.save();
+        ctx.translate(cw / 2, ch / 2);
+        ctx.rotate(rotation * Math.PI / 180);
+        if (flipH) ctx.scale(-1, 1);
+        if (flipV) ctx.scale(1, -1);
+        ctx.drawImage(img, -sw / 2, -sh / 2);
+        ctx.restore();
+        ctx.filter = 'none';
+        peRenderCropOverlay();
+      }
+
+      function peRenderCropOverlay() {
+        const oCanvas = document.getElementById('pe-crop-canvas');
+        const iCanvas = document.getElementById('pe-canvas');
+        if (!oCanvas || !iCanvas) return;
+        oCanvas.width = iCanvas.width;
+        oCanvas.height = iCanvas.height;
+        const ctx = oCanvas.getContext('2d');
+        const { x, y, w, h } = peState.crop;
+        const cw = oCanvas.width, ch = oCanvas.height;
+        ctx.clearRect(0, 0, cw, ch);
+        ctx.fillStyle = 'rgba(0,0,0,0.55)';
+        ctx.fillRect(0, 0, cw, ch);
+        ctx.clearRect(x, y, w, h);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+        ctx.lineWidth = 0.5;
+        for (let i = 1; i < 3; i++) {
+          ctx.beginPath(); ctx.moveTo(x + w * i / 3, y); ctx.lineTo(x + w * i / 3, y + h); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(x, y + h * i / 3); ctx.lineTo(x + w, y + h * i / 3); ctx.stroke();
+        }
+        const hs = 7;
+        ctx.fillStyle = '#fff';
+        [[x, y], [x + w, y], [x + w, y + h], [x, y + h]].forEach(([hx, hy]) => {
+          ctx.fillRect(hx - hs / 2, hy - hs / 2, hs, hs);
+        });
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        [[x + w / 2, y], [x + w, y + h / 2], [x + w / 2, y + h], [x, y + h / 2]].forEach(([hx, hy]) => {
+          ctx.fillRect(hx - hs / 2, hy - hs / 2, hs, hs);
+        });
+      }
+
+      function peClientToCrop(oCanvas, iCanvas, clientX, clientY) {
+        const rect = oCanvas.getBoundingClientRect();
+        const scaleX = iCanvas.width / rect.width;
+        const scaleY = iCanvas.height / rect.height;
+        return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+      }
+
+      const HIT = 10;
+
+      function peGetHandle(px, py) {
+        const iCanvas = document.getElementById('pe-canvas');
+        const oCanvas = document.getElementById('pe-crop-canvas');
+        if (!iCanvas || !oCanvas) return null;
+        const scaleX = iCanvas.width / oCanvas.getBoundingClientRect().width;
+        const hitR = HIT * scaleX;
+        const { x, y, w, h } = peState.crop;
+        const near = (a, b) => Math.abs(a - b) <= hitR;
+        if (near(px, x) && near(py, y)) return 'tl';
+        if (near(px, x + w) && near(py, y)) return 'tr';
+        if (near(px, x + w) && near(py, y + h)) return 'br';
+        if (near(px, x) && near(py, y + h)) return 'bl';
+        if (near(px, x + w / 2) && near(py, y)) return 't';
+        if (near(px, x + w) && near(py, y + h / 2)) return 'r';
+        if (near(px, x + w / 2) && near(py, y + h)) return 'b';
+        if (near(px, x) && near(py, y + h / 2)) return 'l';
+        if (px >= x && px <= x + w && py >= y && py <= y + h) return 'move';
+        return null;
+      }
+
+      const MIN_CROP = 20;
+
+      function peApplyDrag(curX, curY) {
+        if (!peDrag) return;
+        const dx = curX - peDrag.startX, dy = curY - peDrag.startY;
+        const sc = { ...peDrag.startCrop };
+        const iCanvas = document.getElementById('pe-canvas');
+        if (!iCanvas) return;
+        const imgW = iCanvas.width, imgH = iCanvas.height;
+        let { x, y, w, h } = sc;
+        switch (peDrag.handle) {
+          case 'move':
+            x = Math.max(0, Math.min(imgW - w, sc.x + dx));
+            y = Math.max(0, Math.min(imgH - h, sc.y + dy));
+            break;
+          case 'tl': { const nx = Math.min(sc.x + dx, sc.x + sc.w - MIN_CROP); const ny = Math.min(sc.y + dy, sc.y + sc.h - MIN_CROP); w = sc.w + sc.x - Math.max(0, nx); h = sc.h + sc.y - Math.max(0, ny); x = sc.x + sc.w - w; y = sc.y + sc.h - h; } break;
+          case 'tr': { const ny = Math.min(sc.y + dy, sc.y + sc.h - MIN_CROP); w = Math.max(MIN_CROP, Math.min(imgW - sc.x, sc.w + dx)); h = sc.h + sc.y - Math.max(0, ny); y = sc.y + sc.h - h; } break;
+          case 'br': w = Math.max(MIN_CROP, Math.min(imgW - sc.x, sc.w + dx)); h = Math.max(MIN_CROP, Math.min(imgH - sc.y, sc.h + dy)); break;
+          case 'bl': { const nx = Math.min(sc.x + dx, sc.x + sc.w - MIN_CROP); w = sc.w + sc.x - Math.max(0, nx); x = sc.x + sc.w - w; h = Math.max(MIN_CROP, Math.min(imgH - sc.y, sc.h + dy)); } break;
+          case 't': { const ny = Math.min(sc.y + dy, sc.y + sc.h - MIN_CROP); h = sc.h + sc.y - Math.max(0, ny); y = sc.y + sc.h - h; } break;
+          case 'r': w = Math.max(MIN_CROP, Math.min(imgW - sc.x, sc.w + dx)); break;
+          case 'b': h = Math.max(MIN_CROP, Math.min(imgH - sc.y, sc.h + dy)); break;
+          case 'l': { const nx = Math.min(sc.x + dx, sc.x + sc.w - MIN_CROP); w = sc.w + sc.x - Math.max(0, nx); x = sc.x + sc.w - w; } break;
+        }
+        peState.crop = { x: Math.max(0, x), y: Math.max(0, y), w: Math.max(MIN_CROP, w), h: Math.max(MIN_CROP, h) };
+        peRenderCropOverlay();
+      }
+
+      function peCropCursorFor(handle) {
+        const map = { tl: 'nwse-resize', tr: 'nesw-resize', br: 'nwse-resize', bl: 'nesw-resize', t: 'ns-resize', b: 'ns-resize', l: 'ew-resize', r: 'ew-resize', move: 'move' };
+        return map[handle] || 'crosshair';
+      }
+
+      function peBindCropEvents() {
+        const oCanvas = document.getElementById('pe-crop-canvas');
+        const iCanvas = document.getElementById('pe-canvas');
+        if (!oCanvas || !iCanvas) return;
+        oCanvas.addEventListener('mousedown', e => {
+          const { x, y } = peClientToCrop(oCanvas, iCanvas, e.clientX, e.clientY);
+          const handle = peGetHandle(x, y);
+          if (!handle) return;
+          e.preventDefault();
+          peDrag = { handle, startX: x, startY: y, startCrop: { ...peState.crop } };
+        });
+        window.addEventListener('mousemove', e => {
+          if (!peDrag) {
+            const { x, y } = peClientToCrop(oCanvas, iCanvas, e.clientX, e.clientY);
+            const h = peGetHandle(x, y);
+            oCanvas.style.cursor = h ? peCropCursorFor(h) : 'crosshair';
+            return;
+          }
+          const { x, y } = peClientToCrop(oCanvas, iCanvas, e.clientX, e.clientY);
+          peApplyDrag(x, y);
+        });
+        window.addEventListener('mouseup', () => { peDrag = null; });
+        oCanvas.addEventListener('touchstart', e => {
+          const t = e.touches[0];
+          const { x, y } = peClientToCrop(oCanvas, iCanvas, t.clientX, t.clientY);
+          const handle = peGetHandle(x, y);
+          if (!handle) return;
+          e.preventDefault();
+          peDrag = { handle, startX: x, startY: y, startCrop: { ...peState.crop } };
+        }, { passive: false });
+        window.addEventListener('touchmove', e => {
+          if (!peDrag) return;
+          const t = e.touches[0];
+          const { x, y } = peClientToCrop(oCanvas, iCanvas, t.clientX, t.clientY);
+          peApplyDrag(x, y);
+        });
+        window.addEventListener('touchend', () => { peDrag = null; });
+      }
+
+      function peResetCrop() {
+        const iCanvas = document.getElementById('pe-canvas');
+        if (!iCanvas) return;
+        peState.crop = { x: 0, y: 0, w: iCanvas.width, h: iCanvas.height };
+        peRenderCropOverlay();
+      }
+
+      async function openPhotoEditor(filename) {
+        if (!currentSlug || !filename) return;
+        // If not authenticated in prod, show notice
+        if (!IS_DEV && !ghToken) {
+          showAuthNotice();
+          return;
+        }
+        peState.filename = filename;
+        peState.slug = currentSlug;
+        peState.rotation = 0;
+        peState.flipH = false;
+        peState.flipV = false;
+        peState.brightness = 1.0;
+        peState.contrast = 1.0;
+        peState.saturation = 1.0;
+        peState.hasOriginal = false;
+
+        ['pe-bright', 'pe-contrast', 'pe-sat'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '1.0';
+        });
+        document.getElementById('pe-bright-val') && (document.getElementById('pe-bright-val').textContent = '1.0');
+        document.getElementById('pe-contrast-val') && (document.getElementById('pe-contrast-val').textContent = '1.0');
+        document.getElementById('pe-sat-val') && (document.getElementById('pe-sat-val').textContent = '1.0');
+
+        document.getElementById('pe-filename').textContent = filename;
+        document.getElementById('pe-status').textContent = 'Loading…';
+        document.getElementById('pe-original-badge').hidden = true;
+        document.getElementById('pe-revert').hidden = true;
+        document.getElementById('photo-editor-modal').hidden = false;
+
+        // Determine image URL
+        let imgSrc;
+        if (IS_DEV) {
+          imgSrc = `/photos/${currentSlug}/${filename}?_nocache=${Date.now()}`;
+        } else {
+          const photo = currentPhotos.find(p => p.filename === filename);
+          imgSrc = photo?.url ?? `https://raw.githubusercontent.com/${REPO}/${BRANCH}/src/assets/photos/${encodeURIComponent(currentSlug)}/${encodeURIComponent(filename)}`;
+          // Add cache-buster via timestamp parameter doesn't work on raw.githubusercontent.com,
+          // but we reload photos after save so this isn't critical.
+        }
+
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = imgSrc;
+        }).catch(() => {
+          document.getElementById('pe-status').textContent = 'Failed to load image';
+        });
+        peState.img = img;
+        document.getElementById('pe-status').textContent = '';
+
+        // Check for original
+        try {
+          const exists = await api.hasOriginal(currentSlug, filename);
+          peState.hasOriginal = exists;
+          document.getElementById('pe-original-badge').hidden = !exists;
+          document.getElementById('pe-revert').hidden = !exists;
+        } catch {}
+
+        peRenderPreview();
+        peResetCrop();
+        peBindCropEvents();
+      }
+
+      function closePhotoEditor() {
+        document.getElementById('photo-editor-modal').hidden = true;
+        peState.img = null;
+        peDrag = null;
+      }
+
+      function peBuildFinalCanvas() {
+        const { img, rotation, flipH, flipV, brightness, contrast, saturation, crop } = peState;
+        if (!img) return null;
+        const sw = img.naturalWidth, sh = img.naturalHeight;
+        const { w: cw, h: ch } = peDisplaySize(img, rotation);
+        const full = document.createElement('canvas');
+        full.width = cw; full.height = ch;
+        const fctx = full.getContext('2d');
+        fctx.filter = `brightness(${brightness}) contrast(${contrast}) saturate(${saturation})`;
+        fctx.save();
+        fctx.translate(cw / 2, ch / 2);
+        fctx.rotate(rotation * Math.PI / 180);
+        if (flipH) fctx.scale(-1, 1);
+        if (flipV) fctx.scale(1, -1);
+        fctx.drawImage(img, -sw / 2, -sh / 2);
+        fctx.restore();
+        const cx = Math.round(crop.x), cy = Math.round(crop.y);
+        const cw2 = Math.max(1, Math.round(crop.w)), ch2 = Math.max(1, Math.round(crop.h));
+        const out = document.createElement('canvas');
+        out.width = cw2; out.height = ch2;
+        out.getContext('2d').drawImage(full, cx, cy, cw2, ch2, 0, 0, cw2, ch2);
+        return out;
+      }
+
+      async function saveEditedPhoto() {
+        const btn = document.getElementById('pe-save');
+        const statusEl = document.getElementById('pe-status');
+        if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+        if (statusEl) statusEl.textContent = '';
+        try {
+          const finalCanvas = peBuildFinalCanvas();
+          if (!finalCanvas) throw new Error('Could not build canvas');
+          const dataUrl = await new Promise((resolve, reject) => {
+            finalCanvas.toBlob(blob => {
+              if (!blob) { reject(new Error('toBlob failed')); return; }
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            }, 'image/jpeg', 0.92);
+          });
+          const result = await api.savePhoto(peState.slug, peState.filename, dataUrl);
+          if (result.hasOriginal) {
+            peState.hasOriginal = true;
+            document.getElementById('pe-original-badge').hidden = false;
+            document.getElementById('pe-revert').hidden = false;
+          }
+          // Refresh the thumbnail in the grid
+          const ts = Date.now();
+          const card = document.querySelector(`.photo-card[data-filename="${CSS.escape(peState.filename)}"]`);
+          if (card) {
+            const thumb = card.querySelector('img');
+            if (thumb) {
+              const baseUrl = IS_DEV ? `/photos/${peState.slug}/${peState.filename}` : (thumb.src.split('?')[0]);
+              thumb.src = `${baseUrl}?v=${ts}`;
+            }
+            // Show original badge on the card
+            if (result.hasOriginal && !card.querySelector('.orig-badge')) {
+              const origBadge = document.createElement('span');
+              origBadge.className = 'orig-badge';
+              origBadge.textContent = 'Original saved';
+              card.querySelector('.photo-card-thumb').appendChild(origBadge);
+            }
+          }
+          if (statusEl) { statusEl.textContent = '✓ Saved'; setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 3000); }
+          closePhotoEditor();
+        } catch (e) {
+          if (statusEl) statusEl.textContent = `⚠ ${e.message}`;
+        } finally {
+          if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+        }
+      }
+
+      async function revertPhoto() {
+        if (!peState.hasOriginal) return;
+        if (!confirm(`Revert "${peState.filename}" to its original? All edits will be lost.`)) return;
+        const btn = document.getElementById('pe-revert');
+        const statusEl = document.getElementById('pe-status');
+        if (btn) { btn.disabled = true; btn.textContent = '↩ Reverting…'; }
+        try {
+          await api.revertPhoto(peState.slug, peState.filename);
+          const ts = Date.now();
+          const card = document.querySelector(`.photo-card[data-filename="${CSS.escape(peState.filename)}"]`);
+          if (card) {
+            const thumb = card.querySelector('img');
+            if (thumb) {
+              const baseUrl = IS_DEV ? `/photos/${peState.slug}/${peState.filename}` : (thumb.src.split('?')[0]);
+              thumb.src = `${baseUrl}?v=${ts}`;
+            }
+          }
+          if (statusEl) statusEl.textContent = '✓ Reverted';
+          closePhotoEditor();
+        } catch (e) {
+          if (statusEl) statusEl.textContent = `⚠ ${e.message}`;
+        } finally {
+          if (btn) { btn.disabled = false; btn.textContent = '↩ Revert'; }
+        }
+      }
+
+      function showAuthNotice() {
+        // Refresh token in case user just logged in
+        ghToken = getSveltiaToken();
+        updateTokenStatus();
+        if (ghToken) return; // found it now, proceed
+        alert('No Sveltia CMS token found. Please log in to Sveltia CMS at /admin first, then return here.');
+      }
+
+      // ─── Wire up editor controls ─────────────────────────────────────────────
+      document.getElementById('pe-cancel')?.addEventListener('click', closePhotoEditor);
+      document.getElementById('photo-editor-modal')?.addEventListener('click', e => {
+        if (e.target === document.getElementById('photo-editor-modal')) closePhotoEditor();
+      });
+      document.getElementById('pe-save')?.addEventListener('click', saveEditedPhoto);
+      document.getElementById('pe-revert')?.addEventListener('click', revertPhoto);
+      document.getElementById('pe-reset-crop')?.addEventListener('click', peResetCrop);
+      document.getElementById('pe-rot-cw')?.addEventListener('click', () => {
+        peState.rotation = (peState.rotation + 90) % 360;
+        peRenderPreview(); peResetCrop();
+      });
+      document.getElementById('pe-rot-ccw')?.addEventListener('click', () => {
+        peState.rotation = (peState.rotation + 270) % 360;
+        peRenderPreview(); peResetCrop();
+      });
+      document.getElementById('pe-flip-h')?.addEventListener('click', () => {
+        peState.flipH = !peState.flipH;
+        peRenderPreview();
+      });
+      document.getElementById('pe-flip-v')?.addEventListener('click', () => {
+        peState.flipV = !peState.flipV;
+        peRenderPreview();
+      });
+      function peBindSlider(sliderId, valId, stateKey) {
+        const slider = document.getElementById(sliderId);
+        const valEl = document.getElementById(valId);
+        if (!slider || !valEl) return;
+        slider.addEventListener('input', () => {
+          const v = parseFloat(slider.value);
+          peState[stateKey] = v;
+          valEl.textContent = v.toFixed(2);
+          peRenderPreview();
+        });
+      }
+      peBindSlider('pe-bright', 'pe-bright-val', 'brightness');
+      peBindSlider('pe-contrast', 'pe-contrast-val', 'contrast');
+      peBindSlider('pe-sat', 'pe-sat-val', 'saturation');
+      window.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && !document.getElementById('photo-editor-modal')?.hidden) {
+          closePhotoEditor();
+        }
+      }, true);
+
+      // ─── Boot ────────────────────────────────────────────────────────────────
+      loadSlugs();
+    </script>
+  </body>
+</html>
