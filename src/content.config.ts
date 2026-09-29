@@ -67,7 +67,7 @@ const skills = defineCollection({
   schema: z.object({
     title: z.string(),
     summary: z.string(),
-    date: z.coerce.date(),
+    date: blankAsUndefined(z.coerce.date().optional()),
     /**
      * Cover photo, in the same photo-root-relative form as hero/steps/gallery
      * ('slug/file.jpg'). Optional: pages fall back through hero -> first step ->

@@ -1,4 +1,4 @@
-﻿---
+---
 // Caption Studio — dev only. Injected by astro.config.mjs only when command === 'dev'.
 // This file is NOT in src/pages/ and is never emitted in production builds.
 ---
@@ -1435,6 +1435,7 @@ They arrive as Unassigned with no caption or alt text.`)) return;
                     >${escHtml(state.summary)}</textarea>
                   </div>
                 </div>
+                ${state.type === 'skill' ? `<div class="field-row" style="margin-top:0.75rem"><div class="field-label">Date <span style="opacity:0.5;font-weight:400">(optional — shown as label on site)</span></div><input class="header-input" type="date" id="skill-date-input" value="${escHtml(state.date ?? '')}" /></div>` : ''}
               </div>
 
               ${state.photos.length === 0 ? `
@@ -1623,6 +1624,14 @@ They arrive as Unassigned with no caption or alt text.`)) return;
             const wc = countWords(state.summary);
             const wcEl = document.getElementById('word-count');
             if (wcEl) { wcEl.textContent = `${wc}/35 words`; wcEl.className = `word-count${wc > 35 ? ' warn' : ''}`; }
+            markDirty();
+          });
+        }
+
+        const skillDateInput = document.getElementById('skill-date-input');
+        if (skillDateInput) {
+          skillDateInput.addEventListener('change', () => {
+            state.date = skillDateInput.value || null;
             markDirty();
           });
         }
