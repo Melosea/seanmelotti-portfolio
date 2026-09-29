@@ -26,7 +26,6 @@ const projectCardProps = (project: (typeof allProjects)[number]) => ({
   summary: project.data.summary,
   image: resolveCover(project.data) ?? PLACEHOLDER_COVER,
   imageAlt: coverAlt(project.data),
-  tags: project.data.tags,
   vehicle: project.data.vehicle,
   status: project.data.status,
   href: `/projects/${project.id}`,
@@ -37,7 +36,6 @@ const skillCardProps = (skill: (typeof allSkills)[number]) => ({
   summary: skill.data.summary,
   image: resolveCover(skill.data) ?? PLACEHOLDER_COVER,
   imageAlt: coverAlt(skill.data),
-  tags: skill.data.tags,
   vehicle: skill.data.vehicle,
   href: `/skills/${skill.id}`,
 });
