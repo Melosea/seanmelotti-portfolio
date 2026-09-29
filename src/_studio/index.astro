@@ -651,6 +651,38 @@
         background: #2a1f00; border: 1px solid #5c4410; border-radius: 3px;
         color: #fbbf24;
       }
+      /* ── Photo editor modal ──────────────────────────────────────────────────── */
+      .photo-editor-modal { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; }
+      .photo-editor-modal[hidden] { display: none; }
+      .photo-editor-inner { width: 92vw; max-width: 1140px; height: 90vh; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; }
+      .photo-editor-header { display: flex; align-items: center; gap: 0.625rem; padding: 0.5rem 1rem; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+      .photo-editor-title { font-size: 12px; font-weight: 600; color: var(--text); }
+      .photo-editor-filename { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+      .pe-original-badge { font-size: 9px; font-family: var(--mono); padding: 1px 6px; border-radius: 3px; background: var(--accent-soft); color: #c7d3fa; }
+      .photo-editor-body { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+      .photo-editor-canvas-area { flex: 1; display: flex; align-items: center; justify-content: center; background: #0d0e10; overflow: hidden; position: relative; }
+      .photo-editor-canvas-wrap { position: relative; display: inline-block; line-height: 0; }
+      #pe-canvas { display: block; max-width: calc(92vw - 240px); max-height: calc(90vh - 80px); width: auto; height: auto; }
+      #pe-crop-canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair; }
+      .photo-editor-controls { width: 220px; flex-shrink: 0; background: var(--surface2); border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+      .pe-section { padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+      .pe-section-label { font-size: 9px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.5rem; }
+      .pe-btn-row { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+      .pe-btn { height: 24px; padding: 0 0.5rem; border-radius: 4px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 11px; font-family: var(--sans); cursor: pointer; transition: background 0.15s; white-space: nowrap; }
+      .pe-btn:hover { background: #2a2d34; border-color: #444; }
+      .pe-slider-row { margin-bottom: 0.5rem; }
+      .pe-slider-row:last-child { margin-bottom: 0; }
+      .pe-slider-label { display: flex; justify-content: space-between; align-items: center; font-size: 10px; font-family: var(--mono); color: var(--muted); margin-bottom: 0.2rem; }
+      .pe-slider-val { color: var(--text); }
+      .pe-slider { width: 100%; height: 4px; appearance: none; -webkit-appearance: none; background: var(--border); border-radius: 2px; cursor: pointer; outline: none; }
+      .pe-slider::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+      .pe-slider::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); border: none; cursor: pointer; }
+      .pe-footer { display: flex; gap: 0.375rem; padding: 0.625rem 0.75rem; border-top: 1px solid var(--border); flex-shrink: 0; margin-top: auto; }
+      .pe-footer .btn { flex: 1; justify-content: center; font-size: 11px; }
+      .btn-pe-revert { background: var(--red-soft); border-color: #4d1a1a; color: var(--red); }
+      .btn-pe-revert:hover { background: #5a1c1c; }
+      .btn-edit-photo { width: 22px; height: 22px; padding: 0; flex-shrink: 0; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); border-radius: 3px; font-size: 11px; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.15s; }
+      .btn-edit-photo:hover { background: #2a2d34; color: var(--text); }
     </style>
   </head>
   <body>
@@ -746,6 +778,65 @@
       </div>
     </div>
 
+
+    <!-- Photo editor modal -->
+    <div class="photo-editor-modal" id="photo-editor-modal" hidden>
+      <div class="photo-editor-inner">
+        <div class="photo-editor-header">
+          <span class="photo-editor-title">Edit Photo</span>
+          <span class="photo-editor-filename" id="pe-filename"></span>
+          <span class="pe-original-badge" id="pe-original-badge" hidden>Original saved</span>
+          <div style="margin-left:auto;display:flex;gap:0.375rem;align-items:center">
+            <span id="pe-status" style="font-size:10px;font-family:var(--mono);color:var(--muted)"></span>
+            <button class="btn" id="pe-cancel">Cancel</button>
+          </div>
+        </div>
+        <div class="photo-editor-body">
+          <div class="photo-editor-canvas-area">
+            <div class="photo-editor-canvas-wrap" id="pe-canvas-wrap">
+              <canvas id="pe-canvas"></canvas>
+              <canvas id="pe-crop-canvas"></canvas>
+            </div>
+          </div>
+          <div class="photo-editor-controls">
+            <div class="pe-section">
+              <div class="pe-section-label">Crop</div>
+              <div class="pe-btn-row">
+                <button class="pe-btn" id="pe-reset-crop">Reset crop</button>
+              </div>
+            </div>
+            <div class="pe-section">
+              <div class="pe-section-label">Rotate &amp; Flip</div>
+              <div class="pe-btn-row">
+                <button class="pe-btn" id="pe-rot-ccw" title="Rotate 90° counter-clockwise">↺ CCW</button>
+                <button class="pe-btn" id="pe-rot-cw" title="Rotate 90° clockwise">↻ CW</button>
+                <button class="pe-btn" id="pe-flip-h" title="Flip horizontal">⇔ H</button>
+                <button class="pe-btn" id="pe-flip-v" title="Flip vertical">⇕ V</button>
+              </div>
+            </div>
+            <div class="pe-section">
+              <div class="pe-section-label">Adjustments</div>
+              <div class="pe-slider-row">
+                <div class="pe-slider-label">Brightness <span class="pe-slider-val" id="pe-bright-val">1.0</span></div>
+                <input class="pe-slider" type="range" id="pe-bright" min="0.1" max="2.0" step="0.05" value="1.0" />
+              </div>
+              <div class="pe-slider-row">
+                <div class="pe-slider-label">Contrast <span class="pe-slider-val" id="pe-contrast-val">1.0</span></div>
+                <input class="pe-slider" type="range" id="pe-contrast" min="0.1" max="2.0" step="0.05" value="1.0" />
+              </div>
+              <div class="pe-slider-row">
+                <div class="pe-slider-label">Saturation <span class="pe-slider-val" id="pe-sat-val">1.0</span></div>
+                <input class="pe-slider" type="range" id="pe-sat" min="0.0" max="3.0" step="0.05" value="1.0" />
+              </div>
+            </div>
+            <div class="pe-footer">
+              <button class="btn btn-pe-revert" id="pe-revert" hidden title="Restore the saved original">↩ Revert</button>
+              <button class="btn btn-primary" id="pe-save">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <script type="module">
       // ─── State ──────────────────────────────────────────────────────────────
       let currentSlug = null;
@@ -1435,6 +1526,7 @@ They arrive as Unassigned with no caption or alt text.`)) return;
 
               <span class="photo-filename">${escHtml(photo.filename)}</span>
               <span class="photo-save-indicator" id="save-ind-${masterIdx}"></span>
+              <button class="btn-edit-photo" data-action="edit-photo" data-filename="${escHtml(photo.filename)}" title="Edit photo (crop, rotate, adjust)">✏</button>
               <button class="btn-delete" data-action="delete-photo" data-filename="${escHtml(photo.filename)}"
                 title="Remove from canvas (does not delete file from disk)">×</button>
             </div>
@@ -1488,6 +1580,11 @@ They arrive as Unassigned with no caption or alt text.`)) return;
       // ─── Bind all events (called after innerHTML write) ─────────────────────
       function bindEvents() {
         document.getElementById('btn-export')?.addEventListener('click', handleExport);
+
+        // Edit-photo buttons
+        document.querySelectorAll('[data-action="edit-photo"]').forEach(btn => {
+          btn.addEventListener('click', () => openPhotoEditor(btn.dataset.filename));
+        });
         document.getElementById('btn-save')?.addEventListener('click', () => autoSave());
         document.getElementById('btn-draft-toggle')?.addEventListener('click', toggleDraft);
 
@@ -2144,6 +2241,434 @@ Click OK to publish anyway, or Cancel to assign them first.`);
         if (e.target === document.getElementById('publish-modal')) closePublishModal();
       });
 
+
+      // ─── Photo Editor ──────────────────────────────────────────────────────────
+      // Vanilla JS + Canvas. No external dependencies.
+      // State is held in peState; crop coordinates are in canvas-native pixels.
+
+      const peState = {
+        filename: null,
+        slug: null,
+        img: null,
+        rotation: 0,    // 0 | 90 | 180 | 270  (degrees CW)
+        flipH: false,
+        flipV: false,
+        brightness: 1.0,
+        contrast: 1.0,
+        saturation: 1.0,
+        // crop rect in canvas-native coordinates (after rotation/flip applied)
+        crop: { x: 0, y: 0, w: 0, h: 0 },
+        hasOriginal: false,
+      };
+
+      // Crop drag state
+      let peDrag = null; // { handle: 'move'|'tl'|'tr'|'br'|'bl'|'t'|'r'|'b'|'l', startX, startY, startCrop }
+
+      function peDisplaySize(img, rotation) {
+        const sw = img.naturalWidth, sh = img.naturalHeight;
+        return (rotation % 180 === 0) ? { w: sw, h: sh } : { w: sh, h: sw };
+      }
+
+      /** Render the image to pe-canvas with rotation/flip applied. */
+      function peRenderPreview() {
+        const { img, rotation, flipH, flipV, brightness, contrast, saturation } = peState;
+        if (!img) return;
+        const canvas = document.getElementById('pe-canvas');
+        if (!canvas) return;
+        const sw = img.naturalWidth, sh = img.naturalHeight;
+        const { w: cw, h: ch } = peDisplaySize(img, rotation);
+        canvas.width = cw;
+        canvas.height = ch;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, cw, ch);
+        ctx.filter = `brightness(${brightness}) contrast(${contrast}) saturate(${saturation})`;
+        ctx.save();
+        ctx.translate(cw / 2, ch / 2);
+        ctx.rotate(rotation * Math.PI / 180);
+        if (flipH) ctx.scale(-1, 1);
+        if (flipV) ctx.scale(1, -1);
+        ctx.drawImage(img, -sw / 2, -sh / 2);
+        ctx.restore();
+        ctx.filter = 'none';
+        peRenderCropOverlay();
+      }
+
+      /** Draw the crop rect on the transparent overlay canvas. */
+      function peRenderCropOverlay() {
+        const oCanvas = document.getElementById('pe-crop-canvas');
+        const iCanvas = document.getElementById('pe-canvas');
+        if (!oCanvas || !iCanvas) return;
+        oCanvas.width = iCanvas.width;
+        oCanvas.height = iCanvas.height;
+        const ctx = oCanvas.getContext('2d');
+        const { x, y, w, h } = peState.crop;
+        const cw = oCanvas.width, ch = oCanvas.height;
+        ctx.clearRect(0, 0, cw, ch);
+        // Dark veil outside crop
+        ctx.fillStyle = 'rgba(0,0,0,0.55)';
+        ctx.fillRect(0, 0, cw, ch);
+        ctx.clearRect(x, y, w, h);
+        // Crop border
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+        // Rule-of-thirds grid
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+        ctx.lineWidth = 0.5;
+        for (let i = 1; i < 3; i++) {
+          ctx.beginPath(); ctx.moveTo(x + w * i / 3, y); ctx.lineTo(x + w * i / 3, y + h); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(x, y + h * i / 3); ctx.lineTo(x + w, y + h * i / 3); ctx.stroke();
+        }
+        // Corner handles
+        const hs = 7;
+        ctx.fillStyle = '#fff';
+        [[x, y], [x + w, y], [x + w, y + h], [x, y + h]].forEach(([hx, hy]) => {
+          ctx.fillRect(hx - hs / 2, hy - hs / 2, hs, hs);
+        });
+        // Edge handles
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        [[x + w / 2, y], [x + w, y + h / 2], [x + w / 2, y + h], [x, y + h / 2]].forEach(([hx, hy]) => {
+          ctx.fillRect(hx - hs / 2, hy - hs / 2, hs, hs);
+        });
+      }
+
+      /** Convert a mouse event's client coords to canvas-native pixel coords. */
+      function peClientToCrop(oCanvas, iCanvas, clientX, clientY) {
+        const rect = oCanvas.getBoundingClientRect();
+        const scaleX = iCanvas.width / rect.width;
+        const scaleY = iCanvas.height / rect.height;
+        return {
+          x: (clientX - rect.left) * scaleX,
+          y: (clientY - rect.top) * scaleY,
+        };
+      }
+
+      const HIT = 10; // handle hit radius in canvas pixels (scale-adjusted)
+
+      function peGetHandle(px, py) {
+        const iCanvas = document.getElementById('pe-canvas');
+        const oCanvas = document.getElementById('pe-crop-canvas');
+        if (!iCanvas || !oCanvas) return null;
+        const scaleX = iCanvas.width / oCanvas.getBoundingClientRect().width;
+        const hitR = HIT * scaleX;
+        const { x, y, w, h } = peState.crop;
+        const near = (a, b) => Math.abs(a - b) <= hitR;
+        if (near(px, x) && near(py, y)) return 'tl';
+        if (near(px, x + w) && near(py, y)) return 'tr';
+        if (near(px, x + w) && near(py, y + h)) return 'br';
+        if (near(px, x) && near(py, y + h)) return 'bl';
+        if (near(px, x + w / 2) && near(py, y)) return 't';
+        if (near(px, x + w) && near(py, y + h / 2)) return 'r';
+        if (near(px, x + w / 2) && near(py, y + h)) return 'b';
+        if (near(px, x) && near(py, y + h / 2)) return 'l';
+        if (px >= x && px <= x + w && py >= y && py <= y + h) return 'move';
+        return null;
+      }
+
+      const MIN_CROP = 20;
+
+      function peApplyDrag(curX, curY) {
+        if (!peDrag) return;
+        const dx = curX - peDrag.startX, dy = curY - peDrag.startY;
+        const sc = { ...peDrag.startCrop };
+        const iCanvas = document.getElementById('pe-canvas');
+        if (!iCanvas) return;
+        const imgW = iCanvas.width, imgH = iCanvas.height;
+        let { x, y, w, h } = sc;
+        switch (peDrag.handle) {
+          case 'move':
+            x = Math.max(0, Math.min(imgW - w, sc.x + dx));
+            y = Math.max(0, Math.min(imgH - h, sc.y + dy));
+            break;
+          case 'tl':
+            { const nx = Math.min(sc.x + dx, sc.x + sc.w - MIN_CROP);
+              const ny = Math.min(sc.y + dy, sc.y + sc.h - MIN_CROP);
+              w = sc.w + sc.x - Math.max(0, nx); h = sc.h + sc.y - Math.max(0, ny);
+              x = sc.x + sc.w - w; y = sc.y + sc.h - h; } break;
+          case 'tr':
+            { const ny = Math.min(sc.y + dy, sc.y + sc.h - MIN_CROP);
+              w = Math.max(MIN_CROP, Math.min(imgW - sc.x, sc.w + dx));
+              h = sc.h + sc.y - Math.max(0, ny); y = sc.y + sc.h - h; } break;
+          case 'br':
+            w = Math.max(MIN_CROP, Math.min(imgW - sc.x, sc.w + dx));
+            h = Math.max(MIN_CROP, Math.min(imgH - sc.y, sc.h + dy)); break;
+          case 'bl':
+            { const nx = Math.min(sc.x + dx, sc.x + sc.w - MIN_CROP);
+              w = sc.w + sc.x - Math.max(0, nx); x = sc.x + sc.w - w;
+              h = Math.max(MIN_CROP, Math.min(imgH - sc.y, sc.h + dy)); } break;
+          case 't':
+            { const ny = Math.min(sc.y + dy, sc.y + sc.h - MIN_CROP);
+              h = sc.h + sc.y - Math.max(0, ny); y = sc.y + sc.h - h; } break;
+          case 'r': w = Math.max(MIN_CROP, Math.min(imgW - sc.x, sc.w + dx)); break;
+          case 'b': h = Math.max(MIN_CROP, Math.min(imgH - sc.y, sc.h + dy)); break;
+          case 'l':
+            { const nx = Math.min(sc.x + dx, sc.x + sc.w - MIN_CROP);
+              w = sc.w + sc.x - Math.max(0, nx); x = sc.x + sc.w - w; } break;
+        }
+        peState.crop = { x: Math.max(0, x), y: Math.max(0, y), w: Math.max(MIN_CROP, w), h: Math.max(MIN_CROP, h) };
+        peRenderCropOverlay();
+      }
+
+      function peCropCursorFor(handle) {
+        const map = { tl: 'nwse-resize', tr: 'nesw-resize', br: 'nwse-resize', bl: 'nesw-resize', t: 'ns-resize', b: 'ns-resize', l: 'ew-resize', r: 'ew-resize', move: 'move' };
+        return map[handle] || 'crosshair';
+      }
+
+      function peBindCropEvents() {
+        const oCanvas = document.getElementById('pe-crop-canvas');
+        const iCanvas = document.getElementById('pe-canvas');
+        if (!oCanvas || !iCanvas) return;
+        oCanvas.addEventListener('mousedown', e => {
+          const { x, y } = peClientToCrop(oCanvas, iCanvas, e.clientX, e.clientY);
+          const handle = peGetHandle(x, y);
+          if (!handle) return;
+          e.preventDefault();
+          peDrag = { handle, startX: x, startY: y, startCrop: { ...peState.crop } };
+        });
+        window.addEventListener('mousemove', e => {
+          if (!peDrag) {
+            const { x, y } = peClientToCrop(oCanvas, iCanvas, e.clientX, e.clientY);
+            const h = peGetHandle(x, y);
+            oCanvas.style.cursor = h ? peCropCursorFor(h) : 'crosshair';
+            return;
+          }
+          const { x, y } = peClientToCrop(oCanvas, iCanvas, e.clientX, e.clientY);
+          peApplyDrag(x, y);
+        });
+        window.addEventListener('mouseup', () => { peDrag = null; });
+        // Touch support
+        oCanvas.addEventListener('touchstart', e => {
+          const t = e.touches[0];
+          const { x, y } = peClientToCrop(oCanvas, iCanvas, t.clientX, t.clientY);
+          const handle = peGetHandle(x, y);
+          if (!handle) return;
+          e.preventDefault();
+          peDrag = { handle, startX: x, startY: y, startCrop: { ...peState.crop } };
+        }, { passive: false });
+        window.addEventListener('touchmove', e => {
+          if (!peDrag) return;
+          const t = e.touches[0];
+          const { x, y } = peClientToCrop(oCanvas, iCanvas, t.clientX, t.clientY);
+          peApplyDrag(x, y);
+        });
+        window.addEventListener('touchend', () => { peDrag = null; });
+      }
+
+      function peResetCrop() {
+        const iCanvas = document.getElementById('pe-canvas');
+        if (!iCanvas) return;
+        peState.crop = { x: 0, y: 0, w: iCanvas.width, h: iCanvas.height };
+        peRenderCropOverlay();
+      }
+
+      async function openPhotoEditor(filename) {
+        if (!currentSlug || !filename) return;
+        peState.filename = filename;
+        peState.slug = currentSlug;
+        peState.rotation = 0;
+        peState.flipH = false;
+        peState.flipV = false;
+        peState.brightness = 1.0;
+        peState.contrast = 1.0;
+        peState.saturation = 1.0;
+        peState.hasOriginal = false;
+
+        // Reset slider UI
+        ['pe-bright','pe-contrast','pe-sat'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '1.0';
+        });
+        document.getElementById('pe-bright-val') && (document.getElementById('pe-bright-val').textContent = '1.0');
+        document.getElementById('pe-contrast-val') && (document.getElementById('pe-contrast-val').textContent = '1.0');
+        document.getElementById('pe-sat-val') && (document.getElementById('pe-sat-val').textContent = '1.0');
+        document.getElementById('pe-sat').value = '1.0';
+
+        document.getElementById('pe-filename').textContent = filename;
+        document.getElementById('pe-status').textContent = 'Loading…';
+        document.getElementById('pe-original-badge').hidden = true;
+        document.getElementById('pe-revert').hidden = true;
+        document.getElementById('photo-editor-modal').hidden = false;
+
+        // Load image
+        const imgSrc = `/photos/${currentSlug}/${filename}?_nocache=${Date.now()}`;
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = imgSrc;
+        }).catch(() => {
+          document.getElementById('pe-status').textContent = 'Failed to load image';
+        });
+        peState.img = img;
+        document.getElementById('pe-status').textContent = '';
+
+        // Check for existing original
+        try {
+          const r = await fetch(`/api/studio/has-original?slug=${encodeURIComponent(currentSlug)}&filename=${encodeURIComponent(filename)}`);
+          const { exists } = await r.json();
+          peState.hasOriginal = exists;
+          document.getElementById('pe-original-badge').hidden = !exists;
+          document.getElementById('pe-revert').hidden = !exists;
+        } catch {}
+
+        peRenderPreview();
+        peResetCrop();
+        peBindCropEvents();
+      }
+
+      function closePhotoEditor() {
+        document.getElementById('photo-editor-modal').hidden = true;
+        peState.img = null;
+        peDrag = null;
+      }
+
+      /** Build final canvas with all edits applied (crop + rotation + flip + adjustments). */
+      function peBuildFinalCanvas() {
+        const { img, rotation, flipH, flipV, brightness, contrast, saturation, crop } = peState;
+        if (!img) return null;
+        const sw = img.naturalWidth, sh = img.naturalHeight;
+        const { w: cw, h: ch } = peDisplaySize(img, rotation);
+        // Draw full rotated/flipped image
+        const full = document.createElement('canvas');
+        full.width = cw; full.height = ch;
+        const fctx = full.getContext('2d');
+        fctx.filter = `brightness(${brightness}) contrast(${contrast}) saturate(${saturation})`;
+        fctx.save();
+        fctx.translate(cw / 2, ch / 2);
+        fctx.rotate(rotation * Math.PI / 180);
+        if (flipH) fctx.scale(-1, 1);
+        if (flipV) fctx.scale(1, -1);
+        fctx.drawImage(img, -sw / 2, -sh / 2);
+        fctx.restore();
+        // Crop
+        const cx = Math.round(crop.x), cy = Math.round(crop.y);
+        const cw2 = Math.max(1, Math.round(crop.w)), ch2 = Math.max(1, Math.round(crop.h));
+        const out = document.createElement('canvas');
+        out.width = cw2; out.height = ch2;
+        out.getContext('2d').drawImage(full, cx, cy, cw2, ch2, 0, 0, cw2, ch2);
+        return out;
+      }
+
+      async function saveEditedPhoto() {
+        const btn = document.getElementById('pe-save');
+        const statusEl = document.getElementById('pe-status');
+        if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+        if (statusEl) statusEl.textContent = '';
+        try {
+          const finalCanvas = peBuildFinalCanvas();
+          if (!finalCanvas) throw new Error('Could not build canvas');
+          const dataUrl = await new Promise((resolve, reject) => {
+            finalCanvas.toBlob(blob => {
+              if (!blob) { reject(new Error('toBlob failed')); return; }
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            }, 'image/jpeg', 0.92);
+          });
+          const r = await fetch('/api/studio/save-edited-photo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slug: peState.slug, filename: peState.filename, dataUrl }),
+          });
+          const result = await r.json();
+          if (!result.ok) throw new Error(result.error || 'Save failed');
+          // Show original badge/revert if server just created the backup
+          if (result.hasOriginal) {
+            peState.hasOriginal = true;
+            document.getElementById('pe-original-badge').hidden = false;
+            document.getElementById('pe-revert').hidden = false;
+          }
+          // Cache-bust the displayed image in the studio
+          const ts = Date.now();
+          document.querySelectorAll(`.step-block[data-filename="${CSS.escape(peState.filename)}"] img`).forEach(img => {
+            img.src = `/photos/${peState.slug}/${peState.filename}?v=${ts}`;
+          });
+          if (statusEl) { statusEl.textContent = '✓ Saved'; setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 3000); }
+          closePhotoEditor();
+        } catch (e) {
+          if (statusEl) statusEl.textContent = `⚠ ${e.message}`;
+        } finally {
+          if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+        }
+      }
+
+      async function revertPhoto() {
+        if (!peState.hasOriginal) return;
+        if (!confirm(`Revert "${peState.filename}" to its original? All edits will be lost.`)) return;
+        const btn = document.getElementById('pe-revert');
+        const statusEl = document.getElementById('pe-status');
+        if (btn) { btn.disabled = true; btn.textContent = '↩ Reverting…'; }
+        try {
+          const r = await fetch('/api/studio/revert-photo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slug: peState.slug, filename: peState.filename }),
+          });
+          const result = await r.json();
+          if (!result.ok) throw new Error(result.error || 'Revert failed');
+          // Cache-bust display
+          const ts = Date.now();
+          document.querySelectorAll(`.step-block[data-filename="${CSS.escape(peState.filename)}"] img`).forEach(img => {
+            img.src = `/photos/${peState.slug}/${peState.filename}?v=${ts}`;
+          });
+          if (statusEl) statusEl.textContent = '✓ Reverted';
+          closePhotoEditor();
+        } catch (e) {
+          if (statusEl) statusEl.textContent = `⚠ ${e.message}`;
+        } finally {
+          if (btn) { btn.disabled = false; btn.textContent = '↩ Revert'; }
+        }
+      }
+
+      // Wire up photo editor modal controls (once at boot)
+      document.getElementById('pe-cancel')?.addEventListener('click', closePhotoEditor);
+      document.getElementById('photo-editor-modal')?.addEventListener('click', e => {
+        if (e.target === document.getElementById('photo-editor-modal')) closePhotoEditor();
+      });
+      document.getElementById('pe-save')?.addEventListener('click', saveEditedPhoto);
+      document.getElementById('pe-revert')?.addEventListener('click', revertPhoto);
+      document.getElementById('pe-reset-crop')?.addEventListener('click', peResetCrop);
+
+      document.getElementById('pe-rot-cw')?.addEventListener('click', () => {
+        peState.rotation = (peState.rotation + 90) % 360;
+        peRenderPreview(); peResetCrop();
+      });
+      document.getElementById('pe-rot-ccw')?.addEventListener('click', () => {
+        peState.rotation = (peState.rotation + 270) % 360;
+        peRenderPreview(); peResetCrop();
+      });
+      document.getElementById('pe-flip-h')?.addEventListener('click', () => {
+        peState.flipH = !peState.flipH;
+        peRenderPreview();
+      });
+      document.getElementById('pe-flip-v')?.addEventListener('click', () => {
+        peState.flipV = !peState.flipV;
+        peRenderPreview();
+      });
+
+      function peBindSlider(sliderId, valId, stateKey) {
+        const slider = document.getElementById(sliderId);
+        const valEl = document.getElementById(valId);
+        if (!slider || !valEl) return;
+        slider.addEventListener('input', () => {
+          const v = parseFloat(slider.value);
+          peState[stateKey] = v;
+          valEl.textContent = v.toFixed(2);
+          peRenderPreview();
+        });
+      }
+      peBindSlider('pe-bright', 'pe-bright-val', 'brightness');
+      peBindSlider('pe-contrast', 'pe-contrast-val', 'contrast');
+      peBindSlider('pe-sat', 'pe-sat-val', 'saturation');
+
+      // Escape key closes the editor
+      window.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && !document.getElementById('photo-editor-modal')?.hidden) {
+          closePhotoEditor();
+        }
+      }, true);
       loadProjects();
       // Populate the badge at boot so the count is visible without clicking.
       refreshPublishStatus();
