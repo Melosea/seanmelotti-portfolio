@@ -13,9 +13,7 @@ interface Props {
   /** Describe the project, not the file. Required so cards stay accessible. */
   imageAlt: string;
   tags?: string[];
-  /** Vehicle line shown as the mono eyebrow above the title. */
-  vehicle?: string;
-  /** Pre-formatted date (e.g. "Aug 2026"), appended to the eyebrow line. */
+  /** Pre-formatted date (e.g. "Aug 2026") shown as the mono eyebrow above the title. */
   dateLabel?: string;
   status?: 'completed' | 'in-progress' | 'planned';
   /** Destination for the card link. A card without one renders as a plain article. */
@@ -32,7 +30,6 @@ const {
   image,
   imageAlt,
   tags = [],
-  vehicle,
   dateLabel,
   status,
   href,
@@ -115,11 +112,7 @@ const Wrapper = href ? 'a' : 'div';
       ]}
     >
       {
-        (vehicle || dateLabel) && (
-          <p class="eyebrow">
-            {[vehicle, dateLabel].filter(Boolean).join(' · ')}
-          </p>
-        )
+        dateLabel && <p class="eyebrow">{dateLabel}</p>
       }
       <h3
         class:list={[
