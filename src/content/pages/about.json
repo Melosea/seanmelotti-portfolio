@@ -1,8 +1,7 @@
 {
-  "lede": "Restoration, fabrication and 3D work — documented from teardown to the last torque check.",
+  "lede": "Restoration, Fabrication and 3D Modeling",
   "intro": [
-    "I restore and build mechanical things — assemblies brought back to spec, metal formed and welded to fit, and parts modelled in CAD and printed when nothing off the shelf will do the job.",
-    "Every project here is documented end to end: what came in, what it needed, how it was measured, and where it ended up. The write-up is as much of the work as the photos are."
+    "I restore and build mechanical things — assemblies brought back to spec, metal formed and welded to fit, and parts modelled in CAD and printed when nothing off the shelf will do the job."
   ],
   "disciplines": [
     {
@@ -19,14 +18,26 @@
     },
     {
       "name": "Additive Manufacturing",
-      "description": "Printed parts, patterns and fixtures — replacements for trim nobody stocks any more, and the tooling that makes the rest of the job easier."
+      "description": "Printed parts, patterns and fixtures — replacements for parts no longer made, and the tooling that makes the rest of the job easier."
     }
   ],
   "facts": [
-    { "label": "Based in", "value": null },
-    { "label": "Working since", "value": null },
-    { "label": "Shop setup", "value": null },
-    { "label": "Open to", "value": null }
+    {
+      "label": "Based in",
+      "value": null
+    },
+    {
+      "label": "Working since",
+      "value": "2020"
+    },
+    {
+      "label": "Shop setup",
+      "value": null
+    },
+    {
+      "label": "Open to",
+      "value": null
+    }
   ],
-  "closingHeading": "The work says more than this page does."
+  "closingHeading": "The Details Make the Difference"
 }
