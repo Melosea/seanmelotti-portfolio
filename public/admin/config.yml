@@ -1,0 +1,155 @@
+# Sveltia CMS configuration — seanmelotti.com
+# Docs: https://github.com/sveltia/sveltia-cms
+backend:
+  name: github
+  repo: Melosea/seanmelotti-portfolio
+  branch: main
+  # OAuth handled by the sveltia-cms-auth Cloudflare Worker.
+  # Deployed worker: sveltia-cms-auth on the Cloudflare account.
+  base_url: https://sveltia-cms-auth.seancmelotti.workers.dev
+
+site_url: https://seanmelotti.com
+display_url: https://seanmelotti.com
+
+# Photos live in-repo; the site resolver (src/lib/photo-path.mjs) accepts
+# the '/src/assets/photos/...' form Sveltia writes, so no rewriting needed.
+media_folder: src/assets/photos
+
+# Downscale giant phone photos on upload so the repo stays lean.
+media_libraries:
+  default:
+    config:
+      transformations:
+        raster_image:
+          format: webp
+          quality: 85
+          width: 2560
+          height: 2560
+
+collections:
+  - name: projects
+    label: Projects
+    label_singular: Project
+    folder: src/content/projects
+    extension: mdx
+    format: frontmatter
+    create: true
+    slug: '{{slug}}'
+    summary: '{{title}} — {{vehicle}}'
+    sortable_fields: [date, title, status]
+    fields:
+      - { name: title, label: Title, widget: string }
+      - { name: summary, label: Summary, widget: text }
+      - { name: date, label: Date, widget: datetime, format: 'YYYY-MM-DD', time_format: false, picker_utc: true }
+      - { name: coverImage, label: Cover Image, widget: image, required: false }
+      - { name: coverImageAlt, label: Cover Image Alt, widget: string, required: false }
+      - { name: tags, label: Tags, widget: list, default: [], required: false }
+      - { name: vehicle, label: Vehicle, widget: string }
+      - name: status
+        label: Status
+        widget: select
+        options: [completed, in-progress, planned]
+        default: in-progress
+      - { name: featured, label: Featured, widget: boolean, default: false }
+      - { name: draft, label: Draft, widget: boolean, default: false }
+      - name: hero
+        label: Hero Photo
+        widget: object
+        required: false
+        fields:
+          - { name: src, label: Photo, widget: image }
+          - { name: alt, label: Alt Text, widget: string }
+      - name: specStrip
+        label: 'Spec Strip (max 4)'
+        widget: list
+        max: 4
+        required: false
+        default: []
+      - name: steps
+        label: Build Steps
+        widget: list
+        required: false
+        default: []
+        summary: '{{fields.caption}}'
+        fields:
+          - { name: src, label: Photo, widget: image }
+          - { name: alt, label: Alt Text, widget: string }
+          - { name: caption, label: 'Caption (max 90 chars)', widget: string, pattern: ['^.{0,90}$', 'Max 90 characters'] }
+          - { name: chapter, label: Chapter, widget: string, required: false }
+          - name: orientation
+            label: Orientation
+            widget: select
+            options: [landscape, portrait]
+            default: landscape
+          - { name: pair, label: 'Pair with next photo', widget: boolean, default: false }
+      - name: gallery
+        label: Gallery
+        widget: list
+        required: false
+        default: []
+        summary: '{{fields.alt}}'
+        fields:
+          - { name: src, label: Photo, widget: image }
+          - { name: alt, label: Alt Text, widget: string }
+      - { name: body, label: Story, widget: markdown, required: false }
+
+  - name: skills
+    label: Skills
+    label_singular: Skill
+    folder: src/content/skills
+    extension: mdx
+    format: frontmatter
+    create: true
+    slug: '{{slug}}'
+    summary: '{{title}}'
+    sortable_fields: [date, title]
+    fields:
+      - { name: title, label: Title, widget: string }
+      - { name: summary, label: Summary, widget: text }
+      - { name: date, label: Date, widget: datetime, format: 'YYYY-MM-DD', time_format: false, picker_utc: true }
+      - { name: coverImage, label: Cover Image, widget: image, required: false }
+      - { name: coverImageAlt, label: Cover Image Alt, widget: string, required: false }
+      - { name: tags, label: Tags, widget: list, default: [], required: false }
+      - { name: vehicle, label: Vehicle, widget: string, required: false }
+      - { name: featured, label: Featured, widget: boolean, default: false }
+      - { name: draft, label: Draft, widget: boolean, default: false }
+      - name: hero
+        label: Hero Photo
+        widget: object
+        required: false
+        fields:
+          - { name: src, label: Photo, widget: image }
+          - { name: alt, label: Alt Text, widget: string }
+      - name: specStrip
+        label: 'Spec Strip (max 4)'
+        widget: list
+        max: 4
+        required: false
+        default: []
+      - name: steps
+        label: Build Steps
+        widget: list
+        required: false
+        default: []
+        summary: '{{fields.caption}}'
+        fields:
+          - { name: src, label: Photo, widget: image }
+          - { name: alt, label: Alt Text, widget: string }
+          - { name: caption, label: 'Caption (max 90 chars)', widget: string, pattern: ['^.{0,90}$', 'Max 90 characters'] }
+          - { name: chapter, label: Chapter, widget: string, required: false }
+          - name: orientation
+            label: Orientation
+            widget: select
+            options: [landscape, portrait]
+            default: landscape
+          - { name: pair, label: 'Pair with next photo', widget: boolean, default: false }
+      - name: gallery
+        label: Gallery
+        widget: list
+        required: false
+        default: []
+        summary: '{{fields.alt}}'
+        fields:
+          - { name: src, label: Photo, widget: image }
+          - { name: alt, label: Alt Text, widget: string }
+      - { name: body, label: Story, widget: markdown, required: false }
