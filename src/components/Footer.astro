@@ -1,6 +1,8 @@
----
-import { CONTACT_METHODS, NAV_ITEMS, SITE, SOCIAL_LINKS } from '../consts';
+﻿---
+import { CONTACT_METHODS, SITE, SOCIAL_LINKS } from '../consts';
+import navContent from '../content/pages/nav.json';
 
+const navItems = navContent.items;
 const year = new Date().getFullYear();
 ---
 
@@ -19,7 +21,7 @@ const year = new Date().getFullYear();
         <h2 class="eyebrow">Site</h2>
         <ul class="mt-4 flex flex-col gap-2.5">
           {
-            NAV_ITEMS.map((item) => (
+            navItems.map((item) => (
               <li>
                 <a
                   href={item.href}

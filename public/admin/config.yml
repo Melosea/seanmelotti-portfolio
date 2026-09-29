@@ -153,3 +153,50 @@ collections:
           - { name: src, label: Photo, widget: image }
           - { name: alt, label: Alt Text, widget: string }
       - { name: body, label: Story, widget: markdown, required: false }
+
+  - name: pages
+    label: Pages
+    files:
+      - name: home
+        label: Home Page
+        file: src/content/pages/home.json
+        fields:
+          - { name: positioning, label: Positioning / Eyebrow, widget: string }
+          - { name: tagline, label: Tagline, widget: text }
+          - { name: ctaText, label: CTA Button Text, widget: string }
+          - { name: ctaSubtext, label: CTA Sub-text, widget: string }
+          - name: featuredProjects
+            label: Featured Projects
+            widget: list
+            label_singular: Project
+            field:
+              name: value
+              widget: relation
+              collection: projects
+              value_field: '{{slug}}'
+              search_fields: [title, vehicle]
+              display_fields: ['{{title}} — {{vehicle}}']
+          - name: featuredSkills
+            label: Skills Carousel
+            widget: list
+            label_singular: Skill
+            field:
+              name: value
+              widget: relation
+              collection: skills
+              value_field: '{{slug}}'
+              search_fields: [title]
+              display_fields: [title]
+
+      - name: nav
+        label: Site Navigation
+        file: src/content/pages/nav.json
+        fields:
+          - name: items
+            label: Nav Items
+            widget: list
+            label_singular: Nav Item
+            summary: '{{fields.label}} → {{fields.href}}'
+            fields:
+              - { name: label, label: Label, widget: string }
+              - { name: href, label: Path (e.g. /projects), widget: string }
