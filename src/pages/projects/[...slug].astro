@@ -4,6 +4,7 @@ import { Image, getImage } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Lightbox from '../../components/Lightbox.astro';
 import { resolvePhoto, resolveCover, coverAlt, PLACEHOLDER_COVER } from '../../lib/photos';
+import { formatDateLabel } from '../../lib/date-label.mjs';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects', ({ data }) => !data.draft);
@@ -39,10 +40,7 @@ const STATUS_CLASS = {
   planned: 'status-pill-planned',
 } as const;
 
-const fullDate = new Intl.DateTimeFormat('en-US', {
-  month: 'long',
-  year: 'numeric',
-}).format(project.data.date);
+const fullDate = formatDateLabel(project.data, { monthStyle: 'long' });
 
 const { hero, specStrip, steps, gallery } = project.data;
 

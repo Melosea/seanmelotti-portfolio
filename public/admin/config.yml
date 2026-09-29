@@ -41,6 +41,8 @@ collections:
       - { name: title, label: Title, widget: string }
       - { name: summary, label: Summary, widget: text }
       - { name: date, label: Date, widget: datetime, format: 'YYYY-MM-DD', time_format: false, picker_utc: true }
+      - { name: dateEnd, label: End Date, widget: datetime, format: 'YYYY-MM-DD', time_format: false, picker_utc: true, required: false, hint: 'Optional — shows a range like "Aug 2025 – Nov 2025"' }
+      - { name: ongoing, label: Ongoing, widget: boolean, required: false, default: false, hint: 'Shows "Aug 2025 – Present" while the build is active' }
       - { name: coverImage, label: Cover Image, widget: image, required: false }
       - { name: coverImageAlt, label: Cover Image Alt, widget: string, required: false }
       - { name: tags, label: Tags, widget: list, default: [], required: false }

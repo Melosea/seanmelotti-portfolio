@@ -14,7 +14,7 @@ const skills = (await getCollection('skills', ({ data }) => !data.draft)).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
 );
 
-const monthYear = new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric' });
+import { formatDateLabel } from '../../lib/date-label.mjs';
 ---
 
 <BaseLayout
@@ -44,7 +44,7 @@ const monthYear = new Intl.DateTimeFormat('en-US', { month: 'short', year: 'nume
                     image={resolveCover(skill.data) ?? PLACEHOLDER_COVER}
                     imageAlt={coverAlt(skill.data)}
                     tags={skill.data.tags}
-                    dateLabel={monthYear.format(skill.data.date)}
+                    dateLabel={formatDateLabel(skill.data)}
                     href={`/skills/${skill.id}`}
                     eager={index < 3}
                   />
