@@ -8,7 +8,7 @@ import { SITE } from '../consts';
 
 import homeContent from '../content/pages/home.json';
 
-const { positioning: POSITIONING, tagline, ctaText, ctaSubtext, featuredProjects, featuredSkills } =
+const { tagline, ctaText, ctaSubtext, featuredProjects, featuredSkills } =
   homeContent;
 
 const allProjects = await getCollection('projects', ({ data }) => !data.draft);
@@ -52,9 +52,7 @@ const skillCardProps = (skill: (typeof allSkills)[number]) => ({
     </div>
 
     <div class="container-page relative py-8 md:py-14">
-      <p class="hero-eyebrow">{POSITIONING}</p>
-
-      <h1 class="mt-4 max-w-3xl text-4xl text-ink-950 md:text-5xl">Sean Melotti</h1>
+      <h1 class="max-w-3xl text-4xl text-ink-950 md:text-5xl">Sean Melotti</h1>
 
       <p class="mt-4 max-w-xl text-base text-ink-500 md:text-lg">
         {tagline}
@@ -70,7 +68,7 @@ const skillCardProps = (skill: (typeof allSkills)[number]) => ({
   <!-- Featured projects carousel -->
   {
     featuredProjectEntries.length > 0 && (
-      <section class="pt-8 pb-14 md:pt-12 md:pb-20" aria-labelledby="featured-projects">
+      <section class="pt-8 pb-8 md:pt-12 md:pb-10" aria-labelledby="featured-projects">
         <div class="container-page">
           <div class="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
             <h2 id="featured-projects" class="text-2xl text-ink-950 md:text-3xl">
@@ -99,7 +97,7 @@ const skillCardProps = (skill: (typeof allSkills)[number]) => ({
   {
     featuredSkillEntries.length > 0 && (
       <section
-        class="pt-8 pb-14 md:pt-12 md:pb-20 border-t border-line"
+        class="pt-6 pb-14 md:pt-8 md:pb-20 border-t border-line"
         aria-labelledby="featured-skills"
       >
         <div class="container-page">
