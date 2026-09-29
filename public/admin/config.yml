@@ -5,8 +5,8 @@ backend:
   repo: Melosea/seanmelotti-portfolio
   branch: main
   # OAuth handled by the sveltia-cms-auth Cloudflare Worker.
-  # REPLACE the placeholder below with the deployed worker URL.
-  base_url: https://REPLACE-WITH-AUTH-WORKER.workers.dev
+  # Deployed worker: sveltia-cms-auth on the Cloudflare account.
+  base_url: https://sveltia-cms-auth.seancmelotti.workers.dev
 
 site_url: https://seanmelotti.com
 display_url: https://seanmelotti.com
