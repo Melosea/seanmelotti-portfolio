@@ -20,11 +20,6 @@ interface Props {
 const { skill } = Astro.props;
 const { Content } = await render(skill);
 
-/**
- * Photo resolution is shared with every other page (and with the reference
- * checker) so `coverImage`, `hero`, `steps` and `gallery` all accept the same
- * path form and all get astro:assets optimisation.
- */
 const getImg = resolvePhoto;
 
 const { hero, specStrip, steps, gallery } = skill.data;
@@ -56,19 +51,15 @@ for (const step of stepsWithImg) {
   }
 }
 
-/**
- * The cover falls back through hero -> first step -> first gallery photo, so an
- * entry with any real photo never renders a placeholder. The hero borrows it
- * when `hero.src` itself does not resolve.
- */
+// Chapter tabs: only show when at least one step has a named chapter
+const uniqueChapters = [...new Set(stepsWithImg.map((s) => s.chapter).filter(Boolean))] as string[];
+const hasChapterTabs = uniqueChapters.length > 0;
+const hasOtherChapter = hasChapterTabs && stepsWithImg.some((s) => !s.chapter);
+const tabChapters = hasOtherChapter ? [...uniqueChapters, 'Other'] : uniqueChapters;
+
 const coverImg = resolveCover(skill.data);
 const heroImg = (hero ? getImg(hero.src) : null) ?? coverImg;
 
-/**
- * og:image must be a built URL string, never an ESM image object — BaseLayout
- * resolves it against `site` to get the absolute URL crawlers need. Falls
- * through to the site default when there is no photo, so the tag never breaks.
- */
 const ogImage = coverImg
   ? (await getImage({ src: coverImg, width: 1200, format: 'jpeg' })).src
   : undefined;
@@ -125,68 +116,81 @@ const useNewLayout = !!hero;
 
         {stepsWithImg.length > 0 && (
           <div class="seq-section">
-            <div class="seq-list">
-              {chapterGroups.map((group) => (
-                <div class:list={['seq-chapter-group', group.label ? 'seq-chapter-break' : '']}>
-                  {group.label && (
-                    <p class="seq-chapter">{group.label}</p>
-                  )}
-                  {(() => {
-                    const rendered: any[] = [];
-                    let i = 0;
-                    while (i < group.steps.length) {
-                      const step = group.steps[i];
-                      if (i === 0) {
-                        rendered.push(
-                          <figure class:list={['seq-figure', step.orientation === 'portrait' ? 'portrait' : '']} key={`step-${step.seqIdx}`}>
-                            {step.img ? (
-                              <Image src={step.img} alt={step.alt} loading="lazy" decoding="async"
-                                widths={[480, 880, 1760]} sizes="(min-width: 72rem) 880px, (min-width: 48rem) calc(100vw - 4rem), calc(100vw - 2.5rem)" />
-                            ) : null}
-                            {step.caption && <figcaption class="seq-caption">{step.caption}</figcaption>}
-                          </figure>
-                        );
-                        i++;
-                      } else {
-                        const nextStep = group.steps[i + 1];
-                        if (nextStep) {
+            <div class:list={[hasChapterTabs ? 'chapter-layout' : '']}>
+              {hasChapterTabs && (
+                <nav class="chapter-tabs" aria-label="Chapters">
+                  <button class="chapter-tab is-active" data-filter="__all">All</button>
+                  {tabChapters.map((ch) => (
+                    <button class="chapter-tab" data-filter={ch === 'Other' ? '__other' : ch}>{ch}</button>
+                  ))}
+                </nav>
+              )}
+              <div class="seq-list">
+                {chapterGroups.map((group) => (
+                  <div
+                    class:list={['seq-chapter-group', group.label ? 'seq-chapter-break' : '']}
+                    data-chapter={group.label ?? '__other'}
+                  >
+                    {group.label && (
+                      <p class="seq-chapter">{group.label}</p>
+                    )}
+                    {(() => {
+                      const rendered: any[] = [];
+                      let i = 0;
+                      while (i < group.steps.length) {
+                        const step = group.steps[i];
+                        if (i === 0) {
                           rendered.push(
-                            <div class="seq-pair" key={`pair-${step.seqIdx}`}>
-                              <figure class:list={['seq-figure', step.orientation === 'portrait' ? 'portrait' : '']}>
+                            <figure class:list={['seq-figure', step.orientation === 'portrait' ? 'portrait' : '']} key={`step-${step.seqIdx}`}>
+                              {step.img ? (
+                                <Image src={step.img} alt={step.alt} loading="lazy" decoding="async"
+                                  widths={[480, 880, 1760]} sizes="(min-width: 72rem) 880px, (min-width: 48rem) calc(100vw - 4rem), calc(100vw - 2.5rem)" />
+                              ) : null}
+                              {step.caption && <figcaption class="seq-caption">{step.caption}</figcaption>}
+                            </figure>
+                          );
+                          i++;
+                        } else {
+                          const nextStep = group.steps[i + 1];
+                          if (nextStep) {
+                            rendered.push(
+                              <div class="seq-pair" key={`pair-${step.seqIdx}`}>
+                                <figure class:list={['seq-figure', step.orientation === 'portrait' ? 'portrait' : '']}>
+                                  {step.img ? (
+                                    <Image src={step.img} alt={step.alt} loading="lazy" decoding="async"
+                                      widths={[320, 640, 880]} sizes="(min-width: 72rem) 430px, (min-width: 48rem) calc(50vw - 2rem), calc(100vw - 2.5rem)" />
+                                  ) : null}
+                                  {step.caption && <figcaption class="seq-caption">{step.caption}</figcaption>}
+                                </figure>
+                                <figure class:list={['seq-figure', nextStep.orientation === 'portrait' ? 'portrait' : '']}>
+                                  {nextStep.img ? (
+                                    <Image src={nextStep.img} alt={nextStep.alt} loading="lazy" decoding="async"
+                                      widths={[320, 640, 880]} sizes="(min-width: 72rem) 430px, (min-width: 48rem) calc(50vw - 2rem), calc(100vw - 2.5rem)" />
+                                  ) : null}
+                                  {nextStep.caption && <figcaption class="seq-caption">{nextStep.caption}</figcaption>}
+                                </figure>
+                              </div>
+                            );
+                            i += 2;
+                          } else {
+                            rendered.push(
+                              <figure class:list={['seq-figure', step.orientation === 'portrait' ? 'portrait' : '']} key={`step-${step.seqIdx}`}>
                                 {step.img ? (
                                   <Image src={step.img} alt={step.alt} loading="lazy" decoding="async"
                                     widths={[320, 640, 880]} sizes="(min-width: 72rem) 430px, (min-width: 48rem) calc(50vw - 2rem), calc(100vw - 2.5rem)" />
                                 ) : null}
                                 {step.caption && <figcaption class="seq-caption">{step.caption}</figcaption>}
                               </figure>
-                              <figure class:list={['seq-figure', nextStep.orientation === 'portrait' ? 'portrait' : '']}>
-                                {nextStep.img ? (
-                                  <Image src={nextStep.img} alt={nextStep.alt} loading="lazy" decoding="async"
-                                    widths={[320, 640, 880]} sizes="(min-width: 72rem) 430px, (min-width: 48rem) calc(50vw - 2rem), calc(100vw - 2.5rem)" />
-                                ) : null}
-                                {nextStep.caption && <figcaption class="seq-caption">{nextStep.caption}</figcaption>}
-                              </figure>
-                            </div>
-                          );
-                          i += 2;
-                        } else {
-                          rendered.push(
-                            <figure class:list={['seq-figure', step.orientation === 'portrait' ? 'portrait' : '']} key={`step-${step.seqIdx}`}>
-                              {step.img ? (
-                                <Image src={step.img} alt={step.alt} loading="lazy" decoding="async"
-                                  widths={[320, 640, 880]} sizes="(min-width: 72rem) 430px, (min-width: 48rem) calc(50vw - 2rem), calc(100vw - 2.5rem)" />
-                              ) : null}
-                              {step.caption && <figcaption class="seq-caption">{step.caption}</figcaption>}
-                            </figure>
-                          );
-                          i++;
+                            );
+                            i++;
+                          }
                         }
                       }
-                    }
-                    return rendered;
-                  })()}
-                </div>
-              ))}
+                      return rendered;
+                    })()}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -266,3 +270,23 @@ const useNewLayout = !!hero;
     )}
   </article>
 </BaseLayout>
+
+<script>
+  const nav = document.querySelector<HTMLElement>('.chapter-tabs');
+  if (nav) {
+    const layout = nav.parentElement;
+    const seqList = layout?.querySelector<HTMLElement>('.seq-list');
+    if (seqList) {
+      nav.addEventListener('click', (e) => {
+        const btn = (e.target as Element).closest<HTMLButtonElement>('.chapter-tab');
+        if (!btn) return;
+        const filter = btn.dataset.filter!;
+        nav.querySelectorAll('.chapter-tab').forEach((b) => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        seqList.querySelectorAll<HTMLElement>('[data-chapter]').forEach((g) => {
+          g.hidden = filter !== '__all' && g.dataset.chapter !== filter;
+        });
+      });
+    }
+  }
+</script>
