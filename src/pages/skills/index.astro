@@ -1,30 +1,31 @@
----
+﻿---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ProjectCard from '../../components/ProjectCard.astro';
 import PageHeader from '../../components/PageHeader.astro';
 import { resolveCover, coverAlt, PLACEHOLDER_COVER } from '../../lib/photos';
+import skillsContent from '../../content/pages/skills.json';
 
-/**
- * Capability pages, newest first. Same shape as the projects archive — a skill
- * is a portfolio piece grouped by technique rather than by vehicle, so it gets
- * the same card and the same cover resolution.
- */
 const skills = (await getCollection('skills', ({ data }) => !data.draft)).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
 );
 
-import { formatDateLabel } from '../../lib/date-label.mjs';
+const heading = skillsContent?.heading || 'Skills';
+const eyebrow = skillsContent?.eyebrow || 'Capabilities';
+const lede = skillsContent?.lede || '';
+const emptyHeading = skillsContent?.emptyHeading || 'Nothing here yet';
+const emptyBody = skillsContent?.emptyBody || 'Capability pages are on the way.';
+const emptyCtaText = skillsContent?.emptyCtaText || 'Browse projects';
 ---
 
 <BaseLayout
-  title="Skills"
+  title={heading}
   description="What Sean Melotti can do, shown through the work — welding and fabrication, metal shaping, 3D modeling, additive manufacturing and finishing."
 >
   <PageHeader
-    eyebrow="Capabilities"
-    title="Skills"
-    lede="Grouped by technique rather than by project — the same work, sorted by what it demonstrates."
+    eyebrow={eyebrow}
+    title={heading}
+    lede={lede || undefined}
   />
 
   <section class="section">
@@ -44,7 +45,6 @@ import { formatDateLabel } from '../../lib/date-label.mjs';
                     image={resolveCover(skill.data) ?? PLACEHOLDER_COVER}
                     imageAlt={coverAlt(skill.data)}
                     tags={skill.data.tags}
-                    dateLabel={formatDateLabel(skill.data)}
                     href={`/skills/${skill.id}`}
                     eager={index < 3}
                   />
@@ -54,13 +54,12 @@ import { formatDateLabel } from '../../lib/date-label.mjs';
           </>
         ) : (
           <div class="rounded-lg border border-dashed border-line-strong bg-surface px-6 py-16 text-center">
-            <p class="eyebrow">Nothing here yet</p>
+            <p class="eyebrow">{emptyHeading}</p>
             <p class="mx-auto mt-3 max-w-sm text-ink-500">
-              Capability pages are on the way. In the meantime the project archive shows the
-              same work, grouped by build.
+              {emptyBody}
             </p>
             <a href="/projects" class="btn btn-secondary mt-6">
-              Browse projects
+              {emptyCtaText}
             </a>
           </div>
         )

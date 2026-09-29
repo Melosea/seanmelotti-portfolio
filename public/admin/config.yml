@@ -1,4 +1,4 @@
-# Sveltia CMS configuration — seanmelotti.com
+﻿# Sveltia CMS configuration — seanmelotti.com
 # Docs: https://github.com/sveltia/sveltia-cms
 backend:
   name: github
@@ -202,3 +202,65 @@ collections:
             fields:
               - { name: label, label: Label, widget: string }
               - { name: href, label: Path (e.g. /projects), widget: string }
+      - name: skills_page
+        label: Skills Page
+        file: src/content/pages/skills.json
+        fields:
+          - { name: heading, label: Page Heading, widget: string }
+          - { name: eyebrow, label: Eyebrow, widget: string, required: false }
+          - { name: lede, label: 'Subtitle / Lede', widget: text, required: false }
+          - { name: emptyHeading, label: Empty State Heading, widget: string, required: false }
+          - { name: emptyBody, label: Empty State Body, widget: text, required: false }
+          - { name: emptyCtaText, label: Empty State CTA Text, widget: string, required: false }
+
+      - name: projects_page
+        label: Projects Page
+        file: src/content/pages/projects.json
+        fields:
+          - { name: heading, label: Page Heading, widget: string }
+          - { name: eyebrow, label: Eyebrow, widget: string, required: false }
+          - { name: lede, label: 'Subtitle / Lede', widget: text, required: false }
+          - { name: emptyHeading, label: Empty State Heading, widget: string, required: false }
+          - { name: emptyBody, label: Empty State Body, widget: text, required: false }
+          - { name: emptyCtaText, label: Empty State CTA Text, widget: string, required: false }
+
+      - name: about
+        label: About Page
+        file: src/content/pages/about.json
+        fields:
+          - { name: lede, label: 'Tagline / Lede', widget: string }
+          - name: intro
+            label: Intro Paragraphs
+            widget: list
+            field: { name: value, widget: text }
+          - name: disciplines
+            label: What I Do
+            widget: list
+            summary: '{{fields.name}}'
+            fields:
+              - { name: name, label: Name, widget: string }
+              - { name: description, label: Description, widget: text }
+          - name: facts
+            label: Facts
+            widget: list
+            summary: '{{fields.label}}'
+            fields:
+              - { name: label, label: Label, widget: string }
+              - { name: value, label: Value, widget: string, required: false }
+          - { name: closingHeading, label: Closing Section Heading, widget: string }
+
+      - name: contact
+        label: Contact Page
+        file: src/content/pages/contact.json
+        fields:
+          - { name: heading, label: Page Heading, widget: string }
+          - { name: lede, label: 'Subtitle / Lede', widget: text }
+          - name: contactMethods
+            label: Contact Methods
+            widget: list
+            summary: '{{fields.label}}'
+            fields:
+              - { name: label, label: Label, widget: string }
+              - { name: href, label: 'Link (mailto: or tel:)', widget: string }
+              - { name: value, label: Display Value, widget: string }
+          - { name: footerNote, label: Footer Note, widget: text, required: false }

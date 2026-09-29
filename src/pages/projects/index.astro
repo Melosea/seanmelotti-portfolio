@@ -1,29 +1,32 @@
----
+﻿---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ProjectCard from '../../components/ProjectCard.astro';
 import PageHeader from '../../components/PageHeader.astro';
 import { resolveCover, coverAlt, PLACEHOLDER_COVER } from '../../lib/photos';
+import { formatDateLabel } from '../../lib/date-label.mjs';
+import projectsContent from '../../content/pages/projects.json';
 
-/**
- * The full archive: every non-draft entry, current and past, newest first.
- * The homepage shows only the `featured` subset.
- */
 const projects = (await getCollection('projects', ({ data }) => !data.draft)).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
 );
 
-import { formatDateLabel } from '../../lib/date-label.mjs';
+const heading = projectsContent?.heading || 'Projects';
+const eyebrow = projectsContent?.eyebrow || 'Archive';
+const lede = projectsContent?.lede || '';
+const emptyHeading = projectsContent?.emptyHeading || 'Nothing here yet';
+const emptyBody = projectsContent?.emptyBody || 'Project write-ups are on the way.';
+const emptyCtaText = projectsContent?.emptyCtaText || 'Get in touch';
 ---
 
 <BaseLayout
-  title="Projects"
+  title={heading}
   description="The full archive of Sean Melotti's projects — mechanical restoration, fabrication, 3D modeling and additive manufacturing, newest first."
 >
   <PageHeader
-    eyebrow="Archive"
-    title="Projects"
-    lede="Every project, current and past, newest first. Write-ups and photography are being added as the archive is digitised."
+    eyebrow={eyebrow}
+    title={heading}
+    lede={lede || undefined}
   />
 
   <section class="section">
@@ -54,13 +57,12 @@ import { formatDateLabel } from '../../lib/date-label.mjs';
           </>
         ) : (
           <div class="rounded-lg border border-dashed border-line-strong bg-surface px-6 py-16 text-center">
-            <p class="eyebrow">Nothing here yet</p>
+            <p class="eyebrow">{emptyHeading}</p>
             <p class="mx-auto mt-3 max-w-sm text-ink-500">
-              Project write-ups are on the way. Check back shortly, or get in touch in the
-              meantime.
+              {emptyBody}
             </p>
             <a href="/contact" class="btn btn-secondary mt-6">
-              Get in touch
+              {emptyCtaText}
             </a>
           </div>
         )
