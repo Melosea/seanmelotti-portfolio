@@ -1,11 +1,20 @@
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
 
+/**
+ * Sveltia writes `null` (empty object/select widgets) or `''` (empty date/string
+ * widgets) for fields left blank in the CMS. Zod's `.optional()` accepts neither,
+ * which has broken production builds. Wrap any optional field so blank CMS
+ * values coerce to `undefined` instead of failing validation.
+ */
+const blankAsUndefined = (schema) =>
+  z.preprocess((v) => (v === '' || v == null ? undefined : v), schema);
+
 const stepSchema = z.object({
   src: z.string(),
   alt: z.string(),
   caption: z.string().max(90),
-  chapter: z.string().optional(),
+  chapter: blankAsUndefined(z.string().optional()),
   orientation: z.enum(['landscape', 'portrait']).default('landscape'),
   pair: z.boolean().default(false),
 });
@@ -22,7 +31,7 @@ const projects = defineCollection({
     summary: z.string(),
     date: z.coerce.date(),
     /** Optional end of the build window; renders as "Aug 2025 – Nov 2025". */
-    dateEnd: z.coerce.date().optional(),
+    dateEnd: blankAsUndefined(z.coerce.date().optional()),
     /** Still on the bench: renders "Aug 2025 – Present" (wins over dateEnd). */
     ongoing: z.boolean().default(false),
     /**
@@ -32,16 +41,16 @@ const projects = defineCollection({
      * Legacy '/photos/...' and '/placeholders/...' values still parse — the
      * resolver rewrites the former and falls back for the latter.
      */
-    coverImage: z.string().optional(),
-    coverImageAlt: z.string().optional(),
+    coverImage: blankAsUndefined(z.string().optional()),
+    coverImageAlt: blankAsUndefined(z.string().optional()),
     tags: z.array(z.string()).default([]),
     vehicle: z.string(),
     status: z.enum(['completed', 'in-progress', 'planned']).default('in-progress'),
     featured: z.boolean().default(false),
     draft: z.boolean().default(false),
-    contentType: z.enum(['project', 'skill']).default('project').optional(),
+    contentType: blankAsUndefined(z.enum(['project', 'skill']).default('project').optional()),
     /** Phase 2: structured photo sequence */
-    hero: z.object({ src: z.string(), alt: z.string() }).optional(),
+    hero: blankAsUndefined(z.object({ src: z.string(), alt: z.string() }).optional()),
     specStrip: z.array(z.string()).max(4).default([]),
     steps: z.array(stepSchema).default([]),
     gallery: z.array(galleryItemSchema).default([]),
@@ -66,13 +75,13 @@ const skills = defineCollection({
      * Legacy '/photos/...' and '/placeholders/...' values still parse — the
      * resolver rewrites the former and falls back for the latter.
      */
-    coverImage: z.string().optional(),
-    coverImageAlt: z.string().optional(),
+    coverImage: blankAsUndefined(z.string().optional()),
+    coverImageAlt: blankAsUndefined(z.string().optional()),
     tags: z.array(z.string()).default([]),
     vehicle: z.string().optional(),
     featured: z.boolean().default(false),
     draft: z.boolean().default(false),
-    hero: z.object({ src: z.string(), alt: z.string() }).optional(),
+    hero: blankAsUndefined(z.object({ src: z.string(), alt: z.string() }).optional()),
     specStrip: z.array(z.string()).max(4).default([]),
     steps: z.array(stepSchema).default([]),
     gallery: z.array(galleryItemSchema).default([]),
