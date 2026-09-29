@@ -839,22 +839,23 @@
     margin-bottom: 1rem;
   }
 
+  /* Masonry variant A: CSS multi-column flow (natural aspect ratios) */
   .gallery-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
+    columns: 2;
+    column-gap: 0.75rem;
   }
 
   @media (min-width: 40rem) {
     .gallery-grid {
-      grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+      columns: 3;
     }
   }
 
   .gallery-grid img {
     width: 100%;
-    aspect-ratio: 3 / 2;
-    object-fit: cover;
+    height: auto;
+    break-inside: avoid;
+    margin-bottom: 0.75rem;
     border-radius: var(--radius-sm);
     background: var(--color-surface-sunken);
     display: block;
