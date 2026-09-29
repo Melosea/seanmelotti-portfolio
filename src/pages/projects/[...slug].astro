@@ -2,6 +2,7 @@
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import { Image, getImage } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import Lightbox from '../../components/Lightbox.astro';
 import { resolvePhoto, resolveCover, coverAlt, PLACEHOLDER_COVER } from '../../lib/photos';
 
 export async function getStaticPaths() {
@@ -75,8 +76,6 @@ for (const step of stepsWithImg) {
   }
 }
 
-// Pair steps: steps with pair:true are grouped with the previous non-pair step
-// For simplicity, adjacent pair:true steps render side by side
 /**
  * The cover falls back through hero -> first step -> first gallery photo, so an
  * entry with any real photo never renders a placeholder. The hero borrows it
@@ -165,46 +164,12 @@ const useNewLayout = !!hero;
                   {group.label && (
                     <p class="seq-chapter">{group.label}</p>
                   )}
-                  {/* Render steps, pairing adjacent pair:true steps */}
                   {(() => {
                     const rendered: any[] = [];
                     let i = 0;
                     while (i < group.steps.length) {
                       const step = group.steps[i];
-                      const nextStep = group.steps[i + 1];
-                      if (step.pair && nextStep?.pair) {
-                        rendered.push(
-                          <div class="seq-pair" key={`pair-${step.seqIdx}`}>
-                            <figure class:list={['seq-figure', step.orientation === 'portrait' ? 'portrait' : '']}>
-                              {step.img ? (
-                                <Image
-                                  src={step.img}
-                                  alt={step.alt}
-                                  loading="lazy"
-                                  decoding="async"
-                                  widths={[640, 960, 1440, 1920]}
-                                  sizes="(min-width: 72rem) 576px, 50vw"
-                                />
-                              ) : null}
-                              {step.caption && <figcaption class="seq-caption">{step.caption}</figcaption>}
-                            </figure>
-                            <figure class:list={['seq-figure', nextStep.orientation === 'portrait' ? 'portrait' : '']}>
-                              {nextStep.img ? (
-                                <Image
-                                  src={nextStep.img}
-                                  alt={nextStep.alt}
-                                  loading="lazy"
-                                  decoding="async"
-                                  widths={[640, 960, 1440, 1920]}
-                                  sizes="(min-width: 72rem) 576px, 50vw"
-                                />
-                              ) : null}
-                              {nextStep.caption && <figcaption class="seq-caption">{nextStep.caption}</figcaption>}
-                            </figure>
-                          </div>
-                        );
-                        i += 2;
-                      } else {
+                      if (i === 0) {
                         rendered.push(
                           <figure class:list={['seq-figure', step.orientation === 'portrait' ? 'portrait' : '']} key={`step-${step.seqIdx}`}>
                             {step.img ? (
@@ -213,14 +178,66 @@ const useNewLayout = !!hero;
                                 alt={step.alt}
                                 loading="lazy"
                                 decoding="async"
-                                widths={[640, 960, 1440, 1920]}
-                                sizes="(min-width: 72rem) 1152px, 100vw"
+                                widths={[480, 880, 1760]}
+                                sizes="(min-width: 72rem) 880px, (min-width: 48rem) calc(100vw - 4rem), calc(100vw - 2.5rem)"
                               />
                             ) : null}
                             {step.caption && <figcaption class="seq-caption">{step.caption}</figcaption>}
                           </figure>
                         );
                         i++;
+                      } else {
+                        const nextStep = group.steps[i + 1];
+                        if (nextStep) {
+                          rendered.push(
+                            <div class="seq-pair" key={`pair-${step.seqIdx}`}>
+                              <figure class:list={['seq-figure', step.orientation === 'portrait' ? 'portrait' : '']}>
+                                {step.img ? (
+                                  <Image
+                                    src={step.img}
+                                    alt={step.alt}
+                                    loading="lazy"
+                                    decoding="async"
+                                    widths={[320, 640, 880]}
+                                    sizes="(min-width: 72rem) 430px, (min-width: 48rem) calc(50vw - 2rem), calc(100vw - 2.5rem)"
+                                  />
+                                ) : null}
+                                {step.caption && <figcaption class="seq-caption">{step.caption}</figcaption>}
+                              </figure>
+                              <figure class:list={['seq-figure', nextStep.orientation === 'portrait' ? 'portrait' : '']}>
+                                {nextStep.img ? (
+                                  <Image
+                                    src={nextStep.img}
+                                    alt={nextStep.alt}
+                                    loading="lazy"
+                                    decoding="async"
+                                    widths={[320, 640, 880]}
+                                    sizes="(min-width: 72rem) 430px, (min-width: 48rem) calc(50vw - 2rem), calc(100vw - 2.5rem)"
+                                  />
+                                ) : null}
+                                {nextStep.caption && <figcaption class="seq-caption">{nextStep.caption}</figcaption>}
+                              </figure>
+                            </div>
+                          );
+                          i += 2;
+                        } else {
+                          rendered.push(
+                            <figure class:list={['seq-figure', step.orientation === 'portrait' ? 'portrait' : '']} key={`step-${step.seqIdx}`}>
+                              {step.img ? (
+                                <Image
+                                  src={step.img}
+                                  alt={step.alt}
+                                  loading="lazy"
+                                  decoding="async"
+                                  widths={[320, 640, 880]}
+                                  sizes="(min-width: 72rem) 430px, (min-width: 48rem) calc(50vw - 2rem), calc(100vw - 2.5rem)"
+                                />
+                              ) : null}
+                              {step.caption && <figcaption class="seq-caption">{step.caption}</figcaption>}
+                            </figure>
+                          );
+                          i++;
+                        }
                       }
                     }
                     return rendered;
@@ -244,8 +261,8 @@ const useNewLayout = !!hero;
                     alt={item.alt}
                     loading="lazy"
                     decoding="async"
-                    widths={[400, 800]}
-                    sizes="(min-width: 72rem) 260px, 50vw"
+                    widths={[320, 680]}
+                    sizes="(min-width: 72rem) 340px, 50vw"
                   />
                 ) : null;
               })}
@@ -284,6 +301,8 @@ const useNewLayout = !!hero;
             </div>
           </nav>
         )}
+
+        <Lightbox />
       </>
     ) : (
       <>

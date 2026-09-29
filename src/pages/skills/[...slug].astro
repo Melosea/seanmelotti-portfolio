@@ -2,6 +2,7 @@
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import { Image, getImage } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import Lightbox from '../../components/Lightbox.astro';
 import { resolvePhoto, resolveCover, coverAlt, PLACEHOLDER_COVER } from '../../lib/photos';
 
 export async function getStaticPaths() {
@@ -135,38 +136,51 @@ const useNewLayout = !!hero;
                     let i = 0;
                     while (i < group.steps.length) {
                       const step = group.steps[i];
-                      const nextStep = group.steps[i + 1];
-                      if (step.pair && nextStep?.pair) {
-                        rendered.push(
-                          <div class="seq-pair" key={`pair-${step.seqIdx}`}>
-                            <figure class:list={['seq-figure', step.orientation === 'portrait' ? 'portrait' : '']}>
-                              {step.img ? (
-                                <Image src={step.img} alt={step.alt} loading="lazy" decoding="async"
-                                  widths={[640, 960, 1440, 1920]} sizes="(min-width: 72rem) 576px, 50vw" />
-                              ) : null}
-                              {step.caption && <figcaption class="seq-caption">{step.caption}</figcaption>}
-                            </figure>
-                            <figure class:list={['seq-figure', nextStep.orientation === 'portrait' ? 'portrait' : '']}>
-                              {nextStep.img ? (
-                                <Image src={nextStep.img} alt={nextStep.alt} loading="lazy" decoding="async"
-                                  widths={[640, 960, 1440, 1920]} sizes="(min-width: 72rem) 576px, 50vw" />
-                              ) : null}
-                              {nextStep.caption && <figcaption class="seq-caption">{nextStep.caption}</figcaption>}
-                            </figure>
-                          </div>
-                        );
-                        i += 2;
-                      } else {
+                      if (i === 0) {
                         rendered.push(
                           <figure class:list={['seq-figure', step.orientation === 'portrait' ? 'portrait' : '']} key={`step-${step.seqIdx}`}>
                             {step.img ? (
                               <Image src={step.img} alt={step.alt} loading="lazy" decoding="async"
-                                widths={[640, 960, 1440, 1920]} sizes="(min-width: 72rem) 1152px, 100vw" />
+                                widths={[480, 880, 1760]} sizes="(min-width: 72rem) 880px, (min-width: 48rem) calc(100vw - 4rem), calc(100vw - 2.5rem)" />
                             ) : null}
                             {step.caption && <figcaption class="seq-caption">{step.caption}</figcaption>}
                           </figure>
                         );
                         i++;
+                      } else {
+                        const nextStep = group.steps[i + 1];
+                        if (nextStep) {
+                          rendered.push(
+                            <div class="seq-pair" key={`pair-${step.seqIdx}`}>
+                              <figure class:list={['seq-figure', step.orientation === 'portrait' ? 'portrait' : '']}>
+                                {step.img ? (
+                                  <Image src={step.img} alt={step.alt} loading="lazy" decoding="async"
+                                    widths={[320, 640, 880]} sizes="(min-width: 72rem) 430px, (min-width: 48rem) calc(50vw - 2rem), calc(100vw - 2.5rem)" />
+                                ) : null}
+                                {step.caption && <figcaption class="seq-caption">{step.caption}</figcaption>}
+                              </figure>
+                              <figure class:list={['seq-figure', nextStep.orientation === 'portrait' ? 'portrait' : '']}>
+                                {nextStep.img ? (
+                                  <Image src={nextStep.img} alt={nextStep.alt} loading="lazy" decoding="async"
+                                    widths={[320, 640, 880]} sizes="(min-width: 72rem) 430px, (min-width: 48rem) calc(50vw - 2rem), calc(100vw - 2.5rem)" />
+                                ) : null}
+                                {nextStep.caption && <figcaption class="seq-caption">{nextStep.caption}</figcaption>}
+                              </figure>
+                            </div>
+                          );
+                          i += 2;
+                        } else {
+                          rendered.push(
+                            <figure class:list={['seq-figure', step.orientation === 'portrait' ? 'portrait' : '']} key={`step-${step.seqIdx}`}>
+                              {step.img ? (
+                                <Image src={step.img} alt={step.alt} loading="lazy" decoding="async"
+                                  widths={[320, 640, 880]} sizes="(min-width: 72rem) 430px, (min-width: 48rem) calc(50vw - 2rem), calc(100vw - 2.5rem)" />
+                              ) : null}
+                              {step.caption && <figcaption class="seq-caption">{step.caption}</figcaption>}
+                            </figure>
+                          );
+                          i++;
+                        }
                       }
                     }
                     return rendered;
@@ -179,23 +193,16 @@ const useNewLayout = !!hero;
 
         {gallery && gallery.length > 0 && (
           <div class="gallery-section">
-            <details>
-              <summary>
-                <svg class="inline-block" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M2 5l6 6 6-6"/>
-                </svg>
-                Full gallery — {gallery.length} photos
-              </summary>
-              <div class="gallery-grid">
-                {gallery.map((item) => {
-                  const img = getImg(item.src);
-                  return img ? (
-                    <Image src={img} alt={item.alt} loading="lazy" decoding="async"
-                      widths={[400, 800]} sizes="(min-width: 72rem) 260px, 50vw" />
-                  ) : null;
-                })}
-              </div>
-            </details>
+            <h2 class="gallery-heading">Full gallery &mdash; {gallery.length} photos</h2>
+            <div class="gallery-grid">
+              {gallery.map((item) => {
+                const img = getImg(item.src);
+                return img ? (
+                  <Image src={img} alt={item.alt} loading="lazy" decoding="async"
+                    widths={[320, 680]} sizes="(min-width: 72rem) 340px, 50vw" />
+                ) : null;
+              })}
+            </div>
           </div>
         )}
 
@@ -209,6 +216,8 @@ const useNewLayout = !!hero;
             </a>
           </div>
         </div>
+
+        <Lightbox />
       </>
     ) : (
       <>

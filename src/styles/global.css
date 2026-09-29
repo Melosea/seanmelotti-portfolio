@@ -125,7 +125,7 @@
   --seq-caption-gap: 0.75rem;
   --seq-chapter-gap: 8rem;
   --seq-caption-measure: 34rem;
-  --seq-ratio: 3 / 2;
+  --seq-ratio: 16 / 10;
 }
 
 @media (min-width: 48rem) {
@@ -771,6 +771,8 @@
     display: flex;
     flex-direction: column;
     gap: var(--seq-caption-gap);
+    max-width: 55rem;
+    margin-inline: auto;
   }
 
   .seq-figure img {
@@ -800,6 +802,8 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--seq-caption-gap);
+    max-width: 55rem;
+    margin-inline: auto;
   }
 
   @media (min-width: 48rem) {
@@ -814,6 +818,8 @@
     line-height: var(--text-sm--line-height);
     color: var(--color-ink-500);
     max-width: var(--seq-caption-measure);
+    text-align: center;
+    margin-inline: auto;
   }
 
   /* --- Gallery grid (always visible, Phase 2) --------------------------- */
@@ -835,8 +841,14 @@
 
   .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
+  }
+
+  @media (min-width: 40rem) {
+    .gallery-grid {
+      grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+    }
   }
 
   .gallery-grid img {
