@@ -1,0 +1,148 @@
+﻿---
+interface Props {
+  label: string;
+}
+const { label } = Astro.props;
+---
+
+<div class="carousel-root" role="region" aria-label={label}>
+  <div class="carousel-viewport">
+    <ul class="carousel-track">
+      <slot />
+    </ul>
+  </div>
+  <button class="carousel-btn carousel-prev" aria-label="Previous" type="button">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M10 3L5 8l5 5" />
+    </svg>
+  </button>
+  <button class="carousel-btn carousel-next" aria-label="Next" type="button">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M6 3l5 5-5 5" />
+    </svg>
+  </button>
+</div>
+
+<style>
+  .carousel-root {
+    position: relative;
+  }
+
+  .carousel-viewport {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .carousel-viewport::-webkit-scrollbar {
+    display: none;
+  }
+
+  .carousel-track {
+    display: flex;
+    gap: 1.25rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .carousel-track > :global(li) {
+    flex: 0 0 100%;
+    min-width: 0;
+    scroll-snap-align: start;
+  }
+
+  @media (min-width: 40rem) {
+    .carousel-track > :global(li) {
+      flex: 0 0 calc(50% - 0.625rem);
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .carousel-track > :global(li) {
+      flex: 0 0 calc(33.333% - 0.8334rem);
+    }
+  }
+
+  .carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2.25rem;
+    height: 2.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: var(--color-canvas);
+    border: 1px solid var(--color-line);
+    color: var(--color-ink-700);
+    cursor: pointer;
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.08);
+    transition: background-color 0.15s, border-color 0.15s, opacity 0.15s;
+    z-index: 1;
+    padding: 0;
+  }
+
+  .carousel-btn:hover {
+    background-color: var(--color-surface);
+    border-color: var(--color-line-strong);
+  }
+
+  .carousel-btn:disabled {
+    opacity: 0.25;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .carousel-prev {
+    left: -1.125rem;
+  }
+
+  .carousel-next {
+    right: -1.125rem;
+  }
+
+  @media (max-width: 39.9375rem) {
+    .carousel-btn {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  function initCarousel(root: HTMLElement) {
+    const viewport = root.querySelector<HTMLElement>('.carousel-viewport');
+    const track = root.querySelector<HTMLElement>('.carousel-track');
+    const prevBtn = root.querySelector<HTMLButtonElement>('.carousel-prev');
+    const nextBtn = root.querySelector<HTMLButtonElement>('.carousel-next');
+    if (!viewport || !track || !prevBtn || !nextBtn) return;
+
+    function scrollAmount(): number {
+      const item = track!.querySelector<HTMLElement>('li');
+      if (!item) return viewport!.offsetWidth;
+      const gap = parseFloat(window.getComputedStyle(track!).columnGap) || 0;
+      return item.offsetWidth + gap;
+    }
+
+    function updateButtons() {
+      prevBtn!.disabled = viewport!.scrollLeft <= 1;
+      nextBtn!.disabled =
+        viewport!.scrollLeft + viewport!.offsetWidth >= track!.scrollWidth - 1;
+    }
+
+    prevBtn.addEventListener('click', () => {
+      viewport!.scrollBy({ left: -scrollAmount(), behavior: 'smooth' });
+    });
+
+    nextBtn.addEventListener('click', () => {
+      viewport!.scrollBy({ left: scrollAmount(), behavior: 'smooth' });
+    });
+
+    viewport.addEventListener('scroll', updateButtons, { passive: true });
+    window.addEventListener('resize', updateButtons, { passive: true });
+    updateButtons();
+  }
+
+  document.querySelectorAll<HTMLElement>('.carousel-root').forEach(initCarousel);
+</script>

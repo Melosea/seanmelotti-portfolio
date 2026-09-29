@@ -2,26 +2,26 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProjectCard from '../components/ProjectCard.astro';
+import Carousel from '../components/Carousel.astro';
 import { resolveCover, coverAlt, PLACEHOLDER_COVER } from '../lib/photos';
 import { SITE } from '../consts';
 
 import homeContent from '../content/pages/home.json';
 
-const { positioning: POSITIONING, tagline, ctaText, ctaSubtext } = homeContent;
+const { positioning: POSITIONING, tagline, ctaText, ctaSubtext, featuredProjects, featuredSkills } =
+  homeContent;
 
-/**
- * The homepage shows the `featured` subset only â€” /projects is the full
- * archive. Newest first, capped at three so the grid layout holds.
- */
-const featured = (
-  await getCollection('projects', ({ data }) => data.featured && !data.draft)
-)
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, 3);
+const allProjects = await getCollection('projects', ({ data }) => !data.draft);
+const featuredProjectEntries = featuredProjects
+  .map((slug) => allProjects.find((p) => p.id === slug))
+  .filter((p): p is NonNullable<typeof p> => p != null);
 
-const [lead, ...rest] = featured;
+const allSkills = await getCollection('skills', ({ data }) => !data.draft);
+const featuredSkillEntries = featuredSkills
+  .map((slug) => allSkills.find((s) => s.id === slug))
+  .filter((s): s is NonNullable<typeof s> => s != null);
 
-const cardProps = (project: (typeof featured)[number]) => ({
+const projectCardProps = (project: (typeof allProjects)[number]) => ({
   title: project.data.title,
   summary: project.data.summary,
   image: resolveCover(project.data) ?? PLACEHOLDER_COVER,
@@ -31,10 +31,20 @@ const cardProps = (project: (typeof featured)[number]) => ({
   status: project.data.status,
   href: `/projects/${project.id}`,
 });
+
+const skillCardProps = (skill: (typeof allSkills)[number]) => ({
+  title: skill.data.title,
+  summary: skill.data.summary,
+  image: resolveCover(skill.data) ?? PLACEHOLDER_COVER,
+  imageAlt: coverAlt(skill.data),
+  tags: skill.data.tags,
+  vehicle: skill.data.vehicle,
+  href: `/skills/${skill.id}`,
+});
 ---
 
 <BaseLayout title={SITE.name} description={SITE.description}>
-  <!-- Hero â€” deliberately compact so the project grid reaches the first viewport. -->
+  <!-- Hero -->
   <section class="relative overflow-hidden border-b border-line">
     <div class="grid-hairline absolute inset-0 opacity-70" aria-hidden="true"></div>
     <div
@@ -59,40 +69,66 @@ const cardProps = (project: (typeof featured)[number]) => ({
     </div>
   </section>
 
-  <!-- Featured projects â€” the primary thing to interact with on this page. -->
-  <section class="pt-8 pb-14 md:pt-12 md:pb-20" aria-labelledby="featured-projects">
-    <div class="container-page">
-      <div class="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
-        <h2 id="featured-projects" class="text-2xl text-ink-950 md:text-3xl">
-          Featured projects
-        </h2>
-        <a href="/projects" class="link-accent text-sm">All projects &rarr;</a>
-      </div>
+  <!-- Featured projects carousel -->
+  {
+    featuredProjectEntries.length > 0 && (
+      <section class="pt-8 pb-14 md:pt-12 md:pb-20" aria-labelledby="featured-projects">
+        <div class="container-page">
+          <div class="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+            <h2 id="featured-projects" class="text-2xl text-ink-950 md:text-3xl">
+              Featured projects
+            </h2>
+            <a href="/projects" class="link-accent text-sm">
+              All projects &rarr;
+            </a>
+          </div>
 
-      {
-        lead && (
-          <ul class="mt-5 grid grid-cols-1 gap-5 md:mt-6 lg:grid-cols-12">
-            <li class="flex lg:col-span-7">
-              <ProjectCard {...cardProps(lead)} prominent eager />
-            </li>
-            {rest.length > 0 && (
-              <li class="lg:col-span-5">
-                <ul class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:h-full lg:grid-cols-1">
-                  {rest.map((project) => (
-                    <li class="flex">
-                      <ProjectCard {...cardProps(project)} eager />
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            )}
-          </ul>
-        )
-      }
-    </div>
-  </section>
+          <div class="mt-5 md:mt-6 mx-5 md:mx-6">
+            <Carousel label="Featured projects">
+              {featuredProjectEntries.map((project) => (
+                <li class="flex">
+                  <ProjectCard {...projectCardProps(project)} eager />
+                </li>
+              ))}
+            </Carousel>
+          </div>
+        </div>
+      </section>
+    )
+  }
 
-  <!-- Closing CTA â€” one warm contact bubble, nothing else. -->
+  <!-- Skills carousel -->
+  {
+    featuredSkillEntries.length > 0 && (
+      <section
+        class="pt-8 pb-14 md:pt-12 md:pb-20 border-t border-line"
+        aria-labelledby="featured-skills"
+      >
+        <div class="container-page">
+          <div class="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+            <h2 id="featured-skills" class="text-2xl text-ink-950 md:text-3xl">
+              Skills
+            </h2>
+            <a href="/skills" class="link-accent text-sm">
+              All skills &rarr;
+            </a>
+          </div>
+
+          <div class="mt-5 md:mt-6 mx-5 md:mx-6">
+            <Carousel label="Skills">
+              {featuredSkillEntries.map((skill) => (
+                <li class="flex">
+                  <ProjectCard {...skillCardProps(skill)} />
+                </li>
+              ))}
+            </Carousel>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- Closing CTA -->
   <section class="border-t border-line bg-surface">
     <div class="container-page py-14 md:py-16">
       <div class="flex flex-col items-center gap-5 text-center">

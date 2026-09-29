@@ -2,5 +2,14 @@
   "positioning": "Mechanical Restoration - Assembly - Fabrication - 3D Modeling",
   "tagline": "Traditional craftsmanship. Modern ingenuity. Every detail considered.",
   "ctaText": "Get in Touch",
-  "ctaSubtext": "Email me."
+  "ctaSubtext": "Email me.",
+  "featuredProjects": [
+    "giulietta-spyder-veloce"
+  ],
+  "featuredSkills": [
+    "welding-fabrication",
+    "engine-building",
+    "machining",
+    "cad-3d-printing"
+  ]
 }
