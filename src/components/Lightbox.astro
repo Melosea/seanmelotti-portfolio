@@ -1,4 +1,4 @@
----
+﻿---
 // Click-to-enlarge lightbox for sequence and gallery images.
 // Degrades gracefully: with JS disabled, images remain visible and functional.
 ---
@@ -137,8 +137,8 @@
     return img.src;
   }
 
-  function openLightbox(img: HTMLImageElement) {
-    triggerEl = img;
+  function openLightbox(img: HTMLImageElement, trigger: HTMLElement) {
+    triggerEl = trigger;
     lbImg.src = getLargestSrc(img);
     lbImg.alt = img.alt;
     overlay.removeAttribute('aria-hidden');
@@ -168,7 +168,7 @@
     btn.appendChild(img);
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      openLightbox(img);
+      openLightbox(img, btn);
     });
   });
 
@@ -205,3 +205,4 @@
     }
   });
 </script>
+
