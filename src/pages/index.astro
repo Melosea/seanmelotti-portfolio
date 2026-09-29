@@ -1,4 +1,4 @@
-﻿---
+---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProjectCard from '../components/ProjectCard.astro';
@@ -7,6 +7,7 @@ import { resolveCover, coverAlt, PLACEHOLDER_COVER } from '../lib/photos';
 import { SITE } from '../consts';
 
 import homeContent from '../content/pages/home.json';
+import { formatDateLabel } from '../lib/date-label.mjs';
 
 const { tagline, ctaText, ctaSubtext, featuredProjects, featuredSkills } =
   homeContent;
@@ -36,6 +37,7 @@ const skillCardProps = (skill: (typeof allSkills)[number]) => ({
   image: resolveCover(skill.data) ?? PLACEHOLDER_COVER,
   imageAlt: coverAlt(skill.data),
   href: `/skills/${skill.id}`,
+  ...(skill.data.date ? { timestamp: formatDateLabel(skill.data) } : {}),
 });
 ---
 

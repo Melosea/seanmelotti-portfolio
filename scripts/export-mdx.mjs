@@ -43,14 +43,15 @@ function buildFrontmatter(sidecar, preserved = {}) {
     ? `${sidecar.slug}/${heroPhoto.filename}`
     : `/placeholders/project-01.svg`;
 
-  // A dateless sidecar is backfilled by exportSlug() before we get here, so
-  // this fallback is a last resort only (e.g. buildMdx called directly).
-  const date = sidecar.date ?? localDateStamp();
+  // For projects, date is required and backfilled by exportSlug(). For skills,
+  // date is optional — only written to frontmatter when explicitly set in the sidecar.
+  const isSkillEntry = sidecar.type === 'skill' || sidecar.contentType === 'skill';
+  const date = isSkillEntry ? (sidecar.date || null) : (sidecar.date ?? localDateStamp());
 
   const base = {
     title: sidecar.title,
     summary: sidecar.summary ?? '',
-    date,
+    ...(date ? { date } : {}),
     // dateEnd/ongoing are authored in Sveltia only — the Studio has no UI for
     // them, so they arrive via `preserved` (read back from the existing MDX)
     // instead of the sidecar. See exportSlug().
@@ -218,7 +219,9 @@ async function exportSlug(slug) {
   // this backfill the frontmatter fallback re-stamps "today" on EVERY export,
   // so the MDX date silently churns on every autosave and shows up as a dirty
   // file forever. Persist the stamp once; from then on the export is stable.
-  if (!sidecar.date) {
+  const isSkill = sidecar.type === 'skill' || sidecar.contentType === 'skill';
+  // Skills have an optional date; only backfill for projects so MDX doesn't churn.
+  if (!sidecar.date && !isSkill) {
     sidecar.date = localDateStamp();
     await fs.writeFile(
       path.join(STUDIO_DIR, `${slug}.json`),
@@ -227,8 +230,6 @@ async function exportSlug(slug) {
     );
     console.log(`  backfilled missing sidecar date: ${sidecar.date}`);
   }
-
-  const isSkill = sidecar.type === 'skill' || sidecar.contentType === 'skill';
   const outDir = isSkill ? SKILLS_DIR : PROJECTS_DIR;
   await fs.mkdir(outDir, { recursive: true });
 

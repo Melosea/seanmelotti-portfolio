@@ -22,6 +22,8 @@ interface Props {
   prominent?: boolean;
   /** Skip lazy-loading for cards that sit in the first viewport. */
   eager?: boolean;
+  /** Pre-formatted date shown as a small muted label at the bottom of the card body. */
+  timestamp?: string;
 }
 
 const {
@@ -35,6 +37,7 @@ const {
   href,
   prominent = false,
   eager = false,
+  timestamp,
 } = Astro.props;
 
 const STATUS_LABEL = {
@@ -131,6 +134,12 @@ const Wrapper = href ? 'a' : 'div';
               <li class="tag">{tag}</li>
             ))}
           </ul>
+        )
+      }
+
+      {
+        timestamp && (
+          <p class="mt-4 pt-1 font-mono text-xs text-ink-400">{timestamp}</p>
         )
       }
 
