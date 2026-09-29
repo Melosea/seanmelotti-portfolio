@@ -30,7 +30,7 @@ async function loadSidecar(slug) {
   return JSON.parse(raw);
 }
 
-function buildFrontmatter(sidecar) {
+function buildFrontmatter(sidecar, preserved = {}) {
   // Determine hero from heroFilename field (v2) or legacy isCover (v1)
   const heroPhoto = sidecar.heroFilename
     ? sidecar.photos?.find(p => p.filename === sidecar.heroFilename)
@@ -51,6 +51,11 @@ function buildFrontmatter(sidecar) {
     title: sidecar.title,
     summary: sidecar.summary ?? '',
     date,
+    // dateEnd/ongoing are authored in Sveltia only — the Studio has no UI for
+    // them, so they arrive via `preserved` (read back from the existing MDX)
+    // instead of the sidecar. See exportSlug().
+    ...(preserved.dateEnd ? { dateEnd: preserved.dateEnd } : {}),
+    ...(preserved.ongoing ? { ongoing: true } : {}),
     coverImage: coverPath,
     coverImageAlt: heroPhoto?.alt || heroPhoto?.caption || sidecar.title,
     tags: sidecar.tags ?? [],
@@ -168,8 +173,8 @@ function yamlObject(obj, indent = '  ') {
     .join('\n');
 }
 
-function buildMdx(sidecar) {
-  const fm = buildFrontmatter(sidecar);
+function buildMdx(sidecar, preserved = {}) {
+  const fm = buildFrontmatter(sidecar, preserved);
 
   const fmLines = Object.entries(fm).map(([k, v]) => {
     if (v === null || v === undefined) return null;
@@ -228,7 +233,20 @@ async function exportSlug(slug) {
   await fs.mkdir(outDir, { recursive: true });
 
   const outPath = path.join(outDir, `${slug}.mdx`);
-  const mdx = buildMdx(sidecar);
+
+  // The date-range fields (dateEnd, ongoing) have no Studio input — they are
+  // set in the Sveltia CMS and live only in the MDX frontmatter. Rebuilding
+  // purely from the sidecar would silently strip them on every export, so
+  // read them back from the existing file and carry them forward.
+  const preserved = {};
+  try {
+    const existing = await fs.readFile(outPath, 'utf-8');
+    const de = existing.match(/^dateEnd: '?(\d{4}-\d{2}-\d{2})/m);
+    if (de) preserved.dateEnd = de[1];
+    if (/^ongoing: true\s*$/m.test(existing)) preserved.ongoing = true;
+  } catch { /* first export of this slug — nothing to preserve */ }
+
+  const mdx = buildMdx(sidecar, preserved);
   await fs.writeFile(outPath, mdx, 'utf-8');
   console.log(`Exported: ${path.relative(ROOT, outPath)}`);
 }

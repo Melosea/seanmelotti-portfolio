@@ -21,6 +21,10 @@ const projects = defineCollection({
     title: z.string(),
     summary: z.string(),
     date: z.coerce.date(),
+    /** Optional end of the build window; renders as "Aug 2025 – Nov 2025". */
+    dateEnd: z.coerce.date().optional(),
+    /** Still on the bench: renders "Aug 2025 – Present" (wins over dateEnd). */
+    ongoing: z.boolean().default(false),
     /**
      * Cover photo, in the same photo-root-relative form as hero/steps/gallery
      * ('slug/file.jpg'). Optional: pages fall back through hero -> first step ->
