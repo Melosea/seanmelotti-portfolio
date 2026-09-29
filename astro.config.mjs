@@ -300,6 +300,97 @@ const studioVitePlugin = {
         return;
       }
 
+
+      // POST /api/studio/save-edited-photo — write canvas-edited image; preserve original on first edit
+      if (url.pathname === '/save-edited-photo' && req.method === 'POST') {
+        let body = '';
+        for await (const chunk of req) body += chunk;
+        try {
+          const { slug, filename, dataUrl } = JSON.parse(body);
+          // Validate — reject path traversal
+          if (!slug || !filename || /[/\\]/.test(filename) || /[/\\]/.test(slug)) {
+            throw new Error('Invalid slug or filename');
+          }
+          const destDir = path.join(PHOTOS_DIR, slug);
+          const destFile = path.join(destDir, filename);
+          if (!destFile.startsWith(destDir + path.sep)) {
+            throw new Error('Path traversal rejected');
+          }
+          const base64Match = (dataUrl || '').match(/^data:image\/[^;]+;base64,(.+)$/);
+          if (!base64Match) throw new Error('Invalid dataUrl — expected base64 data URL');
+          const buffer = Buffer.from(base64Match[1], 'base64');
+          // Preserve original on first edit (idempotent — never overwrite the original)
+          const originalsDir = path.join(destDir, '.originals');
+          const originalFile = path.join(originalsDir, filename);
+          let hasOriginal = false;
+          try {
+            await fsAsync.access(originalFile);
+            hasOriginal = true; // already preserved from a previous edit
+          } catch {
+            try {
+              const existing = await fsAsync.readFile(destFile);
+              await fsAsync.mkdir(originalsDir, { recursive: true });
+              await fsAsync.writeFile(originalFile, existing);
+              hasOriginal = true;
+            } catch { /* target file didn't exist — nothing to preserve */ }
+          }
+          await fsAsync.writeFile(destFile, buffer);
+          res.end(JSON.stringify({ ok: true, hasOriginal }));
+        } catch (e) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ error: String(e) }));
+        }
+        return;
+      }
+
+      // POST /api/studio/revert-photo — restore the saved original, undoing all edits
+      if (url.pathname === '/revert-photo' && req.method === 'POST') {
+        let body = '';
+        for await (const chunk of req) body += chunk;
+        try {
+          const { slug, filename } = JSON.parse(body);
+          if (!slug || !filename || /[/\\]/.test(filename) || /[/\\]/.test(slug)) {
+            throw new Error('Invalid slug or filename');
+          }
+          const destDir = path.join(PHOTOS_DIR, slug);
+          const destFile = path.join(destDir, filename);
+          const originalFile = path.join(destDir, '.originals', filename);
+          if (!destFile.startsWith(destDir + path.sep)) {
+            throw new Error('Path traversal rejected');
+          }
+          try { await fsAsync.access(originalFile); } catch {
+            res.writeHead(404);
+            res.end(JSON.stringify({ error: 'No original found for this photo' }));
+            return;
+          }
+          const originalData = await fsAsync.readFile(originalFile);
+          await fsAsync.writeFile(destFile, originalData);
+          res.end(JSON.stringify({ ok: true }));
+        } catch (e) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ error: String(e) }));
+        }
+        return;
+      }
+
+      // GET /api/studio/has-original — check whether a backup original exists
+      if (url.pathname === '/has-original' && req.method === 'GET') {
+        const slug = url.searchParams.get('slug');
+        const filename = url.searchParams.get('filename');
+        if (!slug || !filename || /[/\\]/.test(filename) || /[/\\]/.test(slug)) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ error: 'Missing or invalid params' }));
+          return;
+        }
+        const originalFile = path.join(PHOTOS_DIR, slug, '.originals', filename);
+        try {
+          await fsAsync.access(originalFile);
+          res.end(JSON.stringify({ exists: true }));
+        } catch {
+          res.end(JSON.stringify({ exists: false }));
+        }
+        return;
+      }
       // POST /api/studio/create-project — create new project or skill sidecar + photo folder
       if (url.pathname === '/create-project' && req.method === 'POST') {
         let body = '';
