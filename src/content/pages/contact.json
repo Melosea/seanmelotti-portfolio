@@ -1,8 +1,12 @@
 {
   "heading": "Let’s have a conversation",
-  "lede": "Email reaches me directly. A few lines on the project, the scope and your timeline is plenty to start.",
+  "lede": "Feel free to send me an email with any questions or if you would like to arrange a phone call.",
   "contactMethods": [
-    { "label": "Email", "href": "mailto:seancmelotti@gmail.com", "value": "seancmelotti@gmail.com" }
+    {
+      "label": "Email",
+      "href": "mailto:seancmelotti@gmail.com",
+      "value": "seancmelotti@gmail.com"
+    }
   ],
-  "footerNote": "Email is usually quickest. If you would rather talk it through, call or text the number above — daytime is best."
+  "footerNote": "I look forward to hearing from you!"
 }
