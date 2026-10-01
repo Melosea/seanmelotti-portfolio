@@ -792,16 +792,19 @@
 
   @media (max-width: 48rem) {
     .seq-figure img {
-      width: 100vw;
-      margin-inline: calc(50% - 50vw);
-      border-radius: 0;
+      width: 100%;
+      margin-inline: auto;
+    }
+
+    .seq-figure.portrait img {
+      max-width: 75%;
     }
   }
 
   .seq-pair {
     display: grid;
     grid-template-columns: 1fr;
-    gap: var(--seq-caption-gap);
+    gap: var(--seq-gap);
     max-width: 55rem;
     margin-inline: auto;
   }
