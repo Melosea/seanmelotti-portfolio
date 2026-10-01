@@ -77,7 +77,11 @@ collections:
           - { name: src, label: Photo, widget: image }
           - { name: alt, label: Alt Text, widget: string }
           - { name: caption, label: 'Caption (max 90 chars)', widget: string, pattern: ['^.{0,90}$', 'Max 90 characters'] }
-          - { name: chapter, label: Chapter, widget: string, required: false }
+          - name: chapter
+            label: Chapter
+            widget: select
+            required: false
+            options: [Teardown, Engine Build, Turbo & Boost, Suspension, Brakes, Paint, Body, Interior, Electrical, Wheels & Tires, Tuning]
           - name: orientation
             label: Orientation
             widget: select
@@ -138,7 +142,11 @@ collections:
           - { name: src, label: Photo, widget: image }
           - { name: alt, label: Alt Text, widget: string }
           - { name: caption, label: 'Caption (max 90 chars)', widget: string, pattern: ['^.{0,90}$', 'Max 90 characters'] }
-          - { name: chapter, label: Chapter, widget: string, required: false }
+          - name: chapter
+            label: Chapter
+            widget: select
+            required: false
+            options: [Teardown, Engine Build, Turbo & Boost, Suspension, Brakes, Paint, Body, Interior, Electrical, Wheels & Tires, Tuning]
           - name: orientation
             label: Orientation
             widget: select
