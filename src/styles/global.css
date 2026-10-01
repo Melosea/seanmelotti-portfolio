@@ -785,6 +785,7 @@
 
   .seq-figure.portrait img {
     aspect-ratio: 2 / 3;
+    object-fit: cover;
     max-width: 60%;
     margin-inline: auto;
   }
