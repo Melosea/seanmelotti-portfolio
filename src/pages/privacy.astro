@@ -1,0 +1,101 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+
+const effectiveDate = 'October 9, 2026';
+---
+
+<BaseLayout
+  title="Privacy Policy"
+  description="Privacy and cookie policy for seanmelotti.com — what data this site does (and mostly doesn't) collect."
+>
+  <PageHeader
+    eyebrow="Legal"
+    title="Privacy & Cookie Policy"
+    lede={`Effective ${effectiveDate}. The short version: this site sets no cookies, runs no analytics and collects no personal data unless you choose to email me.`}
+  />
+
+  <section class="section">
+    <div class="container-page">
+      <div class="prose-page max-w-2xl">
+        <h2>Who I am</h2>
+        <p>
+          This website, seanmelotti.com, is the personal portfolio of Sean Melotti
+          (&ldquo;I&rdquo;, &ldquo;me&rdquo;). It showcases restoration, fabrication and
+          additive manufacturing work. For anything related to this policy, contact me at
+          <a href="mailto:seancmelotti@gmail.com">seancmelotti@gmail.com</a>.
+        </p>
+
+        <h2>What this site does not do</h2>
+        <ul>
+          <li>No analytics or visitor tracking of any kind.</li>
+          <li>No cookies set in your browser.</li>
+          <li>No advertising, ad networks or retargeting.</li>
+          <li>No contact forms, accounts or sign-ups — so no data is submitted through the site.</li>
+          <li>No third-party fonts or embeds that phone home. All fonts are served from this site&rsquo;s own domain.</li>
+          <li>No selling, renting or sharing of personal information — I have none to sell.</li>
+        </ul>
+
+        <h2>What is processed, and why</h2>
+        <h3>Server and network logs</h3>
+        <p>
+          This site is delivered through Cloudflare, the hosting and content delivery
+          provider. Like virtually every host on the internet, Cloudflare automatically
+          processes technical data when you load a page — your IP address, browser type,
+          and the pages requested — to deliver the site, mitigate attacks and keep it
+          secure. I do not use this data to identify visitors. The legal basis for this
+          processing is legitimate interest in operating a functional, secure website.
+          See the <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">Cloudflare
+          Privacy Policy</a> for details on their handling of this data.
+        </p>
+
+        <h3>Email contact</h3>
+        <p>
+          If you choose to email or call me using the details on the
+          <a href="/contact">contact page</a>, I will receive the information you send
+          (such as your email address, name and message). I use it solely to respond to
+          you and for any follow-up you ask for. I keep correspondence only as long as
+          needed for that purpose, and you can ask me to delete it at any time.
+        </p>
+
+        <h2>Cookies</h2>
+        <p>
+          This site does not set cookies &mdash; first-party or third-party &mdash; and
+          does not use local storage to track you. That is why there is no cookie consent
+          banner: there is nothing to consent to.
+        </p>
+
+        <h2>External links</h2>
+        <p>
+          Pages on this site may link to external websites. Those sites have their own
+          privacy practices, which I do not control and am not responsible for.
+        </p>
+
+        <h2>Your rights</h2>
+        <p>
+          Depending on where you live (for example under the EU/UK GDPR or the California
+          Consumer Privacy Act), you may have rights to access, correct, delete or restrict
+          the use of personal data concerning you. Because this site collects nothing beyond
+          what is described above, in practice this applies only to email correspondence
+          you have sent me. To exercise any of these rights, email
+          <a href="mailto:seancmelotti@gmail.com">seancmelotti@gmail.com</a> and I will
+          respond promptly. You also have the right to lodge a complaint with your local
+          data protection authority.
+        </p>
+
+        <h2>Children</h2>
+        <p>
+          This site is a professional portfolio and is not directed at children. I do not
+          knowingly collect personal information from anyone under 16.
+        </p>
+
+        <h2>Changes to this policy</h2>
+        <p>
+          If the site ever adds features that change how data is handled (such as analytics
+          or a contact form), this policy will be updated before those features go live, and
+          the effective date above will change accordingly.
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
