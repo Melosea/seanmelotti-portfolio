@@ -81,7 +81,15 @@ const year = new Date().getFullYear();
       <p class="font-mono text-2xs tracking-[0.08em] text-ink-300 uppercase">
         &copy; {year} {SITE.name}
       </p>
-      <p class="font-mono text-2xs tracking-[0.08em] text-ink-300 uppercase">Built with Astro</p>
+      <div class="flex items-center gap-5">
+        <a
+          href="/privacy"
+          class="font-mono text-2xs tracking-[0.08em] text-ink-300 uppercase transition-colors hover:text-ink-900"
+        >
+          Privacy
+        </a>
+        <p class="font-mono text-2xs tracking-[0.08em] text-ink-300 uppercase">Built with Astro</p>
+      </div>
     </div>
   </div>
 </footer>
