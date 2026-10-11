@@ -9,11 +9,11 @@ const facts = allFacts.filter((fact) => fact.value !== null);
 
 <BaseLayout
   title="About"
-  description="Sean Melotti — mechanical restoration, fabrication, 3D modeling and additive manufacturing, documented project by project."
+  description="Sean Melotti — automotive restoration, fabrication, 3D modeling and additive manufacturing, documented project by project."
 >
   <PageHeader eyebrow="About" title="About Sean" lede={lede} />
 
-  <section class="section">
+  <section class="py-10 md:py-12">
     <div class="container-page">
       <!-- container-page (not container-narrow) so the copy's left edge lines up
            with the page header, the section headings and the footer above and
@@ -25,7 +25,7 @@ const facts = allFacts.filter((fact) => fact.value !== null);
   </section>
 
   <section class="border-t border-line bg-surface" aria-labelledby="disciplines">
-    <div class="container-page py-14 md:py-20">
+    <div class="container-page py-10 md:py-14">
       <h2 id="disciplines" class="text-2xl text-ink-950 md:text-3xl">What I do</h2>
 
       <ul class="mt-6 grid grid-cols-1 gap-5 md:mt-8 md:grid-cols-2">
@@ -42,7 +42,7 @@ const facts = allFacts.filter((fact) => fact.value !== null);
 
       {
         facts.length > 0 && (
-          <dl class="mt-12 grid grid-cols-1 gap-8 border-t border-line pt-10 sm:grid-cols-2">
+          <dl class="mt-10 grid grid-cols-1 gap-8 border-t border-line pt-8 sm:grid-cols-2">
             {facts.map((fact) => (
               <div>
                 <dt class="eyebrow">{fact.label}</dt>
@@ -55,7 +55,7 @@ const facts = allFacts.filter((fact) => fact.value !== null);
     </div>
   </section>
 
-  <section class="section">
+  <section class="py-12 md:py-16">
     <div class="container-page">
       <div class="flex flex-col items-start gap-5">
         <h2 class="max-w-xl text-2xl text-ink-950 md:text-3xl">
