@@ -47,11 +47,7 @@ export function resolveCover(data: CoverSource): ImageMetadata | null {
 export function coverAlt(
   data: CoverSource & { coverImageAlt?: string; title?: string; vehicle?: string },
 ): string {
-  return (
-    data.coverImageAlt ??
-    data.hero?.alt ??
-    data.steps?.[0]?.alt ??
-    data.gallery?.[0]?.alt ??
-    `Cover photo for ${data.title}${data.vehicle ? ` (${data.vehicle})` : ''}`
-  );
+  const candidates = [data.coverImageAlt, data.hero?.alt, data.steps?.[0]?.alt, data.gallery?.[0]?.alt];
+  const firstNonEmpty = candidates.find((alt) => typeof alt === 'string' && alt.trim() !== '');
+  return firstNonEmpty ?? `Cover photo for ${data.title}${data.vehicle ? ` (${data.vehicle})` : ''}`;
 }

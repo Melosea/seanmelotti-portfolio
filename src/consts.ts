@@ -111,7 +111,7 @@ export type ProfileFact = {
 export const PROFILE = {
   lede: 'Restoration, fabrication and 3D work — documented from teardown to the last torque check.',
   intro: [
-    'I restore and build mechanical things — assemblies brought back to spec, metal formed and welded to fit, and parts modelled in CAD and printed when nothing off the shelf will do the job.',
+    'I restore and build automobiles — assemblies brought back to spec, metal formed and welded to fit, and parts modeled in CAD and printed when nothing off the shelf will do the job.',
     'Every project here is documented end to end: what came in, what it needed, how it was measured, and where it ended up. The write-up is as much of the work as the photos are.',
   ],
   facts: [

@@ -689,9 +689,7 @@
   }
 
   .hero-photo {
-    height: 68vh;
-    min-height: 400px;
-    max-height: 72vh;
+    height: clamp(300px, 48vh, 540px);
     overflow: hidden;
     background: var(--color-surface-sunken);
   }
@@ -710,11 +708,23 @@
   }
 
   .hero-spec-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .hero-spec-strip li {
     font-family: var(--font-mono);
     font-size: var(--text-xs);
-    color: var(--color-ink-400);
     letter-spacing: 0.04em;
-    margin-top: 1rem;
+    color: var(--color-ink-500);
+    padding: 0.25rem 0.625rem;
+    border: 1px solid var(--color-line);
+    border-radius: 0.375rem;
+    background: var(--color-canvas);
   }
 
   /* --- Sequence layout (Phase 2 project template) ----------------------- */
