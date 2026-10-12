@@ -6,25 +6,21 @@
   "disciplines": [
     {
       "name": "Mechanical Restoration",
-      "description": "Teardown, inspection and rebuild of worn assemblies — measured on the way apart so it goes back together to a spec that holds up in use."
+      "description": "Teardown, inspection and rebuild of worn assemblies. Precision measurement of critical components, replacement or recondition of worn parts and accomplishment of working assemblies."
     },
     {
       "name": "Fabrication",
-      "description": "Metalwork made to fit: panels formed on the bench, mounts and brackets cut and welded, repair sections let into original structure."
+      "description": "Metalwork tailored to the job: fabrication solutions using modern tools and techniques, fit up, and welding processes to provide a strong and well thought out product."
     },
     {
       "name": "3D Modeling",
-      "description": "CAD models of the parts that have to be replaced, adapted or made from nothing — measured first, drawn to fit the car it is going in."
-    },
-    {
-      "name": "Additive Manufacturing",
-      "description": "Printed parts, patterns and fixtures — replacements for parts no longer made, and the tooling that makes the rest of the job easier."
+      "description": "CAD models of the parts that have to be replaced, adapted or made from scratch. Use of 3D scanning, modeling and printing. Producing tools custom fit to the job."
     }
   ],
   "facts": [
     {
       "label": "Based in",
-      "value": null
+      "value": ""
     },
     {
       "label": "Working since",
@@ -32,11 +28,11 @@
     },
     {
       "label": "Shop setup",
-      "value": null
+      "value": ""
     },
     {
       "label": "Open to",
-      "value": null
+      "value": ""
     }
   ],
   "closingHeading": "The Details Make the Difference"
