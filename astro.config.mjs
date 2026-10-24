@@ -105,6 +105,36 @@ const studioVitePlugin = {
         return;
       }
 
+
+      // GET /api/studio/content-slugs — list project/skill slugs from actual MDX content dirs
+      if (url.pathname === '/content-slugs' && req.method === 'GET') {
+        try {
+          const CONTENT_DIR = path.join(ROOT, 'src', 'content');
+          const results = [];
+          for (const type of ['projects', 'skills']) {
+            const dir = path.join(CONTENT_DIR, type);
+            const files = await fsAsync.readdir(dir).catch(() => []);
+            for (const f of files) {
+              if (!f.endsWith('.mdx') && !f.endsWith('.md')) continue;
+              const slug = f.replace(/\.(mdx|md)$/, '');
+              // Extract title from frontmatter (first line matching 'title:')
+              let title = slug;
+              try {
+                const raw = await fsAsync.readFile(path.join(dir, f), 'utf-8');
+                const m = raw.match(/^title:\s*(.+)$/m);
+                if (m) title = m[1].replace(/^['"]|['"]$/g, '').trim();
+              } catch {}
+              results.push({ slug, type: type === 'skills' ? 'skill' : 'project', title });
+            }
+          }
+          results.sort((a, b) => a.slug.localeCompare(b.slug));
+          res.end(JSON.stringify({ slugs: results }));
+        } catch (e) {
+          res.writeHead(500);
+          res.end(JSON.stringify({ error: String(e) }));
+        }
+        return;
+      }
       // GET /api/studio/photos/:slug — list photos in a folder
       const photosMatch = url.pathname.match(/^\/photos\/([^/]+)$/);
       if (photosMatch) {
