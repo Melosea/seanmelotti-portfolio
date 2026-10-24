@@ -1,13 +1,14 @@
-﻿---
+---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ProjectCard from '../../components/ProjectCard.astro';
 import PageHeader from '../../components/PageHeader.astro';
 import { resolveCover, coverAlt, PLACEHOLDER_COVER } from '../../lib/photos';
 import skillsContent from '../../content/pages/skills.json';
+import { formatDateLabel } from '../../lib/date-label.mjs';
 
 const skills = (await getCollection('skills', ({ data }) => !data.draft)).sort(
-  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+  (a, b) => (b.data.date?.valueOf() ?? 0) - (a.data.date?.valueOf() ?? 0),
 );
 
 const heading = skillsContent?.heading || 'Skills';
@@ -47,6 +48,7 @@ const emptyCtaText = skillsContent?.emptyCtaText || 'Browse projects';
                     tags={skill.data.tags}
                     href={`/skills/${skill.id}`}
                     eager={index < 3}
+                    timestamp={skill.data.date ? formatDateLabel(skill.data) : undefined}
                   />
                 </li>
               ))}
