@@ -159,7 +159,7 @@
   }
 
   // Wrap each sequence / gallery image in a keyboard-reachable button trigger.
-  document.querySelectorAll<HTMLImageElement>('.seq-figure img, .gallery-grid img').forEach((img) => {
+  document.querySelectorAll<HTMLImageElement>('.photo-grid-cell img, .seq-figure img, .gallery-grid img').forEach((img) => {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'lb-trigger';
