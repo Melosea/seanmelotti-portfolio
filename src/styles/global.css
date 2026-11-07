@@ -168,6 +168,7 @@
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
   }
 
   h1,
@@ -852,26 +853,71 @@
     margin-bottom: 1rem;
   }
 
-  /* Masonry variant A: CSS multi-column flow (natural aspect ratios) */
+  /* Uniform 2-up photo grid (Option A) — collapses to 1-col on mobile */
   .gallery-grid {
-    columns: 2;
-    column-gap: 0.75rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    align-items: start;
   }
 
-  @media (min-width: 40rem) {
+  @media (max-width: 47.999rem) {
     .gallery-grid {
-      columns: 3;
+      grid-template-columns: 1fr;
     }
   }
 
   .gallery-grid img {
     width: 100%;
     height: auto;
-    break-inside: avoid;
-    margin-bottom: 0.75rem;
     border-radius: var(--radius-sm);
     background: var(--color-surface-sunken);
     display: block;
+  }
+
+  /* --- Uniform 2-up photo grid (shared between seq + gallery) ------------ */
+  .photo-grid-2up {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    align-items: start;
+  }
+
+  @media (max-width: 47.999rem) {
+    .photo-grid-2up {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .photo-grid-cell {
+    display: flex;
+    flex-direction: column;
+    gap: var(--seq-caption-gap);
+    min-width: 0;
+  }
+
+  .photo-grid-cell img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    background: var(--color-surface-sunken);
+    display: block;
+  }
+
+  .photo-caption {
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    color: var(--color-ink-500);
+    text-align: center;
+  }
+
+  /* Full-width group intro text block before a cluster of photos */
+  .photo-group-intro {
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    color: var(--color-ink-700);
+    max-width: var(--container-narrow);
+    margin-bottom: 1.5rem;
   }
 
 
