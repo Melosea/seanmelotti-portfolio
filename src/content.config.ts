@@ -17,11 +17,14 @@ const stepSchema = z.object({
   chapter: blankAsUndefined(z.string().optional()),
   orientation: z.enum(['landscape', 'portrait']).default('landscape'),
   pair: z.boolean().default(false),
+  /** Full-width prose block rendered before this photo's group (use on first photo of a group). */
+  groupIntro: blankAsUndefined(z.string().optional()),
 });
 
 const galleryItemSchema = z.object({
   src: z.string(),
   alt: z.string(),
+  caption: blankAsUndefined(z.string().max(120).optional()),
 });
 
 const projects = defineCollection({

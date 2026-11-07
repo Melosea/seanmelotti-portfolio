@@ -88,6 +88,11 @@ collections:
             options: [landscape, portrait]
             default: landscape
           - { name: pair, label: 'Pair with next photo', widget: boolean, default: false }
+          - name: groupIntro
+            label: 'Group Intro Text'
+            widget: text
+            required: false
+            hint: 'Full-width text shown before this group of photos. Add to the FIRST photo in a chapter/group.'
       - name: gallery
         label: Gallery
         widget: list
@@ -97,6 +102,7 @@ collections:
         fields:
           - { name: src, label: Photo, widget: image }
           - { name: alt, label: Alt Text, widget: string }
+          - { name: caption, label: Caption, widget: string, required: false, hint: 'Optional caption shown below the photo' }
       - { name: body, label: Story, widget: markdown, required: false }
 
   - name: skills
@@ -153,6 +159,11 @@ collections:
             options: [landscape, portrait]
             default: landscape
           - { name: pair, label: 'Pair with next photo', widget: boolean, default: false }
+          - name: groupIntro
+            label: 'Group Intro Text'
+            widget: text
+            required: false
+            hint: 'Full-width text shown before this group of photos. Add to the FIRST photo in a chapter/group.'
       - name: gallery
         label: Gallery
         widget: list
@@ -162,6 +173,7 @@ collections:
         fields:
           - { name: src, label: Photo, widget: image }
           - { name: alt, label: Alt Text, widget: string }
+          - { name: caption, label: Caption, widget: string, required: false, hint: 'Optional caption shown below the photo' }
       - { name: body, label: Story, widget: markdown, required: false }
 
   - name: pages

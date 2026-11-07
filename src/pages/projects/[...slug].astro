@@ -1,4 +1,4 @@
----
+﻿---
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import { Image, getImage } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -38,14 +38,6 @@ const STATUS_CLASS = {
 const fullDate = formatDateLabel(project.data, { monthStyle: 'long' });
 
 const { hero, specStrip, steps, gallery } = project.data;
-
-if (steps) {
-  for (const step of steps) {
-    if (step.caption.length > 90) {
-      console.warn(`[${project.id}] Caption >90 chars: "${step.caption.slice(0, 50)}..."`);
-    }
-  }
-}
 
 type StepWithImg = (typeof steps)[number] & { img: ImageMetadata | null; seqIdx: number };
 const stepsWithImg: StepWithImg[] = (steps ?? []).map((s, i) => ({
@@ -165,7 +157,7 @@ const hasSequenceContent = stepsWithImg.length > 0 || (gallery?.length ?? 0) > 0
         </div>
     )}
 
-    {/* ── Sequence ── */}
+    {/* ── Sequence: uniform 2-up photo grid ── */}
         {stepsWithImg.length > 0 && (
           <div class="seq-section">
             <div class:list={[hasChapterTabs ? 'chapter-layout' : '']}>
@@ -186,84 +178,26 @@ const hasSequenceContent = stepsWithImg.length > 0 || (gallery?.length ?? 0) > 0
                     {group.label && (
                       <p class="seq-chapter">{group.label}</p>
                     )}
-                    {(() => {
-                      const rendered: any[] = [];
-                      let i = 0;
-                      while (i < group.steps.length) {
-                        const step = group.steps[i];
-                        if (i === 0) {
-                          rendered.push(
-                            <figure class:list={['seq-figure', step.orientation === 'portrait' ? 'portrait' : '']} key={`step-${step.seqIdx}`}>
-                              {step.img ? (
-                                <Image
-                                  src={step.img}
-                                  alt={step.alt}
-                                  loading="lazy"
-                                  decoding="async"
-                                  widths={[480, 880, 1760]}
-                                  sizes="(min-width: 72rem) 880px, (min-width: 48rem) calc(100vw - 4rem), calc(100vw - 2.5rem)"
-                                />
-                              ) : null}
-                              {step.caption && <figcaption class="seq-caption">{step.caption}</figcaption>}
-                            </figure>
-                          );
-                          i++;
-                        } else {
-                          const nextStep = group.steps[i + 1];
-                          if (nextStep) {
-                            rendered.push(
-                              <div class="seq-pair" key={`pair-${step.seqIdx}`}>
-                                <figure class:list={['seq-figure', step.orientation === 'portrait' ? 'portrait' : '']}>
-                                  {step.img ? (
-                                    <Image
-                                      src={step.img}
-                                      alt={step.alt}
-                                      loading="lazy"
-                                      decoding="async"
-                                      widths={[320, 640, 880]}
-                                      sizes="(min-width: 72rem) 430px, (min-width: 48rem) calc(50vw - 2rem), calc(100vw - 2.5rem)"
-                                    />
-                                  ) : null}
-                                  {step.caption && <figcaption class="seq-caption">{step.caption}</figcaption>}
-                                </figure>
-                                <figure class:list={['seq-figure', nextStep.orientation === 'portrait' ? 'portrait' : '']}>
-                                  {nextStep.img ? (
-                                    <Image
-                                      src={nextStep.img}
-                                      alt={nextStep.alt}
-                                      loading="lazy"
-                                      decoding="async"
-                                      widths={[320, 640, 880]}
-                                      sizes="(min-width: 72rem) 430px, (min-width: 48rem) calc(50vw - 2rem), calc(100vw - 2.5rem)"
-                                    />
-                                  ) : null}
-                                  {nextStep.caption && <figcaption class="seq-caption">{nextStep.caption}</figcaption>}
-                                </figure>
-                              </div>
-                            );
-                            i += 2;
-                          } else {
-                            rendered.push(
-                              <figure class:list={['seq-figure', step.orientation === 'portrait' ? 'portrait' : '']} key={`step-${step.seqIdx}`}>
-                                {step.img ? (
-                                  <Image
-                                    src={step.img}
-                                    alt={step.alt}
-                                    loading="lazy"
-                                    decoding="async"
-                                    widths={[320, 640, 880]}
-                                    sizes="(min-width: 72rem) 430px, (min-width: 48rem) calc(50vw - 2rem), calc(100vw - 2.5rem)"
-                                  />
-                                ) : null}
-                                {step.caption && <figcaption class="seq-caption">{step.caption}</figcaption>}
-                              </figure>
-                            );
-                            i++;
-                          }
-                        }
-                      }
-                      return rendered;
-                    })()}
+                    {group.steps[0]?.groupIntro && (
+                      <p class="photo-group-intro">{group.steps[0].groupIntro}</p>
+                    )}
+                    <div class="photo-grid-2up">
+                      {group.steps.map((step) => (
+                        <figure class="photo-grid-cell">
+                          {step.img ? (
+                            <Image
+                              src={step.img}
+                              alt={step.alt}
+                              loading="lazy"
+                              decoding="async"
+                              widths={[480, 880, 1200]}
+                              sizes="(min-width: 72rem) 540px, (min-width: 48rem) calc(50vw - 2rem), 100vw"
+                            />
+                          ) : null}
+                          {step.caption && <figcaption class="photo-caption">{step.caption}</figcaption>}
+                        </figure>
+                      ))}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -271,7 +205,7 @@ const hasSequenceContent = stepsWithImg.length > 0 || (gallery?.length ?? 0) > 0
           </div>
         )}
 
-        {/* ── Gallery — always-visible grid ── */}
+        {/* ── Gallery — 2-up grid ── */}
         {gallery && gallery.length > 0 && (
           <div class="gallery-section">
             <p class="gallery-heading">Full gallery</p>
@@ -279,14 +213,17 @@ const hasSequenceContent = stepsWithImg.length > 0 || (gallery?.length ?? 0) > 0
               {gallery.map((item) => {
                 const img = getImg(item.src);
                 return img ? (
-                  <Image
-                    src={img}
-                    alt={item.alt}
-                    loading="lazy"
-                    decoding="async"
-                    widths={[320, 680]}
-                    sizes="(min-width: 72rem) 340px, 50vw"
-                  />
+                  <figure class="photo-grid-cell">
+                    <Image
+                      src={img}
+                      alt={item.alt}
+                      loading="lazy"
+                      decoding="async"
+                      widths={[480, 880]}
+                      sizes="(min-width: 72rem) 540px, (min-width: 48rem) calc(50vw - 2rem), 100vw"
+                    />
+                    {item.caption && <figcaption class="photo-caption">{item.caption}</figcaption>}
+                  </figure>
                 ) : null;
               })}
             </div>
